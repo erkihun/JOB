@@ -94,7 +94,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/logout', [AdminAuthController::class, 'logout'])->middleware('auth')->name('logout');
 
     // All other admin routes require authentication + admin role
-    Route::middleware(['auth', 'admin'])->group(function () {
+    Route::middleware(['admin'])->group(function () {
         Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [AdminProfileController::class, 'update'])->name('profile.update');
 
