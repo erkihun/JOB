@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php --version)",
+      "Bash(composer --version)",
+      "Bash(laravel --version)",
+      "Bash(laravel new *)",
+      "Bash(Read \"C:\\\\Users\\\\Erkis\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Erkis-Documents-GitHub-JOBS\\\\a94eb590-bce5-41b5-b709-2f7dc52bf63d\\\\tasks\\\\b2axuwzg8.output\")",
+      "Bash(composer require *)",
+      "Bash(php artisan *)",
+      "Bash(composer show *)",
+      "Bash(npm --version)",
+      "Bash(npm install *)",
+      "PowerShell(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\Erkis\\\\Documents\\\\GitHub\\\\JOBS\\\\app\\\\Http\\\\Requests\\\\Screening\" -Force)",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\Erkis\\\\Documents\\\\GitHub\\\\JOBS\\\\app\\\\Filament\\\\Resources\\\\ScreeningResource\\\\Pages\")",
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\Erkis\\\\Documents\\\\GitHub\\\\JOBS\\\\app\\\\Resources\\\\views\\\\filament\\\\resources\\\\screening\")"
+    ]
+  }
+}

@@ -1,0 +1,117 @@
+@import '@fontsource/noto-serif-ethiopic';
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif-am: 'Noto Serif Ethiopic', 'Noto Serif', Georgia, serif;
+
+    /* ── Brand Colors ──────────────────────────────── */
+    --color-brand:        #1A56DB;
+    --color-brand-dark:   #1e40af;
+    --color-navy:         #1E3A8A;
+    --color-navy-dark:    #172e6e;
+    --color-accent:       #FF6B2B;
+    --color-accent-dark:  #e55a1c;
+    --color-brand-muted:  #EBF5FF;
+    --color-accent-muted: #FFF4ED;
+
+    /* ── Blue-tinted shadows ───────────────────────── */
+    --shadow-card:       0 1px 3px 0 rgba(26,86,219,.08), 0 1px 2px -1px rgba(26,86,219,.05);
+    --shadow-card-hover: 0 4px 6px -1px rgba(26,86,219,.12), 0 2px 4px -2px rgba(26,86,219,.08);
+}
+
+[x-cloak] { display: none !important; }
+
+html[lang='am'],
+html[lang='am'] body,
+.lang-am,
+.locale-am {
+    font-family: var(--font-serif-am);
+}
+
+html[lang='am'] input,
+html[lang='am'] select,
+html[lang='am'] textarea,
+html[lang='am'] button,
+.lang-am input,
+.lang-am select,
+.lang-am textarea,
+.lang-am button,
+.locale-am input,
+.locale-am select,
+.locale-am textarea,
+.locale-am button {
+    font-family: inherit;
+}
+
+/* ── Button System ─────────────────────────────────────────────────── */
+/* .btn supplies layout/typography — pure CSS so @apply btn is not needed   */
+/* Each .btn-* variant adds color/ring via real Tailwind utilities only.     */
+/* HTML usage: class="btn btn-primary"                                       */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;       /* gap-1.5 */
+    border-radius: 0.5rem; /* rounded-lg */
+    padding: 0.5rem 1rem;  /* py-2 px-4 */
+    font-size: 0.875rem;   /* text-sm */
+    line-height: 1.25rem;
+    font-weight: 500;      /* font-medium */
+    transition: all 0.2s ease-in-out;
+}
+.btn:focus        { outline: none; }
+.btn:focus-visible { outline: none; }
+.btn:disabled     { opacity: 0.6; cursor: not-allowed; }
+
+/* Variants — only Tailwind utilities inside @apply */
+.btn-primary  { @apply bg-brand   text-white   hover:bg-brand-dark   focus:ring-2 focus:ring-brand   focus:ring-offset-1; }
+.btn-accent   { @apply bg-accent  text-white   hover:bg-accent-dark  focus:ring-2 focus:ring-accent  focus:ring-offset-1; }
+.btn-navy     { @apply bg-navy    text-white   hover:bg-navy-dark    focus:ring-2 focus:ring-navy    focus:ring-offset-1; }
+.btn-outline  { @apply border border-brand  bg-white text-brand  hover:bg-brand-muted  focus:ring-2 focus:ring-brand   focus:ring-offset-1; }
+.btn-ghost    { @apply                       text-brand            hover:bg-brand-muted  focus:ring-2 focus:ring-brand   focus:ring-offset-1; }
+.btn-danger   { @apply bg-red-500 text-white   hover:bg-red-600      focus:ring-2 focus:ring-red-500 focus:ring-offset-1; }
+.btn-secondary{ @apply border border-gray-300 bg-white text-gray-600 hover:bg-gray-50    focus:ring-2 focus:ring-gray-300 focus:ring-offset-1; }
+
+/* ── Form Controls ─────────────────────────────────────────────────── */
+.form-input,
+.form-select,
+.form-textarea {
+    @apply w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition duration-150
+           focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand;
+}
+.form-input-error {
+    @apply border-red-400 focus:border-red-500 focus:ring-red-400;
+}
+
+/* ── Table System ──────────────────────────────────────────────────── */
+.table-header {
+    @apply bg-brand text-white;
+}
+.table-th {
+    @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white;
+}
+.table-th-right {
+    @apply px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-white;
+}
+.table-row {
+    @apply transition-colors duration-100 even:bg-brand-muted hover:bg-blue-50;
+}
+.table-td {
+    @apply px-4 py-3;
+}
+
+/* ── Status Badges ─────────────────────────────────────────────────── */
+.badge-blue   { @apply rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700; }
+.badge-green  { @apply rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700; }
+.badge-red    { @apply rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700; }
+.badge-amber  { @apply rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700; }
+.badge-gray   { @apply rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600; }
+.badge-orange { @apply rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-700; }

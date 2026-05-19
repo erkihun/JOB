@@ -1,0 +1,38 @@
+<?php
+
+return [
+    'submit_application' => 'Submit Application',
+    'track_application' => 'Track Application',
+    'application_status' => 'Application Status',
+    'reference_number' => 'Reference Number',
+    'upload_document' => 'Upload Document',
+    'replace_document' => 'Replace Document',
+    'application_submitted' => 'Your application has been submitted successfully.',
+    'application_updated' => 'Your application has been updated.',
+    'deadline_locked' => 'This application can no longer be edited. The vacancy deadline has passed.',
+    'duplicate_application' => 'You have already submitted an application for this vacancy.',
+    'file_too_large' => 'The file exceeds the maximum allowed size of 2 MB.',
+    'invalid_file_type' => 'Invalid file type. Only PDF, JPG, JPEG, and PNG files are allowed.',
+    'required_document_missing' => 'Please upload all required documents before submitting.',
+    'document_replaced' => 'Document replaced successfully.',
+    'profile_updated' => 'Your profile has been updated.',
+
+    // Tracking page
+    'track_title' => 'Track Your Application',
+    'track_subtitle' => 'Enter your reference number and email address or phone number to check your application status.',
+    'track_identifier_label' => 'Email Address or Phone Number',
+    'track_identifier_placeholder' => 'Enter your email or phone',
+    'track_submit' => 'Check Status',
+    'not_found' => 'No application found with that reference number.',
+    'identifier_mismatch' => 'The email or phone number does not match the application.',
+    'correction_required_note' => 'Action Required: Your application needs correction.',
+    'login_to_update' => 'Login to your account to make corrections.',
+    'progress' => 'Application Progress',
+    'status' => 'Status',
+    'submitted_at' => 'Date Submitted',
+    'step_submitted' => 'Submitted',
+    'step_screened' => 'Screened',
+    'step_exam' => 'Exam',
+    'step_interview' => 'Interview',
+    'step_final' => 'Final Decision',
+];

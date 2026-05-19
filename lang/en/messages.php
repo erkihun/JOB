@@ -1,0 +1,182 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    // Generic
+    'success' => 'Success',
+    'error' => 'Error',
+    'saved' => 'Saved successfully.',
+    'updated' => 'Updated successfully.',
+    'deleted' => 'Deleted successfully.',
+    'unauthorized' => 'You are not authorized to perform this action.',
+    'not_found' => 'The requested resource was not found.',
+    'no_records' => 'No records found.',
+    'filter' => 'Filter',
+    'reset' => 'Reset',
+    'search' => 'Search',
+
+    // Actions
+    'view' => 'View',
+    'edit' => 'Edit',
+    'delete' => 'Delete',
+    'cancel' => 'Cancel',
+    'create' => 'Create',
+    'save_changes' => 'Save Changes',
+    'confirm_delete' => 'Are you sure you want to delete this record?',
+    'add' => 'Add',
+    'submit' => 'Submit',
+    'back' => 'Back',
+    'download' => 'Download',
+    'actions' => 'Actions',
+
+    // Application
+    'application_submitted' => 'Your application has been submitted successfully.',
+    'application_updated' => 'Your application has been updated.',
+    'application_locked' => 'This application can no longer be edited. The vacancy deadline has passed.',
+    'duplicate_application' => 'You have already submitted an application for this vacancy.',
+    'profile_updated' => 'Your profile has been updated.',
+    'document_uploaded' => 'Document uploaded successfully.',
+    'document_replaced' => 'Document replaced successfully.',
+    'locale_switched' => 'Language changed.',
+
+    // Admin flash messages
+    'vacancy_created' => 'Vacancy created successfully.',
+    'vacancy_updated' => 'Vacancy updated successfully.',
+    'vacancy_deleted' => 'Vacancy deleted successfully.',
+    'user_created' => 'User created successfully.',
+    'user_updated' => 'User updated successfully.',
+    'user_deleted' => 'User deleted successfully.',
+    'schedule_created' => 'Schedule created successfully.',
+    'schedule_updated' => 'Schedule updated successfully.',
+    'schedule_deleted' => 'Schedule deleted successfully.',
+    'result_saved' => 'Result saved successfully.',
+    'applicants_assigned' => 'Applicants assigned successfully.',
+    'invalid_applicant_selection' => 'Select eligible applicants for this schedule.',
+    'screening_submitted' => 'Screening decision submitted.',
+    'role_updated' => 'Role permissions updated.',
+    'role_protected' => 'This role cannot be modified.',
+    'settings_saved' => 'Settings saved successfully.',
+    'template_updated' => 'Notification template updated.',
+    'final_results_announced' => 'Final result notifications queued for :count applicant(s).',
+
+    // Table columns
+    'applicant' => 'Applicant',
+    'applicant_code' => 'Applicant Code',
+    'vacancy_qualification' => 'Vacancy Qualification',
+    'review' => 'Review',
+    'reference' => 'Reference',
+    'submitted' => 'Submitted',
+    'title' => 'Title',
+
+    // Filters / dropdowns
+    'all_vacancies' => 'All Vacancies',
+    'all_statuses' => 'All Statuses',
+    'all_modules' => 'All Modules',
+    'all_actions' => 'All Actions',
+    'all_roles' => 'All Roles',
+    'all_types' => 'All Types',
+
+    // Users
+    'new_password' => 'New Password',
+    'confirm_password' => 'Confirm Password',
+    'add_user' => 'Add User',
+    'edit_user' => 'Edit User',
+    'role_name' => 'Role',
+    'permissions' => 'Permissions',
+    'edit_permissions' => 'Edit Permissions',
+    'active' => 'Active',
+    'inactive' => 'Inactive',
+
+    // Schedules
+    'add_schedule' => 'Add Schedule',
+    'edit_schedule' => 'Edit Schedule',
+    'instructions' => 'Instructions',
+    'results' => 'Results',
+    'record_results' => 'Record Results',
+    'save_result' => 'Save Result',
+    'select_schedule_to_record_results' => 'Select a schedule to record applicant scores and attendance.',
+    'score' => 'Score',
+    'invited' => 'Invited',
+    'attended' => 'Attended',
+    'absent' => 'Absent',
+    'assign_applicants' => 'Assign Applicants',
+    'assign_applicants_hint' => 'Select eligible applicants first. After assignment, their score form appears below.',
+    'assign_selected' => 'Assign Selected',
+    'no_eligible_applicants' => 'No eligible unassigned applicants found for this schedule.',
+
+    // Screening
+    'screening_decision' => 'Screening Decision',
+    'decision' => 'Decision',
+    'pass' => 'Pass',
+    'fail' => 'Fail',
+    'remarks' => 'Remarks',
+    'submit_decision' => 'Submit Decision',
+    'screening_history' => 'Screening History',
+    'remarks_placeholder' => 'Enter remarks or notes...',
+    'review_application' => 'Review Application',
+    'screened_by' => 'Screened By',
+    'screened_date' => 'Screened Date',
+    'generated' => 'Generated',
+    'total_records' => 'Total records',
+    'final_results_hint' => 'All passed-screening applicants are listed here. Add or edit their exam and interview results.',
+    'add_result' => 'Add Result',
+    'edit_result' => 'Edit Result',
+    'exam_score' => 'Exam Score',
+    'interview_score' => 'Interview Score',
+    'final_score' => 'Final Score',
+    'exam_weight' => 'Exam Weight',
+    'interview_weight' => 'Interview Weight',
+    'score_weights' => 'Score Weights',
+    'weight_hint' => 'Weights must sum to 100%',
+    'scores' => 'Scores',
+    'selected' => 'Selected',
+    'waitlisted' => 'Waitlisted',
+    'not_selected' => 'Not Selected',
+    'pending' => 'Pending',
+    'select' => 'Select',
+    'result_weights' => 'Result Weights',
+    'result_weights_hint' => 'Default weights applied when recording final results. Weights are snapshotted per record and can be overridden individually.',
+
+    // Audit logs
+    'performed_by' => 'Performed By',
+
+    // Notification templates
+    'subject' => 'Subject',
+    'body' => 'Body',
+    'locale' => 'Locale',
+
+    // Hero Slider
+    'image' => 'Image',
+    'subtitle' => 'Subtitle',
+    'button_text' => 'Button Text',
+    'button_link' => 'Button Link',
+    'order' => 'Order',
+
+    // Announcements
+    'add_announcement' => 'Add Announcement',
+    'announcement_created' => 'Announcement created successfully.',
+    'announcement_updated' => 'Announcement updated successfully.',
+    'announcement_deleted' => 'Announcement deleted successfully.',
+    'published_at' => 'Publish Date',
+    'leave_blank_draft' => 'Leave blank to save as draft.',
+    'content' => 'Content',
+    'published' => 'Published',
+    'draft' => 'Draft',
+    'created_at' => 'Created At',
+
+    // Profile
+    'edit_profile' => 'Edit Profile',
+    'edit_profile_sub' => 'Update your name, email, phone, or password.',
+    'leave_blank_to_keep' => 'Leave blank to keep current password',
+
+    // Settings
+    'org_name' => 'Organization Name',
+    'website' => 'Website',
+    'footer_text' => 'Footer Text',
+    'logo' => 'Logo',
+    'organization' => 'Organization',
+    'social_media' => 'Social Media',
+    'localization' => 'Localization',
+    'security' => 'Security',
+];

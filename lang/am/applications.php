@@ -1,0 +1,38 @@
+<?php
+
+return [
+    'submit_application' => 'ማመልከቻ አስገባ',
+    'track_application' => 'ማመልከቻ ይከታተሉ',
+    'application_status' => 'የማመልከቻ ሁኔታ',
+    'reference_number' => 'ማረጋገጫ ቁጥር',
+    'upload_document' => 'ሰነድ ይጫኑ',
+    'replace_document' => 'ሰነድ ይቀይሩ',
+    'application_submitted' => 'ማመልከቻዎ በተሳካ ሁኔታ ተልኳል።',
+    'application_updated' => 'ማመልከቻዎ ተዘምኗል።',
+    'deadline_locked' => 'ይህ ማመልከቻ ሊስተካከል አይችልም። የክፍት ቦታው ማብቂያ ጊዜ አልፏል።',
+    'duplicate_application' => 'ለዚህ ክፍት ቦታ አስቀድሞ ማመልከቻ አቅርበዋል።',
+    'file_too_large' => 'ፋይሉ ከ 2 ሜባ ያለፈ ነው።',
+    'invalid_file_type' => 'ልክ ያልሆነ የፋይል ዓይነት። PDF, JPG, JPEG, እና PNG ብቻ ይፈቀዳሉ።',
+    'required_document_missing' => 'ከማስገባቶ በፊት ሁሉም አስፈላጊ ሰነዶችን ይጫኑ።',
+    'document_replaced' => 'ሰነዱ በተሳካ ሁኔታ ተቀይሯል።',
+    'profile_updated' => 'መገለጫዎ ተዘምኗል።',
+
+    // Tracking page
+    'track_title' => 'ማመልከቻዎን ይከታተሉ',
+    'track_subtitle' => 'የማመልከቻ ሁኔታዎን ለማየት ማረጋገጫ ቁጥርዎን እና ኢሜልዎን ወይም ስልክ ቁጥርዎን ያስገቡ።',
+    'track_identifier_label' => 'ኢሜል ወይም ስልክ ቁጥር',
+    'track_identifier_placeholder' => 'ኢሜልዎን ወይም ስልክ ቁጥርዎን ያስገቡ',
+    'track_submit' => 'ሁኔታ ያረጋግጡ',
+    'not_found' => 'በዚህ ማረጋገጫ ቁጥር ምንም ማመልከቻ አልተገኘም።',
+    'identifier_mismatch' => 'ኢሜሉ ወይም ስልክ ቁጥሩ ከማመልከቻው ጋር አይዛመድም።',
+    'correction_required_note' => 'እርምጃ ያስፈልጋል፡ ማመልከቻዎ ማስተካከያ ያስፈልገዋል።',
+    'login_to_update' => 'ማስተካከያ ለማድረግ ወደ መለያዎ ይግቡ።',
+    'progress' => 'የማመልከቻ ሂደት',
+    'status' => 'ሁኔታ',
+    'submitted_at' => 'የቀረበበት ቀን',
+    'step_submitted' => 'ቀርቧል',
+    'step_screened' => 'ተጣርቷል',
+    'step_exam' => 'ፈተና',
+    'step_interview' => 'ቃለ መጠይቅ',
+    'step_final' => 'የመጨረሻ ውሳኔ',
+];
