@@ -20,7 +20,9 @@
                         <input type="checkbox" name="permissions[]" value="{{ $permission->name }}"
                                {{ $role->hasPermissionTo($permission->name) ? 'checked' : '' }}
                                class="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand">
-                        <span class="text-sm text-gray-700">{{ explode('.', $permission->name)[1] ?? $permission->name }}</span>
+                        <span class="text-sm text-gray-700">
+                            {{ ucfirst(str_replace(['.', '_'], [' › ', ' '], implode('.', array_slice(explode('.', $permission->name), 1)))) }}
+                        </span>
                     </label>
                     @endforeach
                 </div>
