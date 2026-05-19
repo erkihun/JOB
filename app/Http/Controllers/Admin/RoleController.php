@@ -13,7 +13,7 @@ use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    private const PROTECTED = ['super_admin', 'admin', 'applicant'];
+    private const PROTECTED = ['super_admin'];
 
     public function index(): View
     {
