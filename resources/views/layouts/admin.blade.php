@@ -5,6 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', __('menus.dashboard')) — {{ \App\Models\Setting::get('org.name', config('app.name')) }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- ── Prevent dark-mode flash before Alpine loads ── --}}
+    <script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
+    {{-- ── Dynamic brand colors from Settings ── --}}
+    @php
+    $themePrimary = \App\Models\Setting::get('appearance.primary_color', '#1A56DB');
+    $themeSidebar = \App\Models\Setting::get('appearance.sidebar_color', '#1E3A8A');
+    $themeAccent  = \App\Models\Setting::get('appearance.accent_color',  '#FF6B2B');
+    @endphp
+    <style>
+    :root {
+        --color-brand:        {{ $themePrimary }};
+        --color-brand-dark:   color-mix(in srgb, {{ $themePrimary }} 80%, black);
+        --color-navy:         {{ $themeSidebar }};
+        --color-navy-dark:    color-mix(in srgb, {{ $themeSidebar }} 80%, black);
+        --color-accent:       {{ $themeAccent }};
+        --color-accent-dark:  color-mix(in srgb, {{ $themeAccent }} 80%, black);
+        --color-brand-muted:  color-mix(in srgb, {{ $themePrimary }} 12%, white);
+        --color-accent-muted: color-mix(in srgb, {{ $themeAccent }} 12%, white);
+    }
+    </style>
 </head>
 <body class="h-full bg-gray-50 font-sans text-gray-900 antialiased locale-{{ app()->getLocale() }} lang-{{ app()->getLocale() }}" x-data="adminShell()" @keydown.escape="sidebarOpen = false">
 
@@ -197,6 +217,21 @@
         {{-- Right actions --}}
         <div class="flex items-center gap-2">
 
+            {{-- Dark / Light toggle --}}
+            <button @click="toggleDark()" title="Toggle dark mode"
+                    class="rounded-lg p-2 text-gray-500 hover:bg-brand-muted hover:text-brand transition">
+                {{-- Moon icon – visible in light mode --}}
+                <svg x-show="!darkMode" class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                {{-- Sun icon – visible in dark mode --}}
+                <svg x-show="darkMode" class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </button>
+
             {{-- Locale switcher --}}
             @if(\App\Models\Setting::get('localization.show_language_switcher', true))
             <div class="hidden sm:flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5 text-xs">
@@ -320,6 +355,12 @@
 function adminShell() {
     return {
         sidebarOpen: false,
+        darkMode: localStorage.getItem('theme') === 'dark',
+        toggleDark() {
+            this.darkMode = !this.darkMode;
+            localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+            document.documentElement.classList.toggle('dark', this.darkMode);
+        },
     };
 }
 </script>

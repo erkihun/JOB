@@ -38,7 +38,7 @@ class AdminDashboardController extends Controller
             'passed_screening'   => Application::where('status', ApplicationStatus::PassedScreening)->count(),
             'selected'           => Application::where('status', ApplicationStatus::Selected)->count(),
             'total_vacancies'    => Vacancy::count(),
-            'closed_vacancies'   => Vacancy::whereIn('status', [VacancyStatus::Closed, VacancyStatus::Archived])->count(),
+            'closed_vacancies'   => Vacancy::whereIn('status', [VacancyStatus::Closed, VacancyStatus::Finalized, VacancyStatus::Cancelled])->count(),
         ];
 
         // ── Application pipeline by status ───────────────────────────

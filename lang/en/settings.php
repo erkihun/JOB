@@ -27,6 +27,14 @@ return [
     'login_attempts' => 'Max Login Attempts',
     'saved' => 'Settings saved successfully.',
 
+    // Appearance
+    'appearance' => 'Appearance',
+    'appearance_presets' => 'Color Presets',
+    'appearance_primary_color' => 'Primary Color',
+    'appearance_sidebar_color' => 'Sidebar Color',
+    'appearance_accent_color' => 'Accent Color',
+    'appearance_hint' => 'Pick a preset or choose custom colors. Changes apply after saving.',
+
     // Code generation
     'codes' => 'Code Generation',
     'code_application' => 'Application Reference Code',

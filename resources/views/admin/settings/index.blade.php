@@ -6,7 +6,7 @@
 
     {{-- Tab bar --}}
     <div class="flex flex-wrap gap-1 border-b border-gray-200">
-        @foreach(['org' => __('messages.organization'), 'social' => __('messages.social_media'), 'recruitment' => __('menus.recruitment'), 'codes' => __('settings.codes'), 'results' => __('messages.result_weights'), 'localization' => __('messages.localization'), 'notifications' => __('menus.notifications'), 'security' => __('messages.security')] as $key => $label)
+        @foreach(['org' => __('messages.organization'), 'social' => __('messages.social_media'), 'recruitment' => __('menus.recruitment'), 'codes' => __('settings.codes'), 'results' => __('messages.result_weights'), 'localization' => __('messages.localization'), 'notifications' => __('menus.notifications'), 'security' => __('messages.security'), 'appearance' => __('settings.appearance')] as $key => $label)
         <button @click="tab = '{{ $key }}'"
                 :class="tab === '{{ $key }}' ? 'border-brand text-brand' : 'border-transparent text-gray-500 hover:text-gray-700'"
                 class="-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition">
@@ -317,6 +317,113 @@
                            class="form-input mt-1">
                 </div>
             </div>
+        </div>
+
+        {{-- Appearance --}}
+        <div x-show="tab === 'appearance'" class="space-y-6" style="display:none"
+             x-data="{
+                 primary: '{{ old('appearance.primary_color', $settings['appearance.primary_color'] ?? '#1A56DB') }}',
+                 sidebar: '{{ old('appearance.sidebar_color', $settings['appearance.sidebar_color'] ?? '#1E3A8A') }}',
+                 accent:  '{{ old('appearance.accent_color',  $settings['appearance.accent_color']  ?? '#FF6B2B') }}',
+                 presets: [
+                     { name: 'Blue',    primary: '#1A56DB', sidebar: '#1E3A8A', accent: '#FF6B2B' },
+                     { name: 'Emerald', primary: '#059669', sidebar: '#065F46', accent: '#F59E0B' },
+                     { name: 'Purple',  primary: '#7C3AED', sidebar: '#4C1D95', accent: '#EC4899' },
+                     { name: 'Rose',    primary: '#E11D48', sidebar: '#881337', accent: '#FB923C' },
+                     { name: 'Teal',    primary: '#0D9488', sidebar: '#134E4A', accent: '#F97316' },
+                     { name: 'Slate',   primary: '#475569', sidebar: '#1E293B', accent: '#06B6D4' },
+                 ],
+                 applyPreset(p) { this.primary = p.primary; this.sidebar = p.sidebar; this.accent = p.accent; },
+                 preview() {
+                     document.documentElement.style.setProperty('--color-brand', this.primary);
+                     document.documentElement.style.setProperty('--color-navy', this.sidebar);
+                     document.documentElement.style.setProperty('--color-accent', this.accent);
+                 }
+             }">
+
+            {{-- Preset swatches --}}
+            <div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
+                <div class="flex items-center gap-2">
+                    <div class="h-4 w-0.5 rounded bg-accent"></div>
+                    <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('settings.appearance_presets') }}</h2>
+                </div>
+                <p class="text-sm text-gray-500">{{ __('settings.appearance_hint') }}</p>
+                <div class="flex flex-wrap gap-3">
+                    <template x-for="p in presets" :key="p.name">
+                        <button type="button"
+                                @click="applyPreset(p); preview()"
+                                :title="p.name"
+                                class="group flex flex-col items-center gap-1.5">
+                            <span class="flex h-10 w-10 items-center justify-center rounded-full ring-2 ring-offset-2 transition"
+                                  :style="'background:'+p.primary"
+                                  :class="primary === p.primary ? 'ring-gray-500' : 'ring-transparent group-hover:ring-gray-300'">
+                                <span class="h-4 w-4 rounded-full" :style="'background:'+p.accent"></span>
+                            </span>
+                            <span class="text-xs text-gray-500" x-text="p.name"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+
+            {{-- Custom color pickers --}}
+            <div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
+                <div class="flex items-center gap-2">
+                    <div class="h-4 w-0.5 rounded bg-brand"></div>
+                    <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('settings.appearance') }}</h2>
+                </div>
+                <div class="grid gap-6 sm:grid-cols-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('settings.appearance_primary_color') }}</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" x-model="primary" @input="preview()"
+                                   class="h-10 w-14 cursor-pointer rounded-lg border border-gray-300 p-0.5">
+                            <input type="text" x-model="primary" @input="preview()"
+                                   name="appearance[primary_color]"
+                                   maxlength="7" placeholder="#1A56DB"
+                                   class="form-input font-mono uppercase w-28">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-400">Buttons, links, active states</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('settings.appearance_sidebar_color') }}</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" x-model="sidebar" @input="preview()"
+                                   class="h-10 w-14 cursor-pointer rounded-lg border border-gray-300 p-0.5">
+                            <input type="text" x-model="sidebar" @input="preview()"
+                                   name="appearance[sidebar_color]"
+                                   maxlength="7" placeholder="#1E3A8A"
+                                   class="form-input font-mono uppercase w-28">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-400">Navigation sidebar background</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('settings.appearance_accent_color') }}</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" x-model="accent" @input="preview()"
+                                   class="h-10 w-14 cursor-pointer rounded-lg border border-gray-300 p-0.5">
+                            <input type="text" x-model="accent" @input="preview()"
+                                   name="appearance[accent_color]"
+                                   maxlength="7" placeholder="#FF6B2B"
+                                   class="form-input font-mono uppercase w-28">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-400">Badges, highlights, accent elements</p>
+                    </div>
+                </div>
+
+                {{-- Live preview bar --}}
+                <div class="mt-4 overflow-hidden rounded-lg border border-gray-200">
+                    <div class="flex h-10 items-center gap-4 px-4" :style="'background:'+sidebar">
+                        <div class="h-5 w-5 rounded-full" :style="'background:'+accent"></div>
+                        <div class="h-2 w-24 rounded-full opacity-60 bg-white"></div>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white px-4 py-3">
+                        <span class="rounded-lg px-3 py-1.5 text-sm font-medium text-white" :style="'background:'+primary">Primary</span>
+                        <span class="rounded-lg px-3 py-1.5 text-sm font-medium text-white" :style="'background:'+accent">Accent</span>
+                        <span class="text-sm" :style="'color:'+primary">Link color</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div class="pt-2">

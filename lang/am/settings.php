@@ -27,6 +27,14 @@ return [
     'login_attempts' => 'ከፍተኛ የመግቢያ ሙከራዎች',
     'saved' => 'ቅንብሮቹ በተሳካ ሁኔታ ተቀምጠዋል።',
 
+    // Appearance
+    'appearance' => 'መልክ',
+    'appearance_presets' => 'የቀለም ቅድመ-ቅንብሮች',
+    'appearance_primary_color' => 'ዋና ቀለም',
+    'appearance_sidebar_color' => 'የጎን አሞሌ ቀለም',
+    'appearance_accent_color' => 'ጥቅ ቀለም',
+    'appearance_hint' => 'ቅድመ-ቅንብር ይምረጡ ወይም ብጁ ቀለሞች ያስገቡ። ለውጦቹ ከማስቀመጥ በኋላ ይሠራሉ።',
+
     // Code generation
     'codes' => 'ኮድ አወጣጥ',
     'code_application' => 'የማመልከቻ ቁጥር ኮድ',

@@ -11,9 +11,27 @@
     <style>* { font-family: 'Noto Sans Ethiopic', sans-serif !important; }</style>
     @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
+    @php
+    $themePrimary = \App\Models\Setting::get('appearance.primary_color', '#1A56DB');
+    $themeSidebar = \App\Models\Setting::get('appearance.sidebar_color', '#1E3A8A');
+    $themeAccent  = \App\Models\Setting::get('appearance.accent_color',  '#FF6B2B');
+    @endphp
+    <style>
+    :root {
+        --color-brand:        {{ $themePrimary }};
+        --color-brand-dark:   color-mix(in srgb, {{ $themePrimary }} 80%, black);
+        --color-navy:         {{ $themeSidebar }};
+        --color-navy-dark:    color-mix(in srgb, {{ $themeSidebar }} 80%, black);
+        --color-accent:       {{ $themeAccent }};
+        --color-accent-dark:  color-mix(in srgb, {{ $themeAccent }} 80%, black);
+        --color-brand-muted:  color-mix(in srgb, {{ $themePrimary }} 12%, white);
+        --color-accent-muted: color-mix(in srgb, {{ $themeAccent }} 12%, white);
+    }
+    </style>
 </head>
 <body class="min-h-screen bg-gray-50 font-sans text-gray-900 antialiased"
-      x-data="{ mobileOpen: false, userOpen: false }">
+      x-data="{ mobileOpen: false, userOpen: false, darkMode: localStorage.getItem('theme')==='dark', toggleDark(){ this.darkMode=!this.darkMode; localStorage.setItem('theme',this.darkMode?'dark':'light'); document.documentElement.classList.toggle('dark',this.darkMode); } }">
 
 @php
     $orgLogo      = \App\Models\Setting::get('org.logo', '');
@@ -67,6 +85,19 @@
            class="px-3 py-1.5 transition {{ app()->getLocale() === 'am' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-50' }}">አማ</a>
     </div>
     @endif
+
+    {{-- Dark / Light toggle --}}
+    <button @click="toggleDark()" title="Toggle dark mode"
+            class="flex items-center justify-center h-9 w-9 rounded-lg text-gray-500 hover:bg-gray-100 transition shrink-0">
+        <svg x-show="!darkMode" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+        </svg>
+        <svg x-show="darkMode" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+        </svg>
+    </button>
 
     {{-- Notification bell --}}
     <a href="{{ route('applicant.notifications.index') }}"

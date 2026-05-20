@@ -26,6 +26,7 @@ class SettingsController extends Controller
         'codes.vacancy.prefix', 'codes.vacancy.format', 'codes.vacancy.padding', 'codes.vacancy.auto',
         'codes.applicant.prefix', 'codes.applicant.format', 'codes.applicant.padding',
         'results.exam_weight', 'results.interview_weight',
+        'appearance.primary_color', 'appearance.sidebar_color', 'appearance.accent_color',
     ];
 
     public function index(): View
@@ -73,6 +74,9 @@ class SettingsController extends Controller
             'codes.applicant.padding' => ['nullable', 'integer', 'min:1', 'max:10'],
             'results.exam_weight' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'results.interview_weight' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'appearance.primary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'appearance.sidebar_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'appearance.accent_color'  => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
 
         // Handle logo upload separately to avoid overwriting its path in the loop.
