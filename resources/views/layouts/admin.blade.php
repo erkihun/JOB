@@ -12,6 +12,7 @@
         $themeAccent  = \App\Models\Setting::get('appearance.accent_color',  '#FF6B2B');
     @endphp
     <style>
+    /* ── Brand CSS vars ─────────────────────────────────────────── */
     :root {
         --color-brand:        {{ $themePrimary }};
         --color-brand-dark:   color-mix(in srgb, {{ $themePrimary }} 80%, black);
@@ -23,17 +24,57 @@
         --color-accent-muted: color-mix(in srgb, {{ $themeAccent }} 12%, white);
     }
 
-    /* ── Sidebar scrollbar ─────────────────────────────────────── */
+    /* ── Sidebar design tokens — light mode (default) ───────────── */
+    :root {
+        --sb-text:          #1e293b;
+        --sb-muted:         #64748b;
+        --sb-dim:           #94a3b8;
+        --sb-border:        rgba(0,0,0,.08);
+        --sb-hover:         rgba(0,0,0,.05);
+        --sb-active-bg:     color-mix(in srgb, var(--color-brand) 10%, white);
+        --sb-active-text:   var(--color-brand);
+        --sb-active-icon:   var(--color-brand);
+        --sb-inactive-icon: #94a3b8;
+        --sb-hover-icon:    #475569;
+        --sb-line:          rgba(0,0,0,.08);
+        --sb-badge-bg:      rgba(0,0,0,.06);
+        --sb-badge-text:    #475569;
+        --sb-footer-bg:     rgba(0,0,0,.03);
+        --sb-action:        #94a3b8;
+        --sb-radial:        transparent;
+    }
+
+    /* ── Sidebar design tokens — dark mode ──────────────────────── */
+    html.dark {
+        --sb-text:          rgba(255,255,255,.92);
+        --sb-muted:         rgba(255,255,255,.55);
+        --sb-dim:           rgba(255,255,255,.35);
+        --sb-border:        rgba(255,255,255,.08);
+        --sb-hover:         rgba(255,255,255,.07);
+        --sb-active-bg:     rgba(255,255,255,.1);
+        --sb-active-text:   #ffffff;
+        --sb-active-icon:   #ffffff;
+        --sb-inactive-icon: rgba(255,255,255,.38);
+        --sb-hover-icon:    rgba(255,255,255,.85);
+        --sb-line:          rgba(255,255,255,.1);
+        --sb-badge-bg:      rgba(255,255,255,.1);
+        --sb-badge-text:    rgba(255,255,255,.7);
+        --sb-footer-bg:     rgba(255,255,255,.04);
+        --sb-action:        rgba(255,255,255,.42);
+        --sb-radial:        rgba(255,255,255,.055);
+    }
+
+    /* ── Sidebar scrollbar ──────────────────────────────────────── */
     .sidebar-nav::-webkit-scrollbar       { width: 3px; }
     .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
-    .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 99px; }
-    .sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.22); }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: var(--sb-line); border-radius: 99px; }
+    .sidebar-nav::-webkit-scrollbar-thumb:hover { background: var(--sb-muted); }
 
-    /* ── Sidebar tooltip (shown when rail is collapsed) ────────── */
+    /* ── Collapsed tooltip ──────────────────────────────────────── */
     .nav-tooltip {
         pointer-events: none;
         position: fixed;
-        left: 4.5rem;       /* just past the 4rem rail */
+        left: 4.5rem;
         z-index: 200;
         white-space: nowrap;
         padding: .35rem .75rem;
@@ -48,6 +89,13 @@
         transition: opacity .15s ease, transform .15s ease;
     }
     .nav-item:hover .nav-tooltip { opacity: 1; transform: translateX(0); }
+
+    /* ── Nav item states ────────────────────────────────────────── */
+    .nav-item:hover        { background: var(--sb-hover) !important; }
+    .nav-active            { background: var(--sb-active-bg); color: var(--sb-active-text); }
+    .nav-inactive          { color: var(--sb-muted); }
+    .nav-icon-active       { color: var(--sb-active-icon); }
+    .nav-icon-inactive     { color: var(--sb-inactive-icon); }
     </style>
 </head>
 <body class="h-full bg-gray-50 font-sans text-gray-900 antialiased locale-{{ app()->getLocale() }} lang-{{ app()->getLocale() }}"
@@ -66,52 +114,57 @@
 
 {{-- ════════════════════════════════════════════════════════════
      Sidebar
+     Background switches via Alpine darkMode:
+       light → white + right-border shadow
+       dark  → 3-stop navy gradient + drop shadow
 ════════════════════════════════════════════════════════════ --}}
 <aside
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     :style="`
         width: ${sidebarOpen || !sidebarCollapsed ? '16rem' : '4rem'};
-        background: linear-gradient(160deg,
-            color-mix(in srgb, var(--color-navy) 110%, white 4%) 0%,
-            var(--color-navy) 40%,
-            color-mix(in srgb, var(--color-navy) 80%, black) 100%);
+        background: ${darkMode
+            ? 'linear-gradient(160deg, color-mix(in srgb,var(--color-navy) 112%,white) 0%, var(--color-navy) 42%, color-mix(in srgb,var(--color-navy) 78%,black) 100%)'
+            : 'white'};
+        box-shadow: ${darkMode
+            ? '4px 0 28px rgba(0,0,0,.22)'
+            : '1px 0 0 rgba(0,0,0,.08), 3px 0 12px rgba(0,0,0,.04)'};
     `"
-    class="fixed inset-y-0 left-0 z-50 flex flex-col lg:translate-x-0 transition-all duration-300 ease-out overflow-hidden"
-    style="box-shadow: 4px 0 24px rgba(0,0,0,.18);">
+    class="fixed inset-y-0 left-0 z-50 flex flex-col lg:translate-x-0 transition-all duration-300 ease-out overflow-hidden">
 
-    {{-- ── Radial highlight at top-left ─────────────────────────── --}}
+    {{-- Radial highlight (dark mode only) ─────────────────────── --}}
     <div class="pointer-events-none absolute inset-0 z-0"
-         style="background: radial-gradient(ellipse 200px 180px at 10% 0%, rgba(255,255,255,.06) 0%, transparent 70%);"></div>
+         style="background: radial-gradient(ellipse 200px 180px at 8% 0%, var(--sb-radial) 0%, transparent 70%);"></div>
 
     {{-- ════════════════════════════════════════════════════════════
          Brand header
     ════════════════════════════════════════════════════════════ --}}
     <div class="relative z-10 flex h-16 shrink-0 items-center gap-3 px-3.5"
-         style="border-bottom: 1px solid rgba(255,255,255,.08);">
+         style="border-bottom: 1px solid var(--sb-border);">
 
         {{-- Logo mark --}}
         @php $orgLogo = \App\Models\Setting::get('org.logo', ''); @endphp
         @if($orgLogo)
         <img src="{{ Storage::url($orgLogo) }}" alt=""
-             class="h-9 w-9 shrink-0 rounded-xl object-cover shadow-lg"
-             style="ring: 2px solid rgba(255,255,255,.2);">
+             class="h-9 w-9 shrink-0 rounded-xl object-cover shadow-md"
+             style="outline: 2px solid var(--sb-border); outline-offset: 1px;">
         @else
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white shadow-lg"
-             style="background: linear-gradient(135deg, var(--color-accent) 0%, color-mix(in srgb, var(--color-accent) 70%, var(--color-brand)) 100%);
-                    box-shadow: 0 4px 12px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.15);">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white shadow-md"
+             style="background: linear-gradient(135deg, var(--color-accent) 0%, color-mix(in srgb,var(--color-accent) 65%,var(--color-brand)) 100%);
+                    box-shadow: 0 3px 10px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.15);">
             {{ mb_substr(\App\Models\Setting::get('org.name', config('app.name')), 0, 2) }}
         </div>
         @endif
 
-        {{-- Name + badge (fades out when collapsed) --}}
+        {{-- Org name + "Admin" badge --}}
         <div class="flex-1 min-w-0 overflow-hidden transition-all duration-300"
              :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'">
-            <p class="truncate text-[13px] font-semibold text-white leading-tight whitespace-nowrap">
+            <p class="truncate text-[13px] font-semibold leading-tight whitespace-nowrap"
+               style="color: var(--sb-text);">
                 {{ \App\Models\Setting::get('org.name', config('app.name')) }}
             </p>
             <div class="flex items-center gap-1.5 mt-0.5">
                 <span class="inline-flex items-center rounded px-1.5 py-px text-[10px] font-semibold uppercase tracking-wider"
-                      style="background: rgba(255,255,255,.1); color: rgba(255,255,255,.7); letter-spacing: .06em;">
+                      style="background: var(--sb-badge-bg); color: var(--sb-badge-text); letter-spacing:.07em;">
                     Admin
                 </span>
             </div>
@@ -129,14 +182,12 @@
             $authUser->hasAnyRole(['super_admin','admin','hr_manager','hr_officer','exam_officer','interview_officer'])
             || $authUser->hasAnyPermission(['exams.view','interviews.view','exams.record-results','interviews.record-results']);
 
-        // ── Dashboard (always) ──────────────────────────────────────────
         $nav[] = [
-            'route' => 'admin.dashboard',  'label' => __('menus.dashboard'),
+            'route' => 'admin.dashboard', 'label' => __('menus.dashboard'),
             'match' => 'admin.dashboard',
             'icon'  => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
         ];
 
-        // ── Recruitment ─────────────────────────────────────────────────
         if ($authUser->hasAnyPermission(['vacancies.view','applications.view','screening.view']) || $canManageExamInterview)
             $nav[] = 'recruitment';
         if ($authUser->hasPermissionTo('vacancies.view')) {
@@ -151,8 +202,6 @@
             $nav[] = ['route'=>'admin.applicants.index',  'label'=>__('menus.applicants'),  'match'=>'admin.applicants.*',
                 'icon'=>'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z'];
         }
-
-        // ── Screening ───────────────────────────────────────────────────
         if ($authUser->hasPermissionTo('screening.view')) {
             $nav[] = 'screening';
             $nav[] = ['route'=>'admin.screening.index', 'label'=>__('menus.screening'),         'match'=>'admin.screening.index',
@@ -162,8 +211,6 @@
             $nav[] = ['route'=>'admin.screening.failed','label'=>__('menus.failed_applicants'),'match'=>'admin.screening.failed',
                 'icon'=>'M6 18L18 6M6 6l12 12'];
         }
-
-        // ── Exams & Interviews ──────────────────────────────────────────
         if ($canManageExamInterview) {
             $nav[] = 'exams';
             $nav[] = ['route'=>'admin.schedules.index',    'label'=>__('menus.schedules'),    'match'=>'admin.schedules.*',
@@ -171,22 +218,16 @@
             $nav[] = ['route'=>'admin.final-results.index','label'=>__('menus.final_results'),'match'=>'admin.final-results.*',
                 'icon'=>'M9 12l2 2 4-4M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z'];
         }
-
-        // ── Notifications ───────────────────────────────────────────────
         if ($authUser->hasAnyRole(['super_admin','admin','hr_manager']) || $authUser->hasAnyPermission(['notifications.view','notifications.templates.manage','notifications.send'])) {
             $nav[] = 'notifications';
             $nav[] = ['route'=>'admin.notification-templates.index','label'=>__('menus.notification_templates'),'match'=>'admin.notification-templates.*',
                 'icon'=>'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'];
         }
-
-        // ── Reports ─────────────────────────────────────────────────────
         if ($authUser->hasPermissionTo('reports.view')) {
             $nav[] = 'reports';
             $nav[] = ['route'=>'admin.reports.index','label'=>__('menus.reports'),'match'=>'admin.reports.*',
                 'icon'=>'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'];
         }
-
-        // ── Access Control ──────────────────────────────────────────────
         if ($authUser->hasAnyPermission(['users.view','roles.view','permissions.view'])) {
             $nav[] = 'access';
             if ($authUser->hasPermissionTo('users.view'))
@@ -196,8 +237,6 @@
                 $nav[] = ['route'=>'admin.roles.index','label'=>__('menus.roles'),'match'=>'admin.roles.*',
                     'icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'];
         }
-
-        // ── System ──────────────────────────────────────────────────────
         if ($authUser->hasAnyPermission(['settings.view','audit.view'])) {
             $nav[] = 'system';
             if ($authUser->hasPermissionTo('settings.view')) {
@@ -228,17 +267,17 @@
         @if(is_string($item))
         <div class="overflow-hidden transition-all duration-300"
              :class="sidebarCollapsed ? 'mt-2 mb-1' : 'mt-5 mb-1.5'">
-            {{-- Expanded: label with ruled lines --}}
+            {{-- Expanded: ruled label --}}
             <div class="flex items-center gap-2 px-1 transition-all duration-200"
                  :class="sidebarCollapsed ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'">
-                <span class="block h-px flex-1 rounded-full" style="background:rgba(255,255,255,.1)"></span>
-                <span class="text-[9.5px] font-bold uppercase tracking-[.1em] whitespace-nowrap"
-                      style="color:rgba(255,255,255,.38)">{{ $groupLabels[$item] ?? $item }}</span>
-                <span class="block h-px flex-1 rounded-full" style="background:rgba(255,255,255,.1)"></span>
+                <span class="block h-px flex-1 rounded-full" style="background:var(--sb-line)"></span>
+                <span class="text-[9.5px] font-bold uppercase tracking-widest whitespace-nowrap"
+                      style="color:var(--sb-dim)">{{ $groupLabels[$item] ?? $item }}</span>
+                <span class="block h-px flex-1 rounded-full" style="background:var(--sb-line)"></span>
             </div>
-            {{-- Collapsed: single thin rule --}}
+            {{-- Collapsed: single rule --}}
             <div class="mx-2 h-px rounded-full transition-opacity duration-200"
-                 style="background:rgba(255,255,255,.1)"
+                 style="background:var(--sb-line)"
                  :class="sidebarCollapsed ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'"></div>
         </div>
 
@@ -246,48 +285,43 @@
         @else
         @php $active = request()->routeIs($item['match']); @endphp
         <a href="{{ route($item['route']) }}"
-           class="nav-item group relative flex items-center rounded-lg text-sm font-medium transition-all duration-150 ease-out
-                  {{ $active ? 'text-white' : 'text-white/60 hover:text-white/90' }}"
-           :class="sidebarCollapsed ? 'justify-center py-2.5 px-0' : 'gap-3 py-2 px-3'"
-           style="{{ $active
-                ? 'background:rgba(255,255,255,.09); box-shadow:inset 0 1px 0 rgba(255,255,255,.06);'
-                : '' }}">
+           class="nav-item group relative flex items-center rounded-lg text-sm font-medium transition-all duration-150 ease-out {{ $active ? 'nav-active' : 'nav-inactive' }}"
+           :class="sidebarCollapsed ? 'justify-center py-2.5 px-0' : 'gap-3 py-2 px-3'">
 
-            {{-- Active: left accent rail --}}
+            {{-- Active: left accent rail with glow --}}
             @if($active)
-            <span class="absolute inset-y-0 left-0 w-[3px] rounded-full"
-                  style="background: var(--color-accent); box-shadow: 0 0 8px color-mix(in srgb, var(--color-accent) 80%, transparent);"
+            <span class="absolute inset-y-0 left-0 w-0.75 rounded-full"
+                  style="background: var(--color-accent); box-shadow: 0 0 8px color-mix(in srgb, var(--color-accent) 70%, transparent);"
                   :class="sidebarCollapsed ? 'opacity-0' : 'opacity-100'"></span>
             @else
-            {{-- Hover: left rail (shown via CSS group-hover) --}}
-            <span class="absolute inset-y-1 left-0 w-[2px] rounded-full opacity-0 group-hover:opacity-40 transition-opacity duration-150"
+            {{-- Hover: ghost left rail --}}
+            <span class="absolute inset-y-1 left-0 w-0.5 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-150"
                   style="background: var(--color-accent);"></span>
             @endif
 
             {{-- Icon --}}
-            <svg class="shrink-0 transition-all duration-150 ease-out
-                        {{ $active ? 'text-white' : 'text-white/40 group-hover:text-white/80' }}"
+            <svg class="shrink-0 transition-colors duration-150 ease-out {{ $active ? 'nav-icon-active' : 'nav-icon-inactive' }}"
                  style="width:17px;height:17px;"
                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                  viewBox="0 0 24 24">
                 <path d="{{ $item['icon'] }}"/>
             </svg>
 
-            {{-- Label (collapses away) --}}
+            {{-- Label --}}
             <span class="truncate whitespace-nowrap overflow-hidden transition-all duration-200 ease-out"
                   :class="sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100'">
                 {{ $item['label'] }}
             </span>
 
-            {{-- Active dot (right side, only when expanded) --}}
+            {{-- Active dot --}}
             @if($active)
-            <span class="ml-auto shrink-0 h-1.5 w-1.5 rounded-full transition-all duration-200"
+            <span class="ml-auto shrink-0 h-1.5 w-1.5 rounded-full"
                   style="background:var(--color-accent)"
                   :class="sidebarCollapsed ? 'hidden' : 'block'"></span>
             @endif
 
-            {{-- Tooltip (only in collapsed rail, rendered via fixed CSS) --}}
-            <span class="nav-tooltip" :class="sidebarCollapsed ? '' : '!hidden'">
+            {{-- Collapsed tooltip --}}
+            <span class="nav-tooltip" :class="sidebarCollapsed ? '' : 'hidden!'">
                 {{ $item['label'] }}
             </span>
         </a>
@@ -299,38 +333,38 @@
     {{-- ════════════════════════════════════════════════════════════
          User footer
     ════════════════════════════════════════════════════════════ --}}
-    <div class="relative z-10 shrink-0 p-2.5" style="border-top:1px solid rgba(255,255,255,.08);">
+    <div class="relative z-10 shrink-0 p-2.5" style="border-top: 1px solid var(--sb-border);">
         @php
-            $userName = auth()->user()?->name ?? 'User';
-            $userRole = auth()->user()?->roles->first()?->name ?? '';
-            $userInitials = mb_strtoupper(mb_substr($userName, 0, 1) . (str_contains($userName, ' ') ? mb_substr(strrchr($userName, ' '), 1, 1) : ''));
+            $userName    = auth()->user()?->name ?? 'User';
+            $userRole    = auth()->user()?->roles->first()?->name ?? '';
+            $firstName   = explode(' ', trim($userName))[0] ?? $userName;
+            $lastName    = count(explode(' ', trim($userName))) > 1 ? explode(' ', trim($userName))[count(explode(' ', trim($userName)))-1] : '';
+            $userInitials = mb_strtoupper(mb_substr($firstName,0,1) . mb_substr($lastName,0,1));
         @endphp
 
         <div class="flex items-center gap-2.5 rounded-xl p-2 transition-colors duration-150"
-             style="background:rgba(255,255,255,.04);"
+             style="background: var(--sb-footer-bg);"
              :class="sidebarCollapsed ? 'justify-center' : ''">
 
-            {{-- Avatar with gradient ring --}}
+            {{-- Avatar --}}
             <div class="relative shrink-0">
                 <div class="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold text-white"
                      style="background: linear-gradient(135deg, var(--color-brand) 0%, color-mix(in srgb,var(--color-brand) 60%,var(--color-accent)) 100%);
-                            box-shadow: 0 0 0 2px rgba(255,255,255,.15), 0 2px 8px rgba(0,0,0,.3);">
-                    {{ $userInitials }}
+                            box-shadow: 0 0 0 2px var(--sb-line), 0 2px 6px rgba(0,0,0,.2);">
+                    {{ $userInitials ?: mb_strtoupper(mb_substr($userName,0,2)) }}
                 </div>
-                {{-- Online dot --}}
-                <span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2"
-                      style="background:#22c55e; border-color: var(--color-navy);"></span>
+                <span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 bg-emerald-400"
+                      style="border-color: inherit;"></span>
             </div>
 
             {{-- Name + role --}}
             <div class="min-w-0 flex-1 overflow-hidden transition-all duration-200"
                  :class="sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'">
-                <p class="truncate text-[12.5px] font-semibold text-white whitespace-nowrap leading-tight">
-                    {{ $userName }}
-                </p>
+                <p class="truncate text-[12.5px] font-semibold whitespace-nowrap leading-tight"
+                   style="color: var(--sb-text);">{{ $userName }}</p>
                 @if($userRole)
                 <p class="truncate text-[10.5px] font-medium whitespace-nowrap mt-0.5"
-                   style="color: var(--color-accent); opacity:.85;">
+                   style="color: var(--color-accent); opacity:.9;">
                     {{ ucfirst(str_replace('_', ' ', $userRole)) }}
                 </p>
                 @endif
@@ -341,10 +375,10 @@
                  :class="sidebarCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'opacity-100'">
                 <a href="{{ route('admin.profile.edit') }}"
                    title="{{ __('messages.edit_profile') }}"
-                   class="flex h-7 w-7 items-center justify-center rounded-lg transition-colors duration-150"
-                   style="color:rgba(255,255,255,.45);"
-                   onmouseover="this.style.background='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.9)'"
-                   onmouseout="this.style.background='transparent';this.style.color='rgba(255,255,255,.45)'">
+                   class="flex h-7 w-7 items-center justify-center rounded-lg transition-colors duration-150 hover:opacity-100"
+                   style="color: var(--sb-action);"
+                   onmouseover="this.style.background='var(--sb-hover)'"
+                   onmouseout="this.style.background='transparent'">
                     <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                     </svg>
@@ -353,9 +387,9 @@
                     @csrf
                     <button type="submit" title="{{ __('menus.logout') }}"
                             class="flex h-7 w-7 items-center justify-center rounded-lg transition-colors duration-150"
-                            style="color:rgba(255,255,255,.45);"
-                            onmouseover="this.style.background='rgba(239,68,68,.15)';this.style.color='#fca5a5'"
-                            onmouseout="this.style.background='transparent';this.style.color='rgba(255,255,255,.45)'">
+                            style="color: var(--sb-action);"
+                            onmouseover="this.style.background='rgba(239,68,68,.1)';this.style.color='#ef4444'"
+                            onmouseout="this.style.background='transparent';this.style.color='var(--sb-action)'">
                         <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -398,7 +432,6 @@
             </svg>
         </button>
 
-        {{-- Divider --}}
         <div class="hidden sm:block h-5 w-px bg-gray-200 shrink-0"></div>
 
         {{-- Page title / breadcrumb --}}
@@ -446,7 +479,7 @@
                         class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white pl-1.5 pr-2.5 py-1 text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-colors duration-150">
                     <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
                          style="background:linear-gradient(135deg,var(--color-brand),color-mix(in srgb,var(--color-brand) 60%,var(--color-accent)))">
-                        {{ $userInitials }}
+                        {{ $userInitials ?: mb_strtoupper(mb_substr($userName,0,2)) }}
                     </div>
                     <span class="hidden sm:block max-w-28 truncate text-[13px] font-medium text-gray-700">{{ $userName }}</span>
                     <svg class="h-3.5 w-3.5 text-gray-400 transition-transform duration-200" :class="open && 'rotate-180'"
@@ -461,7 +494,7 @@
                      x-transition:enter-end="opacity-100 scale-100 translate-y-0"
                      x-transition:leave="transition ease-in duration-75"
                      x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                     class="absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-gray-100 bg-white shadow-lg ring-1 ring-black/[.05] overflow-hidden"
+                     class="absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-gray-100 bg-white shadow-lg ring-1 ring-black/5 overflow-hidden"
                      style="display:none">
                     <div class="px-4 py-3.5" style="background:linear-gradient(135deg,#f8faff,#fff);border-bottom:1px solid #f1f5f9;">
                         <p class="text-[12.5px] font-semibold text-gray-900 truncate">{{ $userName }}</p>
@@ -535,13 +568,11 @@
     </div>
     @endif
 
-    {{-- Main content --}}
     <main class="flex-1 px-4 py-5 sm:px-6">
         @yield('content')
     </main>
 </div>
 
-{{-- ── Alpine component ─────────────────────────────────────────────── --}}
 <script>
 function adminShell() {
     return {
