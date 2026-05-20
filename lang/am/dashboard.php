@@ -33,6 +33,7 @@ return [
         'total_applications' => 'ጠቅላላ ማመልከቻዎች',
         'open_vacancies' => 'ክፍት ስራዎች',
         'closed_vacancies' => 'የተዘጉ ስራዎች',
+        'total_vacancies' => 'ጠቅላላ ክፍት ስራዎች',
         'pending_screening' => 'ማጣሪያ በመጠበቅ ላይ',
         'passed_screening' => 'ማጣሪያ ያለፉ',
         'failed_screening' => 'ማጣሪያ ያላለፉ',
@@ -80,6 +81,14 @@ return [
         'notification_health' => 'የማሳወቂያ ጤና',
         'notification_health_desc' => 'የአመልካች ማሳወቂያዎች የመድረስ ሁኔታ።',
         'recent_activity' => 'የቅርብ ጊዜ እንቅስቃሴ',
+        'gender_distribution' => 'የፆታ ስርጭት',
+        'age_distribution' => 'የዕድሜ ስርጭት',
+        'disability_status' => 'የአካል ጉዳት ሁኔታ',
+        'exam_top_scorers' => 'ከፍተኛ የፈተና ነጥብ አሳካዮች',
+        'interview_top_scorers' => 'ከፍተኛ የቃለ መጠይቅ ነጥብ አሳካዮች',
+        'exam_by_gender' => 'የፈተና አፈፃፀም በፆታ',
+        'final_results' => 'የመጨረሻ ውጤቶች ጠቅላላ',
+        'vacancy_load' => 'ማመልከቻዎች በክፍት ስራ',
     ],
 
     'charts' => [
@@ -121,6 +130,42 @@ return [
         'male' => 'ወንድ',
         'female' => 'ሴት',
         'other' => 'ሌላ',
+        'unknown' => 'ያልታወቀ',
+        'all_applicants' => 'ሁሉም አመልካቾች',
+        'passed_screening' => 'ማጣሪያ ያለፉ',
+        'selected' => 'የተመረጡ',
+    ],
+
+    'age' => [
+        'total_known_dob' => 'የልደት ቀን ያላቸው ጠቅላላ',
+    ],
+
+    'disability' => [
+        'without' => 'ጉዳት የሌላቸው',
+        'with' => 'ጉዳት ያለባቸው',
+    ],
+
+    'scores' => [
+        'top_10_exam' => 'ከ10 ምርጥ የፈተና ነጥቦች',
+        'top_10_interview' => 'ከ10 ምርጥ የቃለ መጠይቅ ነጥቦች',
+        'gender' => 'ፆታ',
+        'count' => 'ብዛት',
+        'avg' => 'አማካይ',
+        'max' => 'ከፍተኛ',
+        'total_records' => 'ጠቅላላ መዝገቦች',
+        'avg_exam' => 'አማካይ ፈተና',
+        'avg_interview' => 'አማካይ ቃለ መጠይቅ',
+        'avg_final' => 'አማካይ የመጨረሻ',
+        'top_8_open' => 'ከ8 ምርጥ ክፍት ስራዎች',
+    ],
+
+    'schedule' => [
+        'exam' => 'ፈተና',
+        'interview' => 'ቃለ መጠይቅ',
+    ],
+
+    'audit' => [
+        'on' => 'ላይ',
     ],
 
     'notifications' => [
@@ -145,5 +190,11 @@ return [
         'no_open_vacancies' => 'ክፍት ስራ የለም።',
         'no_schedules' => 'መጪ ቀጠሮ የለም።',
         'no_activity' => 'የቅርብ ጊዜ እንቅስቃሴ የለም።',
+        'no_pipeline_data' => 'እስካሁን የማመልከቻ መረጃ የለም።',
+        'no_exam_scores' => 'እስካሁን የፈተና ነጥቦች አልተመዘገቡም።',
+        'no_interview_scores' => 'እስካሁን የቃለ መጠይቅ ነጥቦች አልተመዘገቡም።',
+        'no_exam_data' => 'የፈተና መረጃ አልተገኘም።',
     ],
+
+    'pipeline_summary' => ':count ጠቅላላ በ :stages ንቁ ደረጃዎች',
 ];

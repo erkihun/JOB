@@ -33,6 +33,7 @@ return [
         'total_applications' => 'Total Applications',
         'open_vacancies' => 'Open Vacancies',
         'closed_vacancies' => 'Closed Vacancies',
+        'total_vacancies' => 'Total Vacancies',
         'pending_screening' => 'Pending Screening',
         'passed_screening' => 'Passed Screening',
         'failed_screening' => 'Failed Screening',
@@ -80,6 +81,14 @@ return [
         'notification_health' => 'Notification Health',
         'notification_health_desc' => 'Delivery status across applicant notifications.',
         'recent_activity' => 'Recent Activity',
+        'gender_distribution' => 'Gender Distribution',
+        'age_distribution' => 'Age Distribution',
+        'disability_status' => 'Disability Status',
+        'exam_top_scorers' => 'Exam Top Scorers',
+        'interview_top_scorers' => 'Interview Top Scorers',
+        'exam_by_gender' => 'Exam Performance by Gender',
+        'final_results' => 'Final Results Overview',
+        'vacancy_load' => 'Applications per Vacancy',
     ],
 
     'charts' => [
@@ -121,6 +130,42 @@ return [
         'male' => 'Male',
         'female' => 'Female',
         'other' => 'Other',
+        'unknown' => 'Unknown',
+        'all_applicants' => 'All Applicants',
+        'passed_screening' => 'Passed Screening',
+        'selected' => 'Selected',
+    ],
+
+    'age' => [
+        'total_known_dob' => 'Total with known DOB',
+    ],
+
+    'disability' => [
+        'without' => 'Without Disability',
+        'with' => 'With Disability',
+    ],
+
+    'scores' => [
+        'top_10_exam' => 'Top 10 by exam score',
+        'top_10_interview' => 'Top 10 by interview score',
+        'gender' => 'Gender',
+        'count' => 'Count',
+        'avg' => 'Avg',
+        'max' => 'Max',
+        'total_records' => 'Total Records',
+        'avg_exam' => 'Avg Exam',
+        'avg_interview' => 'Avg Interview',
+        'avg_final' => 'Avg Final',
+        'top_8_open' => 'Top 8 open vacancies',
+    ],
+
+    'schedule' => [
+        'exam' => 'Exam',
+        'interview' => 'Interview',
+    ],
+
+    'audit' => [
+        'on' => 'on',
     ],
 
     'notifications' => [
@@ -145,5 +190,11 @@ return [
         'no_open_vacancies' => 'No open vacancies.',
         'no_schedules' => 'No upcoming schedules.',
         'no_activity' => 'No recent activity.',
+        'no_pipeline_data' => 'No application data yet.',
+        'no_exam_scores' => 'No exam scores recorded yet.',
+        'no_interview_scores' => 'No interview scores recorded yet.',
+        'no_exam_data' => 'No exam data yet.',
     ],
+
+    'pipeline_summary' => ':count total across :stages active stages',
 ];

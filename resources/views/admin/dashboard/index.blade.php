@@ -31,34 +31,37 @@
     {{-- ── 8 KPI Cards ─────────────────────────────────────────────────── --}}
     @php
     $kpiCards = [
-        ['label' => __('dashboard.kpi.total_applicants'),   'value' => $stats['total_applicants'],   'color' => 'from-blue-600 to-blue-400',     'accent' => 'bg-blue-500',    'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
-        ['label' => __('dashboard.kpi.total_applications'), 'value' => $stats['total_applications'], 'color' => 'from-violet-600 to-violet-400', 'accent' => 'bg-violet-500',  'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
-        ['label' => __('dashboard.kpi.open_vacancies'),     'value' => $stats['open_vacancies'],     'color' => 'from-emerald-600 to-emerald-400','accent' => 'bg-emerald-500', 'icon' => 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
-        ['label' => __('dashboard.kpi.pending_screening'),  'value' => $stats['pending_screening'],  'color' => 'from-amber-500 to-amber-400',   'accent' => 'bg-amber-500',   'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
-        ['label' => __('dashboard.kpi.passed_screening'),   'value' => $stats['passed_screening'],   'color' => 'from-teal-600 to-teal-400',     'accent' => 'bg-teal-500',    'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-        ['label' => 'Selected Applicants',                  'value' => $stats['selected'],            'color' => 'from-green-600 to-green-400',   'accent' => 'bg-green-500',   'icon' => 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'],
-        ['label' => 'Total Vacancies',                      'value' => $stats['total_vacancies'],    'color' => 'from-slate-600 to-slate-400',   'accent' => 'bg-slate-500',   'icon' => 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'],
-        ['label' => __('dashboard.kpi.closed_vacancies'),   'value' => $stats['closed_vacancies'],   'color' => 'from-rose-600 to-rose-400',     'accent' => 'bg-rose-500',    'icon' => 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636'],
+        ['label' => __('dashboard.kpi.total_applicants'),   'value' => $stats['total_applicants'],   'dot' => 'bg-blue-500',    'iconBg' => 'bg-blue-100',    'iconColor' => 'text-blue-600',    'bar' => 'bg-blue-500',    'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
+        ['label' => __('dashboard.kpi.total_applications'), 'value' => $stats['total_applications'], 'dot' => 'bg-violet-500',   'iconBg' => 'bg-violet-100',   'iconColor' => 'text-violet-600',   'bar' => 'bg-violet-500',   'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
+        ['label' => __('dashboard.kpi.open_vacancies'),     'value' => $stats['open_vacancies'],     'dot' => 'bg-emerald-500',  'iconBg' => 'bg-emerald-100',  'iconColor' => 'text-emerald-600',  'bar' => 'bg-emerald-500',  'icon' => 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+        ['label' => __('dashboard.kpi.pending_screening'),  'value' => $stats['pending_screening'],  'dot' => 'bg-amber-500',    'iconBg' => 'bg-amber-100',    'iconColor' => 'text-amber-600',    'bar' => 'bg-amber-500',    'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
+        ['label' => __('dashboard.kpi.passed_screening'),   'value' => $stats['passed_screening'],   'dot' => 'bg-teal-500',     'iconBg' => 'bg-teal-100',     'iconColor' => 'text-teal-600',     'bar' => 'bg-teal-500',     'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+        ['label' => __('dashboard.kpi.selected_applicants'), 'value' => $stats['selected'],            'dot' => 'bg-green-500',    'iconBg' => 'bg-green-100',    'iconColor' => 'text-green-600',    'bar' => 'bg-green-500',    'icon' => 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'],
+        ['label' => __('dashboard.kpi.total_vacancies'),    'value' => $stats['total_vacancies'],    'dot' => 'bg-slate-500',    'iconBg' => 'bg-slate-100',    'iconColor' => 'text-slate-600',    'bar' => 'bg-slate-400',    'icon' => 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'],
+        ['label' => __('dashboard.kpi.closed_vacancies'),   'value' => $stats['closed_vacancies'],   'dot' => 'bg-rose-500',     'iconBg' => 'bg-rose-100',     'iconColor' => 'text-rose-600',     'bar' => 'bg-rose-500',     'icon' => 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636'],
     ];
     @endphp
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @foreach($kpiCards as $card)
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
-            <div class="bg-linear-to-r {{ $card['color'] }} flex items-center justify-between px-5 py-3">
-                <p class="text-xs font-medium leading-tight text-white/90">{{ $card['label'] }}</p>
-                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/20">
-                    <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $card['icon'] }}"/>
+        <div class="flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+            <div class="flex flex-1 items-start justify-between p-5">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="h-2.5 w-2.5 rounded-full {{ $card['dot'] }}"></span>
+                        <p class="text-xs font-medium text-gray-500">{{ $card['label'] }}</p>
+                    </div>
+                    <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
+                        {{ number_format($card['value']) }}
+                    </p>
+                </div>
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full {{ $card['iconBg'] }}">
+                    <svg class="h-5 w-5 {{ $card['iconColor'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $card['icon'] }}"/>
                     </svg>
                 </div>
             </div>
-            <div class="flex">
-                <div class="w-1 shrink-0 {{ $card['accent'] }}"></div>
-                <div class="px-5 py-3">
-                    <p class="text-2xl font-bold text-gray-900">{{ number_format($card['value']) }}</p>
-                </div>
-            </div>
+            <div class="h-1 w-full {{ $card['bar'] }}"></div>
         </div>
         @endforeach
     </div>
@@ -68,11 +71,11 @@
         <div class="border-b border-gray-100 px-5 py-4">
             <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.pipeline') }}</h2>
             <p class="mt-0.5 text-xs text-gray-500">
-                {{ number_format($pipelineStages->sum('count')) }} total across {{ $pipelineStages->count() }} active stages
+                {{ __('dashboard.pipeline_summary', ['count' => number_format($pipelineStages->sum('count')), 'stages' => $pipelineStages->count()]) }}
             </p>
         </div>
         @if($pipelineStages->isEmpty())
-        <p class="px-5 py-8 text-center text-sm text-gray-400">No application data yet.</p>
+        <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_pipeline_data') }}</p>
         @else
         <div class="p-5 space-y-2.5">
             @foreach($pipelineStages as $stage)
@@ -98,14 +101,14 @@
         {{-- Gender Distribution --}}
         <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">Gender Distribution</h2>
+                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.gender_distribution') }}</h2>
             </div>
             <div class="p-5 space-y-5">
                 @php
                 $genderGroups = [
-                    ['label' => 'All Applicants',    'data' => $genderDist,    'total' => $genderTotal],
-                    ['label' => 'Passed Screening',  'data' => $genderPassed,  'total' => max(array_sum($genderPassed), 1)],
-                    ['label' => 'Selected',          'data' => $genderSelected,'total' => max(array_sum($genderSelected), 1)],
+                    ['label' => __('dashboard.gender.all_applicants'),   'data' => $genderDist,    'total' => $genderTotal],
+                    ['label' => __('dashboard.gender.passed_screening'), 'data' => $genderPassed,  'total' => max(array_sum($genderPassed), 1)],
+                    ['label' => __('dashboard.gender.selected'),         'data' => $genderSelected,'total' => max(array_sum($genderSelected), 1)],
                 ];
                 $gColors = ['male' => 'bg-blue-500', 'female' => 'bg-pink-500', 'unknown' => 'bg-gray-300'];
                 @endphp
@@ -116,7 +119,7 @@
                     @php $cnt = $group['data'][$g] ?? 0; $pct = $cnt > 0 ? round($cnt / $group['total'] * 100, 1) : 0; @endphp
                     @if($cnt > 0)
                     <div class="mb-1 flex items-center gap-2">
-                        <span class="w-14 text-xs capitalize text-gray-500">{{ $g }}</span>
+                        <span class="w-14 text-xs text-gray-500">{{ __('dashboard.gender.'.$g) }}</span>
                         <div class="h-3 flex-1 overflow-hidden rounded-full bg-gray-100">
                             <div class="{{ $gColors[$g] }} h-full rounded-full" style="width: {{ $pct }}%"></div>
                         </div>
@@ -132,7 +135,7 @@
         {{-- Age Distribution --}}
         <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">Age Distribution</h2>
+                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.age_distribution') }}</h2>
             </div>
             <div class="p-5 space-y-3">
                 @php
@@ -156,7 +159,7 @@
                 </div>
                 @endforeach
                 <div class="mt-2 border-t border-gray-100 pt-2">
-                    <p class="text-xs text-gray-400">Total with known DOB: {{ number_format(array_sum($ageDist)) }}</p>
+                    <p class="text-xs text-gray-400">{{ __('dashboard.age.total_known_dob') }}: {{ number_format(array_sum($ageDist)) }}</p>
                 </div>
             </div>
         </div>
@@ -164,7 +167,7 @@
         {{-- Disability Distribution (SVG Donut) --}}
         <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">Disability Status</h2>
+                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.disability_status') }}</h2>
             </div>
             <div class="flex flex-col items-center justify-center p-5">
                 @php
@@ -190,7 +193,7 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="h-3 w-3 rounded-full bg-indigo-500"></span>
-                            <span class="text-sm text-gray-600">Without Disability</span>
+                            <span class="text-sm text-gray-600">{{ __('dashboard.disability.without') }}</span>
                         </div>
                         <span class="text-sm font-semibold text-gray-800">
                             {{ number_format($disabilityDist['without']) }}
@@ -200,7 +203,7 @@
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="h-3 w-3 rounded-full bg-amber-500"></span>
-                            <span class="text-sm text-gray-600">With Disability</span>
+                            <span class="text-sm text-gray-600">{{ __('dashboard.disability.with') }}</span>
                         </div>
                         <span class="text-sm font-semibold text-gray-800">
                             {{ number_format($disabilityDist['with']) }}
@@ -219,11 +222,11 @@
         {{-- Exam Top Scorers --}}
         <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">Exam Top Scorers</h2>
-                <p class="mt-0.5 text-xs text-gray-400">Top 10 by exam score</p>
+                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.exam_top_scorers') }}</h2>
+                <p class="mt-0.5 text-xs text-gray-400">{{ __('dashboard.scores.top_10_exam') }}</p>
             </div>
             @if($examTopScorers->isEmpty())
-            <p class="px-5 py-8 text-center text-sm text-gray-400">No exam scores recorded yet.</p>
+            <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_exam_scores') }}</p>
             @else
             <div class="divide-y divide-gray-50">
                 @foreach($examTopScorers as $i => $scorer)
@@ -258,11 +261,11 @@
         {{-- Interview Top Scorers --}}
         <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">Interview Top Scorers</h2>
-                <p class="mt-0.5 text-xs text-gray-400">Top 10 by interview score</p>
+                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.interview_top_scorers') }}</h2>
+                <p class="mt-0.5 text-xs text-gray-400">{{ __('dashboard.scores.top_10_interview') }}</p>
             </div>
             @if($interviewTopScorers->isEmpty())
-            <p class="px-5 py-8 text-center text-sm text-gray-400">No interview scores recorded yet.</p>
+            <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_interview_scores') }}</p>
             @else
             <div class="divide-y divide-gray-50">
                 @foreach($interviewTopScorers as $i => $scorer)
@@ -302,24 +305,24 @@
         {{-- Exam Performance by Gender --}}
         <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">Exam Performance by Gender</h2>
+                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.exam_by_gender') }}</h2>
             </div>
             @if($examPassByGender->isEmpty())
-            <p class="px-5 py-8 text-center text-sm text-gray-400">No exam data yet.</p>
+            <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_exam_data') }}</p>
             @else
             <table class="w-full text-sm">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-5 py-2 text-left text-xs font-medium text-gray-500">Gender</th>
-                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500">Count</th>
-                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500">Avg</th>
-                        <th class="px-5 py-2 text-right text-xs font-medium text-gray-500">Max</th>
+                        <th class="px-5 py-2 text-left text-xs font-medium text-gray-500">{{ __('dashboard.scores.gender') }}</th>
+                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500">{{ __('dashboard.scores.count') }}</th>
+                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500">{{ __('dashboard.scores.avg') }}</th>
+                        <th class="px-5 py-2 text-right text-xs font-medium text-gray-500">{{ __('dashboard.scores.max') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
                     @foreach($examPassByGender as $gender => $row)
                     <tr class="hover:bg-gray-50">
-                        <td class="px-5 py-2.5 font-medium capitalize text-gray-700">{{ $gender }}</td>
+                        <td class="px-5 py-2.5 font-medium text-gray-700">{{ __('dashboard.gender.'.$gender) }}</td>
                         <td class="px-3 py-2.5 text-right text-gray-600">{{ $row->total }}</td>
                         <td class="px-3 py-2.5 text-right font-semibold text-violet-700">{{ $row->avg_score }}</td>
                         <td class="px-5 py-2.5 text-right text-gray-600">{{ $row->max_score }}</td>
@@ -333,24 +336,24 @@
         {{-- Final Results Overview --}}
         <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">Final Results Overview</h2>
+                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.final_results') }}</h2>
             </div>
             <div class="grid grid-cols-2 gap-4 p-5">
                 <div class="rounded-lg bg-gray-50 p-4 text-center">
                     <p class="text-2xl font-bold text-gray-900">{{ number_format($finalResultStats['total']) }}</p>
-                    <p class="mt-1 text-xs text-gray-500">Total Records</p>
+                    <p class="mt-1 text-xs text-gray-500">{{ __('dashboard.scores.total_records') }}</p>
                 </div>
                 <div class="rounded-lg bg-violet-50 p-4 text-center">
                     <p class="text-2xl font-bold text-violet-700">{{ $finalResultStats['avg_exam'] }}</p>
-                    <p class="mt-1 text-xs text-gray-500">Avg Exam</p>
+                    <p class="mt-1 text-xs text-gray-500">{{ __('dashboard.scores.avg_exam') }}</p>
                 </div>
                 <div class="rounded-lg bg-cyan-50 p-4 text-center">
                     <p class="text-2xl font-bold text-cyan-700">{{ $finalResultStats['avg_int'] }}</p>
-                    <p class="mt-1 text-xs text-gray-500">Avg Interview</p>
+                    <p class="mt-1 text-xs text-gray-500">{{ __('dashboard.scores.avg_interview') }}</p>
                 </div>
                 <div class="rounded-lg bg-green-50 p-4 text-center">
                     <p class="text-2xl font-bold text-green-700">{{ $finalResultStats['avg_fin'] }}</p>
-                    <p class="mt-1 text-xs text-gray-500">Avg Final</p>
+                    <p class="mt-1 text-xs text-gray-500">{{ __('dashboard.scores.avg_final') }}</p>
                 </div>
             </div>
         </div>
@@ -358,11 +361,11 @@
         {{-- Applications per Vacancy --}}
         <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">Applications per Vacancy</h2>
-                <p class="mt-0.5 text-xs text-gray-400">Top 8 open vacancies</p>
+                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.vacancy_load') }}</h2>
+                <p class="mt-0.5 text-xs text-gray-400">{{ __('dashboard.scores.top_8_open') }}</p>
             </div>
             @if($vacancyLoad->isEmpty())
-            <p class="px-5 py-8 text-center text-sm text-gray-400">No open vacancies.</p>
+            <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_open_vacancies') }}</p>
             @else
             @php $maxLoad = $vacancyLoad->max('applications_count') ?: 1; @endphp
             <div class="space-y-3 p-4">
@@ -415,7 +418,7 @@
                     @if($schedule->type)
                     <span class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium
                         {{ $schedule->type->value === 'exam' ? 'bg-violet-100 text-violet-700' : 'bg-cyan-100 text-cyan-700' }}">
-                        {{ ucfirst($schedule->type->value) }}
+                        {{ __('dashboard.schedule.'.$schedule->type->value) }}
                     </span>
                     @endif
                 </div>
@@ -499,7 +502,7 @@
                         <span class="font-medium">{{ $log->user?->name ?? __('dashboard.system') }}</span>
                         <span class="mx-1 text-gray-400">·</span>
                         <span class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-600">{{ $log->action }}</span>
-                        <span class="mx-1 text-gray-400">on</span>
+                        <span class="mx-1 text-gray-400">{{ __('dashboard.audit.on') }}</span>
                         <span class="capitalize text-gray-600">{{ $log->module }}</span>
                     </p>
                 </div>
