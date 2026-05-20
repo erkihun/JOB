@@ -21,24 +21,24 @@ class AdminDashboardController extends Controller
 {
     public function __invoke(): View
     {
-        $user             = auth()->user();
-        $canViewAudit     = $user->hasPermissionTo('audit.view');
+        $user = auth()->user();
+        $canViewAudit = $user->hasPermissionTo('audit.view');
         $canViewSensitive = $user->hasPermissionTo('applications.view-sensitive');
 
         // ── KPI totals ────────────────────────────────────────────────
         $stats = [
-            'total_applicants'   => Applicant::count(),
-            'open_vacancies'     => Vacancy::where('status', VacancyStatus::Open)->count(),
+            'total_applicants' => Applicant::count(),
+            'open_vacancies' => Vacancy::where('status', VacancyStatus::Open)->count(),
             'total_applications' => Application::count(),
-            'pending_screening'  => Application::whereIn('status', [
+            'pending_screening' => Application::whereIn('status', [
                 ApplicationStatus::Submitted,
                 ApplicationStatus::UnderReview,
                 ApplicationStatus::CorrectionRequired,
             ])->count(),
-            'passed_screening'   => Application::where('status', ApplicationStatus::PassedScreening)->count(),
-            'selected'           => Application::where('status', ApplicationStatus::Selected)->count(),
-            'total_vacancies'    => Vacancy::count(),
-            'closed_vacancies'   => Vacancy::whereIn('status', [VacancyStatus::Closed, VacancyStatus::Finalized, VacancyStatus::Cancelled])->count(),
+            'passed_screening' => Application::where('status', ApplicationStatus::PassedScreening)->count(),
+            'selected' => Application::where('status', ApplicationStatus::Selected)->count(),
+            'total_vacancies' => Vacancy::count(),
+            'closed_vacancies' => Vacancy::whereIn('status', [VacancyStatus::Closed, VacancyStatus::Finalized, VacancyStatus::Cancelled])->count(),
         ];
 
         // ── Application pipeline by status ───────────────────────────
@@ -57,7 +57,7 @@ class AdminDashboardController extends Controller
             ['key' => 'failed_screening',      'label' => 'Failed Screening',       'color' => 'bg-red-500'],
             ['key' => 'shortlisted_exam',      'label' => 'Shortlisted (Exam)',     'color' => 'bg-violet-500'],
             ['key' => 'exam_completed',        'label' => 'Exam Completed',         'color' => 'bg-purple-500'],
-            ['key' => 'shortlisted_interview', 'label' => 'Shortlisted (Interview)','color' => 'bg-cyan-500'],
+            ['key' => 'shortlisted_interview', 'label' => 'Shortlisted (Interview)', 'color' => 'bg-cyan-500'],
             ['key' => 'interview_completed',   'label' => 'Interview Completed',    'color' => 'bg-sky-500'],
             ['key' => 'selected',              'label' => 'Selected',               'color' => 'bg-green-500'],
             ['key' => 'waitlisted',            'label' => 'Waitlisted',             'color' => 'bg-yellow-500'],
@@ -65,7 +65,7 @@ class AdminDashboardController extends Controller
             ['key' => 'withdrawn',             'label' => 'Withdrawn',              'color' => 'bg-gray-400'],
         ])->map(fn ($s) => array_merge($s, [
             'count' => $pipeline[$s['key']] ?? 0,
-            'pct'   => round((($pipeline[$s['key']] ?? 0) / $total) * 100, 1),
+            'pct' => round((($pipeline[$s['key']] ?? 0) / $total) * 100, 1),
         ]))->filter(fn ($s) => $s['count'] > 0)->values();
 
         // ── Gender distribution ───────────────────────────────────────
@@ -85,17 +85,20 @@ class AdminDashboardController extends Controller
 
         // ── Disability distribution ───────────────────────────────────
         $disabilityDist = [
-            'with'    => Applicant::where('disability_status', true)->count(),
+            'with' => Applicant::where('disability_status', true)->count(),
             'without' => Applicant::where('disability_status', false)->orWhereNull('disability_status')->count(),
         ];
 
         // ── Age distribution ──────────────────────────────────────────
-        $ageGroups  = ['Under 25' => [0,25], '25–30' => [25,30], '31–35' => [31,35], '36–40' => [36,40], 'Over 40' => [41,999]];
-        $ageDist    = [];
+        $ageGroups = ['Under 25' => [0, 25], '25–30' => [25, 30], '31–35' => [31, 35], '36–40' => [36, 40], 'Over 40' => [41, 999]];
+        $ageDist = [];
         foreach ($ageGroups as $label => [$min, $max]) {
+            $youngestDate = now()->subYears($min)->toDateString();
+            $oldestDate = now()->subYears($max)->toDateString();
+
             $ageDist[$label] = Applicant::whereNotNull('date_of_birth')
-                ->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) >= ?', [$min])
-                ->whereRaw('TIMESTAMPDIFF(YEAR, date_of_birth, CURDATE()) < ?', [$max])
+                ->whereDate('date_of_birth', '<=', $youngestDate)
+                ->whereDate('date_of_birth', '>', $oldestDate)
                 ->count();
         }
         $ageTotal = max(array_sum($ageDist), 1);
@@ -123,10 +126,10 @@ class AdminDashboardController extends Controller
 
         // ── Final results overview ────────────────────────────────────
         $finalResultStats = [
-            'total'    => FinalResult::count(),
+            'total' => FinalResult::count(),
             'avg_exam' => round((float) FinalResult::avg('exam_score'), 1),
-            'avg_int'  => round((float) FinalResult::avg('interview_score'), 1),
-            'avg_fin'  => round((float) FinalResult::avg('final_score'), 1),
+            'avg_int' => round((float) FinalResult::avg('interview_score'), 1),
+            'avg_fin' => round((float) FinalResult::avg('final_score'), 1),
         ];
 
         // ── Applications per vacancy (top 8 open) ────────────────────

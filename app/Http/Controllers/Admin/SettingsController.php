@@ -15,7 +15,7 @@ use Illuminate\View\View;
 class SettingsController extends Controller
 {
     private array $keys = [
-        'org.name', 'org.address', 'org.phone', 'org.email', 'org.website', 'org.footer_text',
+        'org.name', 'org.logo', 'org.favicon', 'org.address', 'org.phone', 'org.email', 'org.website', 'org.footer_text',
         'org.facebook', 'org.twitter', 'org.linkedin', 'org.youtube',
         'recruitment.max_file_size_mb', 'recruitment.allow_registration', 'recruitment.reference_format',
         'localization.default_locale', 'localization.show_language_switcher',
@@ -26,7 +26,7 @@ class SettingsController extends Controller
         'codes.vacancy.prefix', 'codes.vacancy.format', 'codes.vacancy.padding', 'codes.vacancy.auto',
         'codes.applicant.prefix', 'codes.applicant.format', 'codes.applicant.padding',
         'results.exam_weight', 'results.interview_weight',
-        'appearance.primary_color', 'appearance.sidebar_color', 'appearance.accent_color',
+        'appearance.primary_color', 'appearance.sidebar_color', 'appearance.accent_color', 'appearance.logo_size',
     ];
 
     public function index(): View
@@ -52,6 +52,7 @@ class SettingsController extends Controller
             'org.linkedin' => ['nullable', 'url'],
             'org.youtube' => ['nullable', 'url'],
             'org.logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:1024'],
+            'org.favicon' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg,svg,webp', 'max:512'],
             'recruitment.max_file_size_mb' => ['nullable', 'integer', 'min:1', 'max:10'],
             'recruitment.allow_registration' => ['nullable', 'boolean'],
             'recruitment.reference_format' => ['nullable', 'string', 'max:100'],
@@ -76,7 +77,8 @@ class SettingsController extends Controller
             'results.interview_weight' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'appearance.primary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'appearance.sidebar_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'appearance.accent_color'  => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'appearance.accent_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'appearance.logo_size' => ['nullable', 'integer', 'min:24', 'max:72'],
         ]);
 
         // Handle logo upload separately to avoid overwriting its path in the loop.
@@ -84,7 +86,12 @@ class SettingsController extends Controller
             $path = $request->file('org.logo')->store('org', 'public');
             Setting::set('org.logo', $path);
         }
+        if ($request->hasFile('org.favicon')) {
+            $path = $request->file('org.favicon')->store('org', 'public');
+            Setting::set('org.favicon', $path);
+        }
         Arr::forget($data, 'org.logo');
+        Arr::forget($data, 'org.favicon');
 
         // Flatten all nested arrays to dot notation and persist each key.
         foreach (Arr::dot($data) as $key => $value) {

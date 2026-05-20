@@ -198,7 +198,7 @@
                     <p class="text-sm font-medium text-gray-900">{{ $doc->document_type }}</p>
                     <p class="text-xs text-gray-500">{{ $doc->original_name }} &middot; {{ number_format($doc->file_size / 1024, 1) }} KB</p>
                 </div>
-                <a href="{{ route('admin.applicant-profile-documents.download', $doc) }}"
+                <a href="{{ route('admin.profile-documents.download', $doc) }}"
                    class="text-xs font-medium text-brand hover:text-brand-dark">{{ __('messages.download') }}</a>
             </div>
             @endforeach

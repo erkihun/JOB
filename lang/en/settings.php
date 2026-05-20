@@ -7,6 +7,8 @@ return [
     'notifications' => 'Notification Settings',
     'org_name' => 'Organization Name',
     'org_logo' => 'Organization Logo',
+    'favicon' => 'System Favicon',
+    'favicon_hint' => 'Upload ICO, PNG, JPG, SVG, or WebP. Recommended size: 32x32 or 512x512.',
     'org_address' => 'Address',
     'org_phone' => 'Phone Number',
     'org_email' => 'Email',
@@ -33,6 +35,8 @@ return [
     'appearance_primary_color' => 'Primary Color',
     'appearance_sidebar_color' => 'Sidebar Color',
     'appearance_accent_color' => 'Accent Color',
+    'logo_size' => 'Admin Logo Size',
+    'logo_size_hint' => 'Controls the sidebar logo size in pixels. Allowed range: 24 to 72.',
     'appearance_hint' => 'Pick a preset or choose custom colors. Changes apply after saving.',
 
     // Code generation

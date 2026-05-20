@@ -41,6 +41,19 @@
                        class="mt-1 block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-muted file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand hover:file:bg-blue-100">
             </div>
             <div>
+                <label class="block text-sm font-medium text-gray-700">{{ __('settings.favicon') }}</label>
+                @php $favicon = \App\Models\Setting::get('org.favicon',''); @endphp
+                @if($favicon)
+                <div class="mb-2">
+                    <img src="{{ Storage::url($favicon) }}" alt="" class="h-10 w-10 rounded-lg border border-gray-200 object-contain p-1">
+                </div>
+                @endif
+                <input type="file" name="org[favicon]" accept=".ico,.jpg,.jpeg,.png,.svg,.webp"
+                       class="mt-1 block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-muted file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand hover:file:bg-blue-100">
+                <p class="mt-1 text-xs text-gray-400">{{ __('settings.favicon_hint') }}</p>
+                @error('org.favicon')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div>
                 <label class="block text-sm font-medium text-gray-700">{{ __('fields.address') }}</label>
                 <textarea name="org[address]" rows="2" class="form-textarea mt-1">{{ old('org.address', $settings['org.address']) }}</textarea>
             </div>
@@ -325,6 +338,7 @@
                  primary: '{{ old('appearance.primary_color', $settings['appearance.primary_color'] ?? '#1A56DB') }}',
                  sidebar: '{{ old('appearance.sidebar_color', $settings['appearance.sidebar_color'] ?? '#1E3A8A') }}',
                  accent:  '{{ old('appearance.accent_color',  $settings['appearance.accent_color']  ?? '#FF6B2B') }}',
+                 logoSize: {{ (int) old('appearance.logo_size', $settings['appearance.logo_size'] ?: 36) }},
                  presets: [
                      { name: 'Blue',    primary: '#1A56DB', sidebar: '#1E3A8A', accent: '#FF6B2B' },
                      { name: 'Emerald', primary: '#059669', sidebar: '#065F46', accent: '#F59E0B' },
@@ -371,7 +385,7 @@
                     <div class="h-4 w-0.5 rounded bg-brand"></div>
                     <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('settings.appearance') }}</h2>
                 </div>
-                <div class="grid gap-6 sm:grid-cols-3">
+                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('settings.appearance_primary_color') }}</label>
                         <div class="flex items-center gap-3">
@@ -408,12 +422,22 @@
                         </div>
                         <p class="mt-1 text-xs text-gray-400">Badges, highlights, accent elements</p>
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('settings.logo_size') }}</label>
+                        <div class="flex items-center gap-3">
+                            <input type="range" min="24" max="72" step="1" x-model.number="logoSize"
+                                   class="w-full accent-blue-600">
+                            <input type="number" name="appearance[logo_size]" min="24" max="72" x-model.number="logoSize"
+                                   class="form-input w-20">
+                        </div>
+                        <p class="mt-1 text-xs text-gray-400">{{ __('settings.logo_size_hint') }}</p>
+                    </div>
                 </div>
 
                 {{-- Live preview bar --}}
                 <div class="mt-4 overflow-hidden rounded-lg border border-gray-200">
                     <div class="flex h-10 items-center gap-4 px-4" :style="'background:'+sidebar">
-                        <div class="h-5 w-5 rounded-full" :style="'background:'+accent"></div>
+                        <div class="flex items-center justify-center rounded text-xs font-bold text-white" :style="'width:'+logoSize+'px;height:'+logoSize+'px;background:'+accent">LG</div>
                         <div class="h-2 w-24 rounded-full opacity-60 bg-white"></div>
                     </div>
                     <div class="flex items-center gap-3 bg-white px-4 py-3">

@@ -5,8 +5,10 @@ declare(strict_types=1);
 use App\Models\Applicant;
 use App\Models\ApplicantProfileDocument;
 use App\Models\Application;
+use App\Models\Setting;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 
@@ -204,4 +206,95 @@ test('authorized admin can preview applicant profile document inline', function 
         ->get(route('admin.profile-documents.preview', $document))
         ->assertOk()
         ->assertHeader('Content-Disposition', 'inline; filename="sample.pdf"');
+});
+
+test('admin applicant detail page renders profile document download link', function (): void {
+    $admin = User::factory()->admin()->create();
+    $applicant = Applicant::factory()->create();
+
+    $document = ApplicantProfileDocument::create([
+        'applicant_id' => $applicant->id,
+        'document_type' => 'documents',
+        'file_name' => 'profile.pdf',
+        'original_name' => 'profile.pdf',
+        'file_path' => 'applicant-documents/'.$applicant->id.'/profile.pdf',
+        'file_type' => 'application/pdf',
+        'file_size' => 1024,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.applicants.show', $applicant))
+        ->assertOk()
+        ->assertSee(route('admin.profile-documents.download', $document), false)
+        ->assertDontSee('admin.applicant-profile-documents.download', false);
+});
+
+test('authorized admin can download applicant profile document', function (): void {
+    Storage::fake('local');
+
+    $admin = User::factory()->admin()->create();
+    $applicant = Applicant::factory()->create();
+
+    $path = 'applicant-documents/'.$applicant->id.'/download.pdf';
+    Storage::disk('local')->put($path, 'fake pdf content');
+
+    $document = ApplicantProfileDocument::create([
+        'applicant_id' => $applicant->id,
+        'document_type' => 'documents',
+        'file_name' => 'download.pdf',
+        'original_name' => 'download.pdf',
+        'file_path' => $path,
+        'file_type' => 'application/pdf',
+        'file_size' => strlen('fake pdf content'),
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.profile-documents.download', $document))
+        ->assertOk()
+        ->assertDownload('download.pdf');
+});
+
+test('system favicon can be uploaded from settings and renders in admin layout', function (): void {
+    Storage::fake('public');
+
+    $admin = User::factory()->admin()->create();
+    $file = UploadedFile::fake()->image('favicon.png', 32, 32)->size(10);
+
+    $this->actingAs($admin)
+        ->put(route('admin.settings.update'), [
+            'org' => [
+                'favicon' => $file,
+            ],
+        ])
+        ->assertRedirect();
+
+    $favicon = Setting::get('org.favicon');
+
+    expect($favicon)->toBeString()->not->toBe('');
+    Storage::disk('public')->assertExists($favicon);
+
+    $this->actingAs($admin)
+        ->get('/admin')
+        ->assertOk()
+        ->assertSee('rel="icon"', false)
+        ->assertSee(Storage::url($favicon), false);
+});
+
+test('admin logo size setting is saved and rendered in admin layout', function (): void {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->put(route('admin.settings.update'), [
+            'appearance' => [
+                'logo_size' => 56,
+            ],
+        ])
+        ->assertRedirect();
+
+    expect((int) Setting::get('appearance.logo_size'))->toBe(56);
+
+    $this->actingAs($admin)
+        ->get('/admin')
+        ->assertOk()
+        ->assertSee('width: 56px; height: 56px;', false);
 });

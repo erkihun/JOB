@@ -17,6 +17,7 @@ class SettingsSeeder extends Seeder
             ['key' => 'app.fallback_locale', 'value' => 'en', 'type' => 'string', 'group' => 'general'],
             ['key' => 'org.name', 'value' => 'Your Organization', 'type' => 'string', 'group' => 'general'],
             ['key' => 'org.logo', 'value' => '', 'type' => 'string', 'group' => 'general'],
+            ['key' => 'org.favicon', 'value' => '', 'type' => 'string', 'group' => 'general'],
             ['key' => 'org.address', 'value' => 'Addis Ababa, Ethiopia', 'type' => 'string', 'group' => 'general'],
             ['key' => 'org.phone', 'value' => '', 'type' => 'string', 'group' => 'general'],
             ['key' => 'org.email', 'value' => '', 'type' => 'string', 'group' => 'general'],
@@ -57,6 +58,7 @@ class SettingsSeeder extends Seeder
             ['key' => 'appearance.primary_color', 'value' => '#1A56DB', 'type' => 'string', 'group' => 'appearance'],
             ['key' => 'appearance.sidebar_color', 'value' => '#1E3A8A', 'type' => 'string', 'group' => 'appearance'],
             ['key' => 'appearance.accent_color',  'value' => '#FF6B2B', 'type' => 'string', 'group' => 'appearance'],
+            ['key' => 'appearance.logo_size', 'value' => '36', 'type' => 'integer', 'group' => 'appearance'],
 
             // Email
             ['key' => 'mail.from_name', 'value' => 'Job Vacancy System', 'type' => 'string', 'group' => 'notifications'],

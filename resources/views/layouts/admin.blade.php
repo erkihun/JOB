@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', __('menus.dashboard')) — {{ \App\Models\Setting::get('org.name', config('app.name')) }}</title>
+    @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
     @php
         $themePrimary = \App\Models\Setting::get('appearance.primary_color', '#1A56DB');
         $themeSidebar = \App\Models\Setting::get('appearance.sidebar_color', '#1E3A8A');
         $themeAccent  = \App\Models\Setting::get('appearance.accent_color',  '#FF6B2B');
+        $adminLogoSize = min(max((int) \App\Models\Setting::get('appearance.logo_size', 36), 24), 72);
     @endphp
     <style>
     /* ── Brand CSS vars ─────────────────────────────────────────── */
@@ -187,12 +189,11 @@
         @php $orgLogo = \App\Models\Setting::get('org.logo', ''); @endphp
         @if($orgLogo)
         <img src="{{ Storage::url($orgLogo) }}" alt=""
-             class="h-9 w-9 shrink-0 rounded-xl object-cover shadow-md"
-             style="outline: 2px solid var(--sb-border); outline-offset: 1px;">
+             class="shrink-0 object-contain"
+             style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px;">
         @else
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white shadow-md"
-             style="background: linear-gradient(135deg, var(--color-accent) 0%, color-mix(in srgb,var(--color-accent) 65%,var(--color-brand)) 100%);
-                    box-shadow: 0 3px 10px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.15);">
+        <div class="flex shrink-0 items-center justify-center text-sm font-bold"
+             style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px; color: var(--color-brand);">
             {{ mb_substr(\App\Models\Setting::get('org.name', config('app.name')), 0, 2) }}
         </div>
         @endif

@@ -7,6 +7,8 @@ return [
     'notifications' => 'የማሳወቂያ ቅንብሮች',
     'org_name' => 'የድርጅት ስም',
     'org_logo' => 'የድርጅት አርማ',
+    'favicon' => 'የስርዓቱ ፋቪኮን',
+    'favicon_hint' => 'ICO፣ PNG፣ JPG፣ SVG ወይም WebP ይጫኑ። የሚመከር መጠን፡ 32x32 ወይም 512x512።',
     'org_address' => 'አድራሻ',
     'org_phone' => 'ስልክ ቁጥር',
     'org_email' => 'ኢሜይል',
@@ -33,6 +35,8 @@ return [
     'appearance_primary_color' => 'ዋና ቀለም',
     'appearance_sidebar_color' => 'የጎን አሞሌ ቀለም',
     'appearance_accent_color' => 'ጥቅ ቀለም',
+    'logo_size' => 'የአስተዳዳሪ አርማ መጠን',
+    'logo_size_hint' => 'የጎን አሞሌውን አርማ መጠን በፒክስል ይቆጣጠራል። የተፈቀደው መጠን፡ 24 እስከ 72።',
     'appearance_hint' => 'ቅድመ-ቅንብር ይምረጡ ወይም ብጁ ቀለሞች ያስገቡ። ለውጦቹ ከማስቀመጥ በኋላ ይሠራሉ።',
 
     // Code generation
