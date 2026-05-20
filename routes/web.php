@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminApplicantController;
 use App\Http\Controllers\Admin\AdminApplicantProfileDocumentDownloadController;
 use App\Http\Controllers\Admin\AdminApplicantProfileDocumentPreviewController;
 use App\Http\Controllers\Admin\AdminAuthController;
@@ -123,6 +124,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->middlewareFor(['create', 'store', 'edit', 'update', 'destroy'], 'permission:settings.view');
 
         Route::resource('applications', AdminApplicationController::class)
+            ->only(['index', 'show'])
+            ->middleware('permission:applications.view');
+
+        Route::resource('applicants', AdminApplicantController::class)
             ->only(['index', 'show'])
             ->middleware('permission:applications.view');
 

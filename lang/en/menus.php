@@ -8,6 +8,8 @@ return [
     'vacancies' => 'Vacancies',
     'announcements' => 'Announcements',
     'applications' => 'All Applications',
+    'applicants' => 'Applicants',
+    'documents' => 'Documents',
     'screening' => 'Screening',
     'passed_applicants' => 'Passed Applicants',
     'failed_applicants' => 'Failed Applicants',

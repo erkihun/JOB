@@ -8,6 +8,8 @@ return [
     'vacancies' => 'ክፍት ስራዎች',
     'announcements' => 'ማስታወቂያዎች',
     'applications' => 'ሁሉም ማመልከቻዎች',
+    'applicants' => 'አመልካቾች',
+    'documents' => 'ሰነዶች',
     'screening' => 'ማጣሪያ',
     'passed_applicants' => 'ያለፉ አመልካቾች',
     'failed_applicants' => 'ያላለፉ አመልካቾች',

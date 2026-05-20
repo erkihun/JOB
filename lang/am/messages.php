@@ -15,6 +15,11 @@ return [
     'filter' => 'ጣር',
     'reset' => 'ዳግም አስጀምር',
     'search' => 'ፈልግ',
+    'clear' => 'አጽዳ',
+    'total' => 'ጠቅላላ',
+    'registered' => 'ተመዝግቧል',
+    'search_applicants' => 'በስም፣ ኢሜይል፣ ስልክ፣ መታወቂያ ፈልግ…',
+    'no_applicants_found' => 'ምንም አመልካቾች አልተገኙም።',
 
     // Actions
     'view' => 'ይመልከቱ',

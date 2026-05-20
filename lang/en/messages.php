@@ -15,6 +15,11 @@ return [
     'filter' => 'Filter',
     'reset' => 'Reset',
     'search' => 'Search',
+    'clear' => 'Clear',
+    'total' => 'Total',
+    'registered' => 'Registered',
+    'search_applicants' => 'Search by name, email, phone, ID…',
+    'no_applicants_found' => 'No applicants found.',
 
     // Actions
     'view' => 'View',
