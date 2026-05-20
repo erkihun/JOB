@@ -69,17 +69,6 @@
             <p class="text-[11px] text-blue-300/80 whitespace-nowrap">{{ __('menus.admin_panel') }}</p>
         </div>
 
-        {{-- Collapse toggle (desktop only) --}}
-        <button @click="toggleSidebar()"
-                class="hidden lg:flex shrink-0 h-7 w-7 items-center justify-center rounded-lg text-blue-300 hover:bg-white/15 hover:text-white transition-colors duration-200"
-                :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
-            <svg class="h-4 w-4 transition-transform duration-300 ease-in-out"
-                 :class="sidebarCollapsed ? 'rotate-180' : ''"
-                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-            </svg>
-        </button>
     </div>
 
     {{-- ── Navigation ───────────────────────────────────────────── --}}
@@ -264,6 +253,18 @@
                 class="lg:hidden -ml-1 rounded-lg p-2 text-gray-500 hover:bg-brand-muted hover:text-brand transition">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+
+        {{-- Sidebar collapse/expand toggle (desktop only) --}}
+        <button @click="toggleSidebar()"
+                :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+                class="hidden lg:flex -ml-1 rounded-lg p-2 text-gray-500 hover:bg-brand-muted hover:text-brand transition">
+            <svg class="h-5 w-5 transition-transform duration-300 ease-in-out"
+                 :class="sidebarCollapsed ? 'rotate-180' : ''"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
             </svg>
         </button>
 
