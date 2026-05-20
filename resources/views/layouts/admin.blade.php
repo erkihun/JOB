@@ -137,6 +137,28 @@
     .locale-active   { background: var(--color-brand); color: #fff; }
     .locale-inactive { color: var(--tb-muted); }
     .locale-inactive:hover { color: var(--tb-text); }
+
+    [data-admin-page-frame] {
+        transition: opacity .16s ease, transform .16s ease;
+    }
+
+    [data-admin-page-frame].is-loading {
+        opacity: .38;
+        pointer-events: none;
+        transform: translateY(4px);
+    }
+
+    [data-admin-progress] {
+        opacity: 0;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: opacity .2s ease, transform .2s ease;
+    }
+
+    [data-admin-progress].is-loading {
+        opacity: 1;
+        transform: scaleX(1);
+    }
     </style>
 </head>
 <body class="h-full bg-gray-50 font-sans text-gray-900 antialiased locale-{{ app()->getLocale() }} lang-{{ app()->getLocale() }}"
@@ -449,6 +471,8 @@
 ════════════════════════════════════════════════════════════ --}}
 <div class="flex flex-col min-h-full transition-all duration-300 ease-out"
      :class="sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64'">
+    <div data-admin-progress class="fixed left-0 right-0 top-0 z-[80] h-0.5"
+         style="background: linear-gradient(90deg, var(--color-brand), var(--color-accent));"></div>
 
     {{-- ════════════════════════════════════════════════════════════
          Topbar — three-zone: LEFT | CENTER | RIGHT
@@ -765,6 +789,7 @@
     </div>
 
     {{-- ── Flash messages ──────────────────────────────────────────── --}}
+    <div id="admin-page-frame" data-admin-page-frame>
     @if(session('success'))
     <div class="mx-4 mt-4 flex items-start gap-3 rounded-xl border border-green-100 bg-green-50 px-4 py-3.5 sm:mx-6" role="alert">
         <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100">
@@ -807,6 +832,7 @@
     <main class="flex-1 px-4 py-5 sm:px-6">
         @yield('content')
     </main>
+    </div>
 </div>
 
 <script>
@@ -832,6 +858,118 @@ function adminShell() {
         },
     };
 }
+</script>
+
+<script>
+(() => {
+    const frameSelector = '[data-admin-page-frame]';
+    const progressSelector = '[data-admin-progress]';
+    const skippedPathFragments = ['/download', '/preview', '/export', '/logout', '/announcements'];
+    let controller = null;
+
+    const shouldSkip = (link, event) => {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return true;
+        }
+
+        if (link.target || link.hasAttribute('download') || link.dataset.adminNoSpa !== undefined) {
+            return true;
+        }
+
+        const url = new URL(link.href, window.location.href);
+
+        if (url.origin !== window.location.origin || ! url.pathname.startsWith('/admin')) {
+            return true;
+        }
+
+        return skippedPathFragments.some((fragment) => url.pathname.includes(fragment));
+    };
+
+    const setLoading = (loading) => {
+        document.querySelector(frameSelector)?.classList.toggle('is-loading', loading);
+        document.querySelector(progressSelector)?.classList.toggle('is-loading', loading);
+    };
+
+    const initTree = (element) => {
+        window.Alpine?.initTree?.(element);
+    };
+
+    const swapSidebarNav = (nextDocument) => {
+        const currentNav = document.querySelector('.sidebar-nav');
+        const nextNav = nextDocument.querySelector('.sidebar-nav');
+
+        if (! currentNav || ! nextNav) {
+            return;
+        }
+
+        currentNav.innerHTML = nextNav.innerHTML;
+        initTree(currentNav);
+    };
+
+    const visit = async (url, pushState = true) => {
+        controller?.abort();
+        controller = new AbortController();
+        setLoading(true);
+
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-Admin-Navigation': 'partial',
+                },
+                signal: controller.signal,
+            });
+
+            const contentType = response.headers.get('content-type') || '';
+
+            if (! response.ok || ! contentType.includes('text/html')) {
+                window.location.href = url;
+                return;
+            }
+
+            const html = await response.text();
+            const nextDocument = new DOMParser().parseFromString(html, 'text/html');
+            const nextFrame = nextDocument.querySelector(frameSelector);
+            const currentFrame = document.querySelector(frameSelector);
+
+            if (! nextFrame || ! currentFrame) {
+                window.location.href = url;
+                return;
+            }
+
+            document.title = nextDocument.title;
+            swapSidebarNav(nextDocument);
+            currentFrame.replaceWith(nextFrame);
+            initTree(nextFrame);
+
+            if (pushState) {
+                window.history.pushState({ adminNavigation: true }, '', url);
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.dispatchEvent(new CustomEvent('admin:navigated', { detail: { url } }));
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                window.location.href = url;
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    document.addEventListener('click', (event) => {
+        const link = event.target.closest?.('a[href]');
+
+        if (! link || shouldSkip(link, event)) {
+            return;
+        }
+
+        event.preventDefault();
+        visit(link.href);
+    });
+
+    window.addEventListener('popstate', () => visit(window.location.href, false));
+})();
 </script>
 
 @stack('scripts')

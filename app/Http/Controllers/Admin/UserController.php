@@ -19,7 +19,9 @@ class UserController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = User::with('roles')->latest();
+        $query = User::with('roles')
+            ->whereDoesntHave('roles', fn ($roles) => $roles->where('name', 'applicant'))
+            ->latest();
 
         if ($search = $request->query('search')) {
             $query->where(fn ($q) => $q
@@ -28,7 +30,7 @@ class UserController extends Controller
                 ->orWhere('phone', 'like', "%$search%")
             );
         }
-        if ($role = $request->query('role')) {
+        if (($role = $request->query('role')) && $role !== 'applicant') {
             $query->role($role);
         }
         if ($status = $request->query('status')) {

@@ -21,6 +21,8 @@ test('admin dashboard loads without figma references', function (): void {
         ->get('/admin')
         ->assertOk()
         ->assertSeeText(__('dashboard.title'))
+        ->assertSee('data-admin-page-frame', false)
+        ->assertSee('X-Admin-Navigation', false)
         ->assertDontSee('figma', false);
 });
 
@@ -91,6 +93,23 @@ test('users page requires users view permission', function (): void {
     $this->actingAs($screeningOfficer)
         ->get('/admin/users')
         ->assertForbidden();
+});
+
+test('admin users list does not display applicant accounts', function (): void {
+    $admin = User::factory()->admin()->create(['name' => 'Admin User']);
+    $applicant = User::factory()->asApplicant()->create(['name' => 'Applicant User']);
+
+    $this->actingAs($admin)
+        ->get('/admin/users')
+        ->assertOk()
+        ->assertSeeText('Admin User')
+        ->assertDontSeeText('Applicant User')
+        ->assertDontSeeText('applicant');
+
+    $this->actingAs($admin)
+        ->get('/admin/users?role=applicant')
+        ->assertOk()
+        ->assertDontSeeText($applicant->name);
 });
 
 test('roles page requires roles view permission', function (): void {
