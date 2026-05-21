@@ -187,7 +187,7 @@
     {{-- Profile Documents --}}
     @if($applicant->profileDocuments->count())
     <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden"
-         x-data="{ previewUrl: '', previewName: '', open: false }">
+         x-data="{ previewUrl: '', previewName: '', open: false, loading: false }">
 
         <div class="border-b border-gray-100 bg-gray-50 px-5 py-3 flex items-center gap-2">
             <div class="h-4 w-0.5 rounded bg-accent"></div>
@@ -209,7 +209,7 @@
                 </div>
                 <div class="flex items-center gap-4 shrink-0 ml-4">
                     <button type="button"
-                            @click="previewUrl = '{{ route('admin.profile-documents.preview', $doc) }}'; previewName = '{{ addslashes($doc->original_name) }}'; open = true"
+                            @click="previewUrl = '{{ route('admin.profile-documents.preview', $doc) }}'; previewName = '{{ addslashes($doc->original_name) }}'; loading = true; open = true"
                             class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition">
                         <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -273,11 +273,22 @@
                         </button>
                     </div>
 
-                    {{-- PDF iframe --}}
-                    <iframe :src="open ? previewUrl : ''"
-                            class="flex-1 w-full border-0 bg-gray-100"
-                            title="Document Preview"
-                            loading="lazy"></iframe>
+                    {{-- PDF viewer --}}
+                    <div class="relative flex-1 min-h-0">
+                        {{-- Loading spinner --}}
+                        <div x-show="loading"
+                             class="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-10 gap-3">
+                            <svg class="h-8 w-8 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                            </svg>
+                            <span class="text-sm text-gray-500">Loading document…</span>
+                        </div>
+                        <iframe :src="open ? previewUrl : ''"
+                                @load="loading = false"
+                                class="h-full w-full border-0 bg-gray-100"
+                                title="Document Preview"></iframe>
+                    </div>
                 </div>
             </div>
         </template>
