@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\Auth;
 
 use App\Enums\EducationLevel;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -77,5 +79,28 @@ class ApplicantRegisterRequest extends FormRequest
             'email.unique' => __('validation.email_taken'),
             'terms.accepted' => __('validation.terms_required'),
         ];
+    }
+
+    protected function failedValidation(Validator $validator): void
+    {
+        // Save valid uploaded files to temp storage so they survive the redirect
+        if ($this->hasFile('profile_photo') && ! $validator->errors()->has('profile_photo')) {
+            $file = $this->file('profile_photo');
+            $ext  = $file->getClientOriginalExtension();
+            $path = $file->storeAs('temp/reg-photos', Str::random(32).'.'.$ext, 'local');
+            session(['reg_temp_photo' => $path]);
+        }
+
+        if ($this->hasFile('documents') && ! $validator->errors()->has('documents')) {
+            $file = $this->file('documents');
+            $ext  = $file->getClientOriginalExtension();
+            $path = $file->storeAs('temp/reg-docs', Str::random(32).'.'.$ext, 'local');
+            session([
+                'reg_temp_docs'      => $path,
+                'reg_temp_docs_name' => $file->getClientOriginalName(),
+            ]);
+        }
+
+        parent::failedValidation($validator);
     }
 }

@@ -32,6 +32,7 @@ use App\Http\Controllers\Applicant\DocumentDownloadController;
 use App\Http\Controllers\Applicant\ProfilePhotoController;
 use App\Http\Controllers\Applicant\VacancyController as ApplicantVacancyController;
 use App\Http\Controllers\Auth\ApplicantAuthController;
+use App\Http\Controllers\Auth\ApplicantEmailVerificationController;
 use App\Http\Controllers\Public\AnnouncementController as PublicAnnouncementController;
 use App\Http\Controllers\Public\ApplicationTrackingController;
 use App\Http\Controllers\Public\HomeController;
@@ -79,6 +80,10 @@ Route::middleware('guest')->prefix('applicant')->name('applicant.')->group(funct
     Route::get('/login', [ApplicantAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [ApplicantAuthController::class, 'login'])->middleware('throttle:5,1');
 
+    // Registration helpers
+    Route::get('/temp-photo',      [ApplicantAuthController::class, 'tempPhoto'])->name('temp-photo');
+    Route::get('/validate-field',  [ApplicantAuthController::class, 'validateField'])->name('validate-field');
+
     // Password reset via OTP
     Route::get('/forgot-password',  [ApplicantPasswordResetController::class, 'showForgotForm'])->name('password.request');
     Route::post('/forgot-password', [ApplicantPasswordResetController::class, 'sendOtp'])->middleware('throttle:5,1')->name('password.email');
@@ -92,6 +97,13 @@ Route::middleware('guest')->prefix('applicant')->name('applicant.')->group(funct
 Route::post('/applicant/logout', [ApplicantAuthController::class, 'logout'])
     ->middleware('auth')
     ->name('applicant.logout');
+
+// Email verification (auth required, but no email_verified_at check — before EnsureIsApplicant)
+Route::middleware('auth')->prefix('applicant')->name('applicant.')->group(function () {
+    Route::get('/verify-email', [ApplicantEmailVerificationController::class, 'show'])->name('verify-email');
+    Route::post('/verify-email', [ApplicantEmailVerificationController::class, 'verify'])->middleware('throttle:10,1')->name('verify-email.submit');
+    Route::post('/verify-email/resend', [ApplicantEmailVerificationController::class, 'resend'])->middleware('throttle:3,1')->name('verify-email.resend');
+});
 
 // ── Admin panel routes ────────────────────────────────────────────────────
 Route::prefix('admin')->name('admin.')->group(function () {

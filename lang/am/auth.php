@@ -35,4 +35,10 @@ return [
     'otp_expires'   => 'ይህ ኮድ ከ10 ደቂቃ በኋላ ያልቃል።',
     'otp_ignore'    => 'ይህን ካልጠየቁ ኢሜይሉን ችላ ማለት ይችላሉ።',
     'otp_sent'      => 'ኢሜይልዎ ተመዝግቦ ከሆነ ኮድ ተልኳል። የገቢ መልዕክቶችዎን ይፈትሹ።',
+
+    // Email verification on registration
+    'verify_email'           => 'ኢሜይልዎን ያረጋግጡ',
+    'verify_email_hint'      => '6-አሃዝ ኮድ ወደ ኢሜይልዎ ተልኳል። ለማረጋገጥ ከዚህ ያስገቡ።',
+    'email_verified_success' => 'ኢሜይልዎ ተረጋግጧል። እንኳን ደህና መጡ!',
+    'otp_resent'             => 'አዲስ የማረጋገጫ ኮድ ወደ ኢሜይልዎ ተልኳል።',
 ];

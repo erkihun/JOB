@@ -35,4 +35,10 @@ return [
     'otp_expires'   => 'This code expires in 10 minutes.',
     'otp_ignore'    => 'If you did not request this, you can safely ignore this email.',
     'otp_sent'      => 'If your email is registered, a reset code has been sent. Please check your inbox.',
+
+    // Email verification on registration
+    'verify_email'          => 'Verify Your Email',
+    'verify_email_hint'     => 'We sent a 6-digit code to your email address. Enter it below to verify your account.',
+    'email_verified_success' => 'Email verified successfully. Welcome aboard!',
+    'otp_resent'            => 'A new verification code has been sent to your email.',
 ];

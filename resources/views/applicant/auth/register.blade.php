@@ -70,10 +70,27 @@
         </p>
     </div>
 
+    @php
+        $errorStep = 1;
+        if ($errors->any()) {
+            if ($errors->hasAny(['phone','email','password','password_confirmation','preferred_locale'])) {
+                $errorStep = 4;
+            } elseif ($errors->hasAny(['documents'])) {
+                $errorStep = 5;
+            } elseif ($errors->hasAny(['terms'])) {
+                $errorStep = 6;
+            } elseif ($errors->hasAny(['work_experience_years','work_experience_months','current_employer','current_position','work_experience_summary'])) {
+                $errorStep = 3;
+            } elseif ($errors->hasAny(['university_name','field_of_study','graduation_year','gpa','education_level'])) {
+                $errorStep = 2;
+            }
+        }
+    @endphp
+
     {{-- Validation errors (server-side) --}}
     @if($errors->any())
     <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-        <p class="font-semibold mb-1">{{ __('validation.required') === 'The :attribute field is required.' ? 'Please fix the following errors:' : 'እባክዎ ስህተቶቹን ያስተካክሉ:' }}</p>
+        <p class="font-semibold mb-1">{{ app()->getLocale() === 'am' ? 'እባክዎ ስህተቶቹን ያስተካክሉ:' : 'Please fix the following errors:' }}</p>
         <ul class="list-disc list-inside space-y-0.5">
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -132,13 +149,18 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700">{{ __('fields.gender') }} <span class="text-red-500">*</span></label>
                         <select name="gender"
-                                class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('gender') border-red-400 @enderror">
+                                @change="validateField('gender', $event.target.value)"
+                                :class="(touched['gender'] ? !!fieldErrors['gender'] : {{ $errors->has('gender') ? 'true' : 'false' }}) ? 'border-red-400' : 'border-gray-300'"
+                                class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                             <option value="">— {{ __('fields.gender') }} —</option>
                             <option value="male"   {{ old('gender') === 'male'   ? 'selected' : '' }}>{{ __('statuses.gender.male') }}</option>
                             <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>{{ __('statuses.gender.female') }}</option>
                             <option value="other"  {{ old('gender') === 'other'  ? 'selected' : '' }}>{{ __('statuses.gender.other') }}</option>
                         </select>
-                        @error('gender')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        @if($errors->has('gender'))
+                        <p x-show="!touched['gender']" class="mt-1 text-xs text-red-600">{{ $errors->first('gender') }}</p>
+                        @endif
+                        <p x-show="touched['gender'] && !!fieldErrors['gender']" x-text="fieldErrors['gender'] || ''" class="mt-1 text-xs text-red-600"></p>
                     </div>
 
                     {{-- Date of birth --}}
@@ -180,8 +202,14 @@
                         <input type="text" name="disability_type"
                                value="{{ old('disability_type') }}"
                                placeholder="{{ __('applicant.disability_type_hint') }}"
-                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('disability_type') border-red-400 @enderror">
-                        @error('disability_type')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                               @blur="validateField('disability_type', $event.target.value)"
+                               @input="if(touched['disability_type']) validateField('disability_type', $event.target.value)"
+                               :class="(touched['disability_type'] ? !!fieldErrors['disability_type'] : {{ $errors->has('disability_type') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
+                               class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        @if($errors->has('disability_type'))
+                        <p x-show="!touched['disability_type']" class="mt-1 text-xs text-red-600">{{ $errors->first('disability_type') }}</p>
+                        @endif
+                        <p x-show="touched['disability_type'] && !!fieldErrors['disability_type']" x-text="fieldErrors['disability_type'] || ''" class="mt-1 text-xs text-red-600"></p>
                     </div>
                 </div>
 
@@ -260,8 +288,13 @@
                     <input type="number" name="work_experience_years" min="0"
                            x-model.number="workYears"
                            value="{{ old('work_experience_years', 0) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('work_experience_years') border-red-400 @enderror">
-                    @error('work_experience_years')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                           @blur="validateField('work_experience_years', $event.target.value)"
+                           :class="(touched['work_experience_years'] ? !!fieldErrors['work_experience_years'] : {{ $errors->has('work_experience_years') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
+                           class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                    @if($errors->has('work_experience_years'))
+                    <p x-show="!touched['work_experience_years']" class="mt-1 text-xs text-red-600">{{ $errors->first('work_experience_years') }}</p>
+                    @endif
+                    <p x-show="touched['work_experience_years'] && !!fieldErrors['work_experience_years']" x-text="fieldErrors['work_experience_years'] || ''" class="mt-1 text-xs text-red-600"></p>
                 </div>
 
                 <div x-show="workYears > 0" x-transition class="space-y-4">
@@ -269,8 +302,13 @@
                         <label class="block text-sm font-medium text-gray-700">{{ __('fields.work_experience_months') }} <span class="text-gray-400 text-xs">(0–11)</span></label>
                         <input type="number" name="work_experience_months" min="0" max="11"
                                value="{{ old('work_experience_months', 0) }}"
-                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('work_experience_months') border-red-400 @enderror">
-                        @error('work_experience_months')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                               @blur="validateField('work_experience_months', $event.target.value)"
+                               :class="(touched['work_experience_months'] ? !!fieldErrors['work_experience_months'] : {{ $errors->has('work_experience_months') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
+                               class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        @if($errors->has('work_experience_months'))
+                        <p x-show="!touched['work_experience_months']" class="mt-1 text-xs text-red-600">{{ $errors->first('work_experience_months') }}</p>
+                        @endif
+                        <p x-show="touched['work_experience_months'] && !!fieldErrors['work_experience_months']" x-text="fieldErrors['work_experience_months'] || ''" class="mt-1 text-xs text-red-600"></p>
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
@@ -318,9 +356,15 @@
                             {{ __('fields.password') }} <span class="text-red-500">*</span>
                         </label>
                         <input type="password" id="password" name="password" autocomplete="new-password"
-                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('password') border-red-400 @enderror">
+                               @blur="validateField('password', $event.target.value)"
+                               @input="if(touched['password']) validateField('password', $event.target.value)"
+                               :class="(touched['password'] ? !!fieldErrors['password'] : {{ $errors->has('password') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
+                               class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         <p class="mt-1 text-xs text-gray-400">Min 8 chars, upper+lower+number+symbol.</p>
-                        @error('password')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        @if($errors->has('password'))
+                        <p x-show="!touched['password']" class="mt-1 text-xs text-red-600">{{ $errors->first('password') }}</p>
+                        @endif
+                        <p x-show="touched['password'] && !!fieldErrors['password']" x-text="fieldErrors['password'] || ''" class="mt-1 text-xs text-red-600"></p>
                     </div>
                     <div>
                         <label for="password_confirmation" class="block text-sm font-medium text-gray-700">
@@ -328,7 +372,11 @@
                         </label>
                         <input type="password" id="password_confirmation" name="password_confirmation"
                                autocomplete="new-password"
-                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                               @blur="validateField('password_confirmation', $event.target.value)"
+                               @input="if(touched['password_confirmation']) validateField('password_confirmation', $event.target.value)"
+                               :class="(touched['password_confirmation'] ? !!fieldErrors['password_confirmation'] : false) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
+                               class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                        <p x-show="touched['password_confirmation'] && !!fieldErrors['password_confirmation']" x-text="fieldErrors['password_confirmation'] || ''" class="mt-1 text-xs text-red-600"></p>
                     </div>
                 </div>
 
@@ -358,8 +406,20 @@
                             </label>
                             <p class="mt-0.5 text-xs text-gray-500">{{ __('applicant.doc_combined_hint') }}</p>
                             <input type="file" name="documents" accept=".pdf"
-                                   class="mt-2 block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 @error('documents') border border-red-300 rounded-md @enderror">
-                            @error('documents')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                                   @change="onDocumentChange($event)"
+                                   class="mt-2 block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100">
+                            {{-- Preserved filename badge (from temp storage or new selection) --}}
+                            <div x-show="docFileName"
+                                 class="mt-2 flex items-center gap-1.5 rounded-md bg-green-50 border border-green-200 px-3 py-1.5 text-xs text-green-700">
+                                <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                <span x-text="docFileName"></span>
+                            </div>
+                            @if($errors->has('documents'))
+                            <p x-show="!touched['documents']" class="mt-1 text-xs text-red-600">{{ $errors->first('documents') }}</p>
+                            @endif
+                            <p x-show="touched['documents'] && !!fieldErrors['documents']" x-text="fieldErrors['documents'] || ''" class="mt-1 text-xs text-red-600"></p>
                         </div>
                     </div>
                     <p class="text-xs text-gray-400">PDF only &middot; max 2 MB</p>
@@ -389,12 +449,16 @@
                     <input type="hidden" name="terms" value="0">
                     <input type="checkbox" name="terms" id="terms" value="1"
                            {{ old('terms') ? 'checked' : '' }}
+                           @change="touched['terms'] = true; fieldErrors['terms'] = $event.target.checked ? '' : 'You must accept the terms to register.'"
                            class="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                     <label for="terms" class="text-sm text-gray-700">
                         {{ __('applicant.terms_label') }}
                     </label>
                 </div>
-                @error('terms')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+                @if($errors->has('terms'))
+                <p x-show="!touched['terms']" class="text-xs text-red-600">{{ $errors->first('terms') }}</p>
+                @endif
+                <p x-show="touched['terms'] && !!fieldErrors['terms']" x-text="fieldErrors['terms'] || ''" class="text-xs text-red-600"></p>
 
             </div>
             <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
@@ -423,14 +487,18 @@
 <script>
 function registrationForm() {
     return {
-        step: {{ $errors->any() ? 1 : 1 }},
+        step: {{ $errorStep }},
         totalSteps: 6,
         disabilityStatus: '{{ old('disability_status', '0') }}',
         workYears: {{ (int) old('work_experience_years', 0) }},
-        firstName: '{{ old('first_name', '') }}',
-        middleName: '{{ old('middle_name', '') }}',
-        lastName: '{{ old('last_name', '') }}',
-        photoPreview: null,
+        firstName: '{{ addslashes(old('first_name', '')) }}',
+        middleName: '{{ addslashes(old('middle_name', '')) }}',
+        lastName: '{{ addslashes(old('last_name', '')) }}',
+        photoPreview: @if($errors->any() && session('reg_temp_photo'))'{{ route('applicant.temp-photo') }}?v={{ time() }}'@else null @endif,
+        docFileName: @if($errors->any() && session('reg_temp_docs_name'))'{{ addslashes(session('reg_temp_docs_name')) }}'@else null @endif,
+        fieldErrors: {},
+        touched: {},
+        _timers: {},
 
         get fullName() {
             return [this.firstName, this.middleName, this.lastName]
@@ -439,13 +507,181 @@ function registrationForm() {
 
         previewPhoto(event) {
             const file = event.target.files[0];
-            if (!file) return;
+            if (!file) { this.photoPreview = null; return; }
+            this.validateFile('profile_photo', file);
             const reader = new FileReader();
             reader.onload = e => { this.photoPreview = e.target.result; };
             reader.readAsDataURL(file);
         },
 
-        nextStep() { if (this.step < this.totalSteps) this.step++; window.scrollTo(0, 0); },
+        onDocumentChange(event) {
+            const file = event.target.files[0];
+            if (!file) { this.docFileName = null; return; }
+            this.validateFile('documents', file);
+            this.docFileName = file.name;
+        },
+
+        validateFile(field, file) {
+            this.touched[field] = true;
+            const mb2 = 2 * 1024 * 1024;
+            let err = '';
+            if (field === 'profile_photo') {
+                if (!['image/jpeg','image/jpg','image/png'].includes(file.type)) err = 'Only JPG or PNG images are allowed.';
+                else if (file.size > mb2) err = 'Photo must be under 2 MB.';
+            } else if (field === 'documents') {
+                if (file.type !== 'application/pdf') err = 'Only PDF files are accepted.';
+                else if (file.size > mb2) err = 'Document must be under 2 MB.';
+            }
+            this.fieldErrors[field] = err;
+        },
+
+        validateField(field, value) {
+            this.touched[field] = true;
+            const v = (value ?? '').toString().trim();
+            let err = '';
+
+            switch (field) {
+                case 'first_name':
+                case 'last_name':
+                    if (!v) err = 'This field is required.';
+                    else if (v.length > 100) err = 'Max 100 characters.';
+                    break;
+                case 'middle_name':
+                    if (v.length > 100) err = 'Max 100 characters.';
+                    break;
+                case 'national_id':
+                    if (!v) err = 'National ID is required.';
+                    else if (v.length > 50) err = 'Max 50 characters.';
+                    break;
+                case 'gender':
+                    if (!v) err = 'Please select your gender.';
+                    break;
+                case 'disability_type':
+                    if (this.disabilityStatus === '1' && !v) err = 'Please describe your disability type.';
+                    else if (v.length > 255) err = 'Max 255 characters.';
+                    break;
+                case 'date_of_birth':
+                    if (v && new Date(v) >= new Date()) err = 'Date of birth must be in the past.';
+                    break;
+                case 'nationality':
+                case 'university_name':
+                case 'field_of_study':
+                case 'current_employer':
+                case 'current_position':
+                    if (v.length > 255) err = 'Max 255 characters.';
+                    break;
+                case 'work_experience_summary':
+                    if (v.length > 2000) err = 'Max 2000 characters.';
+                    break;
+                case 'gpa':
+                    if (v !== '' && (isNaN(+v) || +v < 0 || +v > 4)) err = 'GPA must be between 0.00 and 4.00.';
+                    break;
+                case 'graduation_year':
+                    if (v !== '' && (isNaN(+v) || +v < 1950 || +v > {{ now()->year }})) err = 'Enter a valid graduation year.';
+                    break;
+                case 'work_experience_years':
+                    if (v !== '' && (isNaN(+v) || +v < 0)) err = 'Must be 0 or more.';
+                    break;
+                case 'work_experience_months':
+                    if (v !== '' && (isNaN(+v) || +v < 0 || +v > 11)) err = 'Must be between 0 and 11.';
+                    break;
+                case 'phone':
+                    if (!v) err = 'Phone number is required.';
+                    else if (v.length > 20) err = 'Max 20 characters.';
+                    break;
+                case 'alternative_phone':
+                    if (v.length > 20) err = 'Max 20 characters.';
+                    break;
+                case 'email':
+                    if (!v) err = 'Email address is required.';
+                    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) err = 'Enter a valid email address.';
+                    break;
+                case 'password':
+                    if (!v) err = 'Password is required.';
+                    else if (v.length < 8) err = 'At least 8 characters required.';
+                    else if (!/[a-z]/.test(v)) err = 'Must include a lowercase letter.';
+                    else if (!/[A-Z]/.test(v)) err = 'Must include an uppercase letter.';
+                    else if (!/[0-9]/.test(v)) err = 'Must include a number.';
+                    else if (!/[^a-zA-Z0-9]/.test(v)) err = 'Must include a symbol (e.g. !@#$).';
+                    if (this.touched['password_confirmation']) {
+                        const c = document.getElementById('password_confirmation')?.value ?? '';
+                        this.fieldErrors['password_confirmation'] = (c && c !== v) ? 'Passwords do not match.' : '';
+                    }
+                    break;
+                case 'password_confirmation': {
+                    const p = document.getElementById('password')?.value ?? '';
+                    if (!v) err = 'Please confirm your password.';
+                    else if (v !== p) err = 'Passwords do not match.';
+                    break;
+                }
+            }
+
+            this.fieldErrors[field] = err;
+
+            if (['email', 'phone', 'national_id'].includes(field) && !err && v) {
+                clearTimeout(this._timers[field]);
+                this._timers[field] = setTimeout(() => this.checkUnique(field, v), 500);
+            }
+        },
+
+        async checkUnique(field, value) {
+            try {
+                const url = `{{ route('applicant.validate-field') }}?field=${field}&value=${encodeURIComponent(value)}`;
+                const res  = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const data = await res.json();
+                if (!data.valid && !this.fieldErrors[field]) {
+                    this.fieldErrors[field] = data.message;
+                }
+            } catch (_) { /* silent — server catches on submit */ }
+        },
+
+        validateStep(n) {
+            const required = {
+                1: ['first_name', 'last_name', 'national_id', 'gender'],
+                4: ['phone', 'email', 'password', 'password_confirmation'],
+            };
+            const optional = {
+                2: ['gpa', 'graduation_year'],
+                3: ['work_experience_years', 'work_experience_months'],
+            };
+
+            let ok = true;
+
+            for (const f of (required[n] ?? [])) {
+                const el = document.querySelector(`[name="${f}"]`);
+                this.validateField(f, el?.value ?? '');
+                if (this.fieldErrors[f]) ok = false;
+            }
+            for (const f of (optional[n] ?? [])) {
+                const el = document.querySelector(`[name="${f}"]`);
+                if (el?.value) { this.validateField(f, el.value); if (this.fieldErrors[f]) ok = false; }
+            }
+
+            if (n === 1 && this.disabilityStatus === '1') {
+                const el = document.querySelector('[name="disability_type"]');
+                this.validateField('disability_type', el?.value ?? '');
+                if (this.fieldErrors['disability_type']) ok = false;
+            }
+
+            if (n === 6) {
+                const el = document.querySelector('[name="terms"][type="checkbox"]');
+                if (!el?.checked) { this.fieldErrors['terms'] = 'You must accept the terms to register.'; this.touched['terms'] = true; ok = false; }
+                else this.fieldErrors['terms'] = '';
+            }
+
+            return ok;
+        },
+
+        nextStep() {
+            if (!this.validateStep(this.step)) {
+                this.$nextTick(() => {
+                    document.querySelector('.text-red-600:not([x-show])')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                });
+                return;
+            }
+            if (this.step < this.totalSteps) this.step++;
+            window.scrollTo(0, 0);
+        },
         prevStep() { if (this.step > 1) this.step--; window.scrollTo(0, 0); },
     };
 }

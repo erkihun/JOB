@@ -25,6 +25,10 @@ class EnsureIsApplicant
                 ->withErrors(['account' => __('auth.account_inactive')]);
         }
 
+        if (auth()->user()->email_verified_at === null) {
+            return redirect()->route('applicant.verify-email');
+        }
+
         return $next($request);
     }
 }
