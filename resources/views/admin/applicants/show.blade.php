@@ -186,23 +186,102 @@
 
     {{-- Profile Documents --}}
     @if($applicant->profileDocuments->count())
-    <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+    <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+         x-data="{ previewUrl: '', previewName: '', open: false }">
+
         <div class="border-b border-gray-100 bg-gray-50 px-5 py-3 flex items-center gap-2">
             <div class="h-4 w-0.5 rounded bg-accent"></div>
             <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('menus.documents') }}</h2>
         </div>
+
         <div class="divide-y divide-gray-50">
             @foreach($applicant->profileDocuments as $doc)
             <div class="flex items-center justify-between px-5 py-3">
-                <div>
-                    <p class="text-sm font-medium text-gray-900">{{ $doc->document_type }}</p>
-                    <p class="text-xs text-gray-500">{{ $doc->original_name }} &middot; {{ number_format($doc->file_size / 1024, 1) }} KB</p>
+                <div class="flex items-center gap-3 min-w-0">
+                    <svg class="h-8 w-8 shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <div class="min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ $doc->original_name }}</p>
+                        <p class="text-xs text-gray-400">{{ number_format($doc->file_size / 1024, 1) }} KB</p>
+                    </div>
                 </div>
-                <a href="{{ route('admin.profile-documents.download', $doc) }}"
-                   class="text-xs font-medium text-brand hover:text-brand-dark">{{ __('messages.download') }}</a>
+                <div class="flex items-center gap-4 shrink-0 ml-4">
+                    <button type="button"
+                            @click="previewUrl = '{{ route('admin.profile-documents.preview', $doc) }}'; previewName = '{{ addslashes($doc->original_name) }}'; open = true"
+                            class="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        {{ __('messages.view') }}
+                    </button>
+                    <a href="{{ route('admin.profile-documents.download', $doc) }}"
+                       class="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-gray-800 transition">
+                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        {{ __('messages.download') }}
+                    </a>
+                </div>
             </div>
             @endforeach
         </div>
+
+        {{-- PDF Preview Modal --}}
+        <template x-teleport="body">
+            <div x-show="open"
+                 x-cloak
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                 @keydown.escape.window="open = false; previewUrl = ''"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0">
+
+                {{-- Backdrop --}}
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                     @click="open = false; previewUrl = ''"></div>
+
+                {{-- Modal panel --}}
+                <div class="relative z-10 flex flex-col w-full max-w-5xl h-[90vh] rounded-xl bg-white shadow-2xl overflow-hidden"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="scale-95 opacity-0"
+                     x-transition:enter-end="scale-100 opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="scale-100 opacity-100"
+                     x-transition:leave-end="scale-95 opacity-0">
+
+                    {{-- Modal header --}}
+                    <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-gray-50 shrink-0">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <svg class="h-4 w-4 shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span class="text-sm font-semibold text-gray-800 truncate" x-text="previewName"></span>
+                        </div>
+                        <button type="button"
+                                @click="open = false; previewUrl = ''"
+                                class="ml-4 shrink-0 rounded-lg p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-700 transition">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    {{-- PDF iframe --}}
+                    <iframe :src="open ? previewUrl : ''"
+                            class="flex-1 w-full border-0 bg-gray-100"
+                            title="Document Preview"
+                            loading="lazy"></iframe>
+                </div>
+            </div>
+        </template>
+
     </div>
     @endif
 
