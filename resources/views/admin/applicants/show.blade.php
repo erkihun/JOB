@@ -14,7 +14,7 @@
     {{-- Profile header --}}
     <div class="flex items-center gap-5 rounded-xl border border-gray-100 bg-white px-6 py-5 shadow-sm">
         @if($applicant->profile_photo_path)
-            <img src="{{ Storage::url($applicant->profile_photo_path) }}" alt=""
+            <img src="{{ route('admin.applicants.photo', $applicant) }}" alt=""
                  class="h-20 w-20 shrink-0 rounded-full object-cover border-2 border-gray-200">
         @else
             <div class="h-20 w-20 shrink-0 rounded-full bg-blue-100 flex items-center justify-center border-2 border-gray-200">

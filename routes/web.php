@@ -161,6 +161,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->only(['index', 'show'])
             ->middleware('permission:applications.view');
 
+        Route::get('/applicants/{applicant}/photo', [AdminApplicantController::class, 'photo'])
+            ->middleware('permission:applications.view')
+            ->name('applicants.photo');
+
         Route::resource('users', UserController::class)
             ->except(['show'])
             ->middleware('permission:users.view')

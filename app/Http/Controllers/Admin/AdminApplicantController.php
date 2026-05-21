@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Applicant;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class AdminApplicantController extends Controller
@@ -37,5 +39,18 @@ class AdminApplicantController extends Controller
         $applicant->load(['user', 'applications.vacancy', 'profileDocuments']);
 
         return view('admin.applicants.show', compact('applicant'));
+    }
+
+    public function photo(Applicant $applicant): Response
+    {
+        abort_unless($applicant->profile_photo_path, 404);
+        abort_unless(Storage::disk('local')->exists($applicant->profile_photo_path), 404);
+
+        $content  = (string) Storage::disk('local')->get($applicant->profile_photo_path);
+        $mimeType = Storage::disk('local')->mimeType($applicant->profile_photo_path) ?: 'image/jpeg';
+
+        return response($content, 200)
+            ->header('Content-Type', $mimeType)
+            ->header('Cache-Control', 'private, max-age=3600');
     }
 }

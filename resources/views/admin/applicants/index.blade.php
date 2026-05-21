@@ -46,7 +46,7 @@
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-2.5">
                             @if($applicant->profile_photo_path)
-                                <img src="{{ route('applicant.profile.photo') }}" class="h-8 w-8 rounded-full object-cover shrink-0" alt="">
+                                <img src="{{ route('admin.applicants.photo', $applicant) }}" class="h-8 w-8 rounded-full object-cover shrink-0" alt="">
                             @else
                                 <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
                                     <span class="text-xs font-bold text-blue-600">{{ strtoupper(substr($applicant->first_name ?? '?', 0, 1)) }}</span>
