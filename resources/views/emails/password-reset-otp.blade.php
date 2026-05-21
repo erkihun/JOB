@@ -44,7 +44,15 @@
                     <td align="center"
                         style="background:#1d4ed8; padding:36px 40px 32px;">
 
-                        <!-- Org initials badge -->
+                        @if($logoSrc)
+                        <!-- Logo embedded as Base64 — no network request needed -->
+                        <img src="{{ $logoSrc }}" alt="{{ $orgName }}"
+                             width="56" height="56"
+                             style="display:block; margin:0 auto 16px; width:56px; height:56px;
+                                    border-radius:14px; object-fit:cover;
+                                    border:2px solid rgba(255,255,255,.3);">
+                        @else
+                        <!-- Fallback: org initials badge -->
                         <div style="display:inline-block; width:56px; height:56px; border-radius:14px;
                                     background:rgba(255,255,255,.18); border:2px solid rgba(255,255,255,.35);
                                     font-size:20px; font-weight:800; color:#ffffff; line-height:56px;
@@ -52,6 +60,7 @@
                                     font-family:'Segoe UI',Arial,sans-serif;">
                             {{ mb_strtoupper(mb_substr($orgName, 0, 2)) }}
                         </div>
+                        @endif
 
                         <p style="margin:0; font-size:20px; font-weight:700; color:#ffffff;
                                   letter-spacing:-0.3px; line-height:1.2;">
