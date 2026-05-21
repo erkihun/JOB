@@ -19,15 +19,25 @@ class PasswordResetOtpNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $name    = property_exists($notifiable, 'name') ? (string) $notifiable->name : '';
-        $orgName = \App\Models\Setting::get('org.name', config('app.name'));
+        $name         = property_exists($notifiable, 'name') ? (string) $notifiable->name : '';
+        $orgName      = \App\Models\Setting::get('org.name', config('app.name'));
+        $brandColor   = \App\Models\Setting::get('appearance.primary_color', '#1d4ed8');
+        $orgLogo      = \App\Models\Setting::get('org.logo', '');
+        $logoUrl      = $orgLogo ? url(\Illuminate\Support\Facades\Storage::url($orgLogo)) : null;
 
         return (new MailMessage)
             ->subject(__('auth.otp_subject', ['org' => $orgName]))
-            ->greeting(__('auth.otp_greeting', ['name' => $name]))
-            ->line(__('auth.otp_line1'))
-            ->line('**' . $this->otp . '**')
-            ->line(__('auth.otp_expires'))
-            ->line(__('auth.otp_ignore'));
+            ->view('emails.password-reset-otp', [
+                'otp'        => $this->otp,
+                'name'       => $name,
+                'orgName'    => $orgName,
+                'brandColor' => $brandColor,
+                'logoUrl'    => $logoUrl,
+                'greeting'   => __('auth.otp_greeting', ['name' => $name]),
+                'line1'      => __('auth.otp_line1'),
+                'expires'    => __('auth.otp_expires'),
+                'ignore'     => __('auth.otp_ignore'),
+                'year'       => date('Y'),
+            ]);
     }
 }
