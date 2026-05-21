@@ -502,7 +502,7 @@
                         <span class="font-medium">{{ $log->user?->name ?? __('dashboard.system') }}</span>
                         <span class="mx-1 text-gray-400">·</span>
                         <span class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-600">{{ $log->action }}</span>
-                        <span class="mx-1 text-gray-400">{{ __('dashboard.audit.on') }}</span>
+                        <span class="mx-1 text-gray-400">on</span>
                         <span class="capitalize text-gray-600">{{ $log->module }}</span>
                     </p>
                 </div>

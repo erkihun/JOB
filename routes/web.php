@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\AdminApplicantController;
 use App\Http\Controllers\Admin\AdminApplicantProfileDocumentDownloadController;
 use App\Http\Controllers\Admin\AdminApplicantProfileDocumentPreviewController;
 use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\AdminPasswordResetController;
+use App\Http\Controllers\Auth\ApplicantPasswordResetController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDocumentDownloadController;
 use App\Http\Controllers\Admin\AdminProfileController;
@@ -76,6 +78,14 @@ Route::middleware('guest')->prefix('applicant')->name('applicant.')->group(funct
 
     Route::get('/login', [ApplicantAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [ApplicantAuthController::class, 'login'])->middleware('throttle:5,1');
+
+    // Password reset via OTP
+    Route::get('/forgot-password',  [ApplicantPasswordResetController::class, 'showForgotForm'])->name('password.request');
+    Route::post('/forgot-password', [ApplicantPasswordResetController::class, 'sendOtp'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/verify-otp',       [ApplicantPasswordResetController::class, 'showOtpForm'])->name('password.otp');
+    Route::post('/verify-otp',      [ApplicantPasswordResetController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('password.verify-otp');
+    Route::get('/reset-password',   [ApplicantPasswordResetController::class, 'showResetForm'])->name('password.reset.show');
+    Route::post('/reset-password',  [ApplicantPasswordResetController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.reset');
 });
 
 // Applicant logout (auth only — no applicant role check needed)
@@ -90,6 +100,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AdminAuthController::class, 'showLogin'])->name('login');
         Route::post('/login', [AdminAuthController::class, 'login'])->middleware('throttle:5,1');
+
+        // Password reset via OTP
+        Route::get('/forgot-password',  [AdminPasswordResetController::class, 'showForgotForm'])->name('password.request');
+        Route::post('/forgot-password', [AdminPasswordResetController::class, 'sendOtp'])->middleware('throttle:5,1')->name('password.email');
+        Route::get('/verify-otp',       [AdminPasswordResetController::class, 'showOtpForm'])->name('password.otp');
+        Route::post('/verify-otp',      [AdminPasswordResetController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('password.verify-otp');
+        Route::get('/reset-password',   [AdminPasswordResetController::class, 'showResetForm'])->name('password.reset.show');
+        Route::post('/reset-password',  [AdminPasswordResetController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.reset');
     });
 
     Route::post('/logout', [AdminAuthController::class, 'logout'])->middleware('auth')->name('logout');

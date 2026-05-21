@@ -81,6 +81,9 @@
                         <input type="checkbox" name="remember" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                         {{ __('applicant.remember_me') }}
                     </label>
+                    <a href="{{ route('applicant.password.request') }}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
+                        {{ __('auth.forgot_password') }}?
+                    </a>
                 </div>
 
                 <button
