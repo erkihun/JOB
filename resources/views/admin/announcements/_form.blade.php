@@ -12,6 +12,32 @@
     </div>
 
     {{-- Published At --}}
+    @php
+        $pubDate = '';
+        $pubTime = '';
+        if (old('_pub_date')) {
+            $pubDate = old('_pub_date');
+            $pubTime = old('_pub_time', '');
+        } elseif (isset($announcement) && $announcement->published_at) {
+            $pubDate = $announcement->published_at->format('Y-m-d');
+            $pubTime = $announcement->published_at->format('H:i');
+        }
+    @endphp
+
+    @if(app()->getLocale() === 'am')
+    <div class="space-y-3">
+        <x-ethiopian-datepicker
+            name="_pub_date"
+            :label="__('messages.published_at')"
+            :value="$pubDate"/>
+        <div class="max-w-xs">
+            <label class="block text-sm font-medium text-gray-700">{{ __('dashboard.table.time') }}</label>
+            <input type="time" name="_pub_time" value="{{ $pubTime }}"
+                   class="form-input mt-1">
+        </div>
+        <p class="text-xs text-gray-400">{{ __('messages.leave_blank_draft') }}</p>
+    </div>
+    @else
     <div class="max-w-xs">
         <label class="block text-sm font-medium text-gray-700">{{ __('messages.published_at') }}</label>
         <input type="datetime-local" name="published_at"
@@ -19,6 +45,7 @@
                class="form-input mt-1">
         <p class="mt-1 text-xs text-gray-400">{{ __('messages.leave_blank_draft') }}</p>
     </div>
+    @endif
 
     {{-- Content (TinyMCE) --}}
     <div>

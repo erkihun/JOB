@@ -25,4 +25,12 @@ class StoreVacancyAnnouncementRequest extends FormRequest
             'published_at' => ['nullable', 'date'],
         ];
     }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('_pub_date')) {
+            $time = $this->input('_pub_time', '00:00') ?: '00:00';
+            $this->merge(['published_at' => $this->input('_pub_date') . ' ' . $time . ':00']);
+        }
+    }
 }
