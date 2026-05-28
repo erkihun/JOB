@@ -45,7 +45,7 @@
                 [__('fields.middle_name'),  $applicant->middle_name ?? '—'],
                 [__('fields.last_name'),    $applicant->last_name   ?? __('applicant.not_provided')],
                 [__('fields.gender'),       $applicant->gender?->label() ?? __('applicant.not_provided')],
-                [__('fields.date_of_birth'),$applicant->date_of_birth?->format('d M Y') ?? __('applicant.not_provided')],
+                [__('fields.date_of_birth'), $applicant->date_of_birth ? et_date($applicant->date_of_birth) : __('applicant.not_provided')],
                 [__('fields.nationality'),  $applicant->nationality ?? __('applicant.not_provided')],
                 [__('fields.national_id'),  $applicant->national_id ?: __('applicant.not_provided')],
                 [__('fields.disability_status'), $applicant->disability_status

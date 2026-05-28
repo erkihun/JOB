@@ -44,7 +44,7 @@
                 [__('applications.reference_number'), $application->reference_number, true],
                 [__('applicant.submitted_at'),        $application->submitted_at?->format('M d, Y H:i'), false],
                 [__('fields.field_of_study'),         $application->field_of_study, false],
-                [__('fields.graduation_date'),        $application->graduation_date ? \Carbon\Carbon::parse($application->graduation_date)->format('M d, Y') : '—', false],
+                [__('fields.graduation_date'),        $application->graduation_date ? et_date($application->graduation_date, 'd M Y') : '—', false],
                 [__('fields.cgpa'),                   $application->cgpa !== null ? number_format($application->cgpa, 2) : null, false],
             ];
         @endphp

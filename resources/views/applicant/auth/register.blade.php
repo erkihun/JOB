@@ -155,7 +155,6 @@
                             <option value="">— {{ __('fields.gender') }} —</option>
                             <option value="male"   {{ old('gender') === 'male'   ? 'selected' : '' }}>{{ __('statuses.gender.male') }}</option>
                             <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>{{ __('statuses.gender.female') }}</option>
-                            <option value="other"  {{ old('gender') === 'other'  ? 'selected' : '' }}>{{ __('statuses.gender.other') }}</option>
                         </select>
                         @if($errors->has('gender'))
                         <p x-show="!touched['gender']" class="mt-1 text-xs text-red-600">{{ $errors->first('gender') }}</p>

@@ -52,7 +52,7 @@
                     [__('fields.middle_name'),   $applicant->middle_name  ?? '—'],
                     [__('fields.last_name'),     $applicant->last_name    ?? '—'],
                     [__('fields.gender'),        $applicant->gender?->label() ?? '—'],
-                    [__('fields.date_of_birth'), $applicant->date_of_birth?->format('d M Y') ?? '—'],
+                    [__('fields.date_of_birth'), $applicant->date_of_birth ? et_date($applicant->date_of_birth) : '—'],
                     [__('fields.nationality'),   $applicant->nationality  ?? '—'],
                     [__('fields.national_id'),   $applicant->national_id  ?: '—'],
                     [__('fields.disability_status'), $applicant->disability_status
