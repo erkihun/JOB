@@ -12,20 +12,24 @@
     $gcValue  = old($name, $value) ?? '';
     $safeMax  = $max ?? '';
 
-    // Compute today's Ethiopian year/month in PHP so the calendar opens on the
-    // correct month immediately — without waiting for Alpine's init() to patch it.
-    $today      = now();
+    // Compute today's Ethiopian date in PHP — passed to JS so the calendar opens
+    // on the right month/year from the very first render (no Alpine race condition).
+    $today   = now();
     $gy = $today->year; $gm = $today->month; $gd = $today->day;
-    $prevLeap   = ($gy - 1) % 400 === 0 || (($gy - 1) % 4 === 0 && ($gy - 1) % 100 !== 0);
-    $nyDay      = $prevLeap ? 12 : 11;
-    $etY        = ($gm > 9 || ($gm === 9 && $gd >= $nyDay)) ? $gy - 7 : $gy - 8;
-    $nyGcY      = $etY + 7;
-    $prevNyLeap = ($nyGcY - 1) % 400 === 0 || (($nyGcY - 1) % 4 === 0 && ($nyGcY - 1) % 100 !== 0);
-    $ny         = $prevNyLeap ? 12 : 11;
-    $diffDays   = (int) \Carbon\Carbon::create($nyGcY, 9, $ny)->diffInDays($today, false);
+    $pLeap   = ($gy-1) % 400 === 0 || (($gy-1) % 4 === 0 && ($gy-1) % 100 !== 0);
+    $nyDay   = $pLeap ? 12 : 11;
+    $etY     = ($gm > 9 || ($gm === 9 && $gd >= $nyDay)) ? $gy - 7 : $gy - 8;
+    $nyGcY   = $etY + 7;
+    $p2Leap  = ($nyGcY-1) % 400 === 0 || (($nyGcY-1) % 4 === 0 && ($nyGcY-1) % 100 !== 0);
+    $ny      = $p2Leap ? 12 : 11;
+    $diff    = (int) \Carbon\Carbon::create($nyGcY, 9, $ny)->diffInDays($today, false);
     $todayEtYear  = $etY;
-    $todayEtMonth = intdiv($diffDays, 30) + 1;
-    $todayEtDay   = ($diffDays % 30) + 1;
+    $todayEtMonth = intdiv($diff, 30) + 1;
+    $todayEtDay   = ($diff % 30) + 1;
+
+    $etMonths = ['መስከረም','ጥቅምት','ህዳር','ታህሳስ','ጥር','የካቲት','መጋቢት','ሚያዚያ','ግንቦት','ሰኔ','ሐምሌ','ነሐሴ','ጳጉሜ'];
+    $yearMin  = 1900;
+    $yearMax  = $todayEtYear + 10;
 @endphp
 
 <div class="{{ $class }}"
@@ -38,10 +42,8 @@
         @if($required) <span class="text-red-500">*</span> @endif
     </label>
 
-    {{-- Hidden Gregorian value submitted with the form --}}
     <input type="hidden" :name="fieldName" :value="gcValue">
 
-    {{-- Visible display input --}}
     <div class="relative mt-1">
         <input type="text"
                :value="displayValue"
@@ -70,7 +72,7 @@
              x-transition:leave-end="opacity-0 scale-95"
              class="absolute z-50 mt-1 w-72 rounded-xl border border-gray-200 bg-white shadow-2xl">
 
-            {{-- Month / Year header --}}
+            {{-- Header --}}
             <div class="flex items-center justify-between border-b border-gray-100 px-3 py-2.5">
                 <button type="button" @click.stop="prevMonth()"
                         class="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 transition">
@@ -80,17 +82,20 @@
                 </button>
 
                 <div class="flex items-center gap-1">
+                    {{-- Month select — options pre-rendered in Blade (no x-for race condition) --}}
                     <select x-model.number="viewMonth"
                             class="rounded border-0 bg-transparent py-0.5 text-sm font-semibold text-gray-800 focus:ring-1 focus:ring-blue-400">
-                        <template x-for="(m, i) in monthNames" :key="i">
-                            <option :value="i + 1" x-text="m"></option>
-                        </template>
+                        @foreach($etMonths as $mi => $mName)
+                            <option value="{{ $mi + 1 }}">{{ $mName }}</option>
+                        @endforeach
                     </select>
+
+                    {{-- Year select — options pre-rendered in Blade (no x-for race condition) --}}
                     <select x-model.number="viewYear"
                             class="rounded border-0 bg-transparent py-0.5 text-sm font-semibold text-gray-800 focus:ring-1 focus:ring-blue-400">
-                        <template x-for="y in yearRange" :key="y">
-                            <option :value="y" x-text="y"></option>
-                        </template>
+                        @for($y = $yearMax; $y >= $yearMin; $y--)
+                            <option value="{{ $y }}">{{ $y }}</option>
+                        @endfor
                     </select>
                 </div>
 
@@ -155,23 +160,13 @@ function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue, todayEtYear,
         open: false,
         gcValue: '',
         displayValue: '',
-        // Initialise view to today's ET month/year (computed PHP-side, no race condition)
         viewYear: todayEtYear,
         viewMonth: todayEtMonth,
-        selYear: null,
-        selMonth: null,
-        selDay: null,
-        touched: false,
-        error: '',
+        selYear: null, selMonth: null, selDay: null,
+        touched: false, error: '',
 
-        monthNames: ['መስከረም','ጥቅምት','ህዳር','ታህሳስ','ጥር','የካቲት','መጋቢት','ሚያዚያ','ግንቦት','ሰኔ','ሐምሌ','ነሐሴ','ጳጉሜ'],
         dayNames: ['እሁ','ሰኞ','ማክ','ረቡ','ሐሙ','ዓርብ','ቅዳ'],
-
-        get yearRange() {
-            const years = [];
-            for (let y = todayEtYear + 10; y >= 1900; y--) years.push(y);
-            return years;
-        },
+        monthNames: ['መስከረም','ጥቅምት','ህዳር','ታህሳስ','ጥር','የካቲት','መጋቢት','ሚያዚያ','ግንቦት','ሰኔ','ሐምሌ','ነሐሴ','ጳጉሜ'],
 
         get daysInMonth() {
             if (this.viewMonth === 13) return this.isEtLeap(this.viewYear) ? 6 : 5;
@@ -200,11 +195,11 @@ function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue, todayEtYear,
         },
 
         getDayClass(d) {
-            const isSel = d === this.selDay && this.viewMonth === this.selMonth && this.viewYear === this.selYear;
-            const isToday = d === todayEtDay && this.viewMonth === todayEtMonth && this.viewYear === todayEtYear;
+            const isSel   = d === this.selDay   && this.viewMonth === this.selMonth   && this.viewYear === this.selYear;
+            const isToday = d === todayEtDay     && this.viewMonth === todayEtMonth   && this.viewYear === todayEtYear;
             if (this.isDayDisabled(d)) return 'text-gray-300';
-            if (isSel)    return 'bg-blue-600 text-white font-semibold';
-            if (isToday)  return 'bg-blue-50 text-blue-700 font-medium ring-1 ring-inset ring-blue-200';
+            if (isSel)   return 'bg-blue-600 text-white font-semibold';
+            if (isToday) return 'bg-blue-50 text-blue-700 font-medium ring-1 ring-inset ring-blue-200';
             return 'text-gray-700 hover:bg-gray-100';
         },
 
@@ -257,7 +252,7 @@ function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue, todayEtYear,
             const p2     = nyGcY - 1;
             const p2Leap = p2 % 400 === 0 || (p2 % 4 === 0 && p2 % 100 !== 0);
             const ny     = p2Leap ? 12 : 11;
-            const diff   = Math.round((new Date(gy, gm-1, gd) - new Date(nyGcY, 8, ny)) / 86400000);
+            const diff   = Math.round((new Date(gy, gm - 1, gd) - new Date(nyGcY, 8, ny)) / 86400000);
             return { year: etY, month: Math.floor(diff / 30) + 1, day: (diff % 30) + 1 };
         },
 
