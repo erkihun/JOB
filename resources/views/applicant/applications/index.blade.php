@@ -47,7 +47,7 @@
                 <p class="text-xs text-gray-400 mt-0.5 font-mono">
                     {{ $application->reference_number }}
                     @if($application->submitted_at)
-                    · {{ __('applicant.submitted_at') }}: {{ $application->submitted_at->format('M d, Y') }}
+                    · {{ __('applicant.submitted_at') }}: {{ et_date($application->submitted_at, 'M d, Y') }}
                     @endif
                 </p>
             </div>

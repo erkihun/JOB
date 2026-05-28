@@ -32,7 +32,7 @@
                     {{ $applicant->applications_count ?? $applicant->applications->count() }} {{ __('menus.applications') }}
                 </span>
                 <span class="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700">
-                    {{ __('messages.registered') }}: {{ $applicant->created_at->format('d M Y') }}
+                    {{ __('messages.registered') }}: {{ et_date($applicant->created_at) }}
                 </span>
             </div>
         </div>
@@ -172,7 +172,7 @@
                             {{ $application->status->label() }}
                         </span>
                     </td>
-                    <td class="px-5 py-3 text-gray-500 text-xs">{{ $application->submitted_at?->format('d M Y') ?? '—' }}</td>
+                    <td class="px-5 py-3 text-gray-500 text-xs">{{ et_date($application->submitted_at) }}</td>
                     <td class="px-5 py-3 text-right">
                         <a href="{{ route('admin.applications.show', $application) }}"
                            class="text-xs font-medium text-brand hover:text-brand-dark">{{ __('messages.view') }}</a>

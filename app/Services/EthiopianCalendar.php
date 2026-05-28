@@ -14,7 +14,7 @@ class EthiopianCalendar
         'ግንቦት',   'ሰኔ',   'ሐምሌ',  'ነሐሴ',  'ጳጉሜ',
     ];
 
-    /** Convert a Gregorian date to Ethiopian date components. */
+    /** Convert Gregorian y/m/d to Ethiopian date components. */
     public static function fromGregorian(int $gy, int $gm, int $gd): array
     {
         $prev   = $gy - 1;
@@ -35,11 +35,41 @@ class EthiopianCalendar
         ];
     }
 
-    /** Return a formatted Ethiopian date string, e.g. "19 ግንቦት 2018". */
+    /**
+     * Format a Carbon date in Ethiopian calendar, respecting the GC format hint.
+     *
+     * Supported GC format hints → ET output:
+     *   'M Y' / 'F Y'            → "ግንቦት 2018"
+     *   'Y'                      → "2018"
+     *   anything with 'H:i'      → "19 ግንቦት 2018 14:05"
+     *   everything else          → "19 ግንቦት 2018"
+     */
+    public static function formatGc(Carbon $date, string $gcFormat = 'd M Y'): string
+    {
+        $et   = self::fromGregorian($date->year, $date->month, $date->day);
+        $name = self::$months[$et['month'] - 1];
+
+        if ($gcFormat === 'Y') {
+            return (string) $et['year'];
+        }
+
+        if (in_array($gcFormat, ['M Y', 'F Y', 'M, Y'], true)) {
+            return "{$name} {$et['year']}";
+        }
+
+        $base = "{$et['day']} {$name} {$et['year']}";
+
+        // Preserve the time part when the GC format includes hours/minutes
+        if (str_contains($gcFormat, 'H:i')) {
+            return $base . ' ' . $date->format('H:i');
+        }
+
+        return $base;
+    }
+
+    /** Shorthand: full "day month year" string. */
     public static function format(Carbon $date): string
     {
-        $et = self::fromGregorian($date->year, $date->month, $date->day);
-
-        return "{$et['day']} " . self::$months[$et['month'] - 1] . " {$et['year']}";
+        return self::formatGc($date, 'd M Y');
     }
 }

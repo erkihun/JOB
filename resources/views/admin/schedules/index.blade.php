@@ -49,7 +49,7 @@
                     <td class="table-td font-medium text-gray-900">{{ $schedule->title }}</td>
                     <td class="table-td"><span class="{{ $typeBadge }}">{{ $schedule->type->getLabel() }}</span></td>
                     <td class="table-td hidden text-gray-600 sm:table-cell">{{ $schedule->vacancy?->title }}</td>
-                    <td class="table-td text-gray-700">{{ $schedule->date?->format('d M Y') }} {{ $schedule->start_time }}</td>
+                    <td class="table-td text-gray-700">{{ et_date($schedule->date) }} {{ $schedule->start_time }}</td>
                     <td class="table-td hidden text-gray-500 md:table-cell">{{ $schedule->venue ?? '—' }}</td>
                     <td class="table-td text-right">
                         <div class="flex items-center justify-end gap-3">

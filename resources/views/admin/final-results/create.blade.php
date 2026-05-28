@@ -64,7 +64,7 @@
                     <div><span class="font-medium">{{ __('fields.full_name') }}:</span> {{ $application->applicant?->full_name }}</div>
                     <div><span class="font-medium">{{ __('messages.reference') }}:</span> <span class="font-mono">{{ $application->reference_number }}</span></div>
                     <div><span class="font-medium">{{ __('menus.vacancies') }}:</span> {{ $application->vacancy?->title }}</div>
-                    <div><span class="font-medium">{{ __('messages.submitted') }}:</span> {{ $application->submitted_at?->format('d M Y') }}</div>
+                    <div><span class="font-medium">{{ __('messages.submitted') }}:</span> {{ et_date($application->submitted_at) }}</div>
                 </div>
             </div>
 

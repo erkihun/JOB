@@ -123,7 +123,7 @@
                 <div class="text-xs text-gray-500">
                     {{ app()->getLocale() === 'am' ? 'ይዘጋል:' : 'Closes:' }}
                     <span class="{{ $vacancy->closing_date->diffInDays(now()) <= 3 ? 'text-red-600 font-semibold' : 'text-gray-700 font-medium' }}">
-                        {{ $vacancy->closing_date->format('M d, Y') }}
+                        {{ et_date($vacancy->closing_date, 'M d, Y') }}
                     </span>
                 </div>
                 <span class="text-xs font-semibold text-blue-600 group-hover:text-blue-800">

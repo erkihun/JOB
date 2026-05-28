@@ -55,7 +55,7 @@
                     </td>
                     <td class="table-td hidden font-mono text-xs text-gray-500 md:table-cell">{{ $app->reference_number }}</td>
                     <td class="table-td"><span class="{{ $badgeClass }}">{{ $app->status->getLabel() }}</span></td>
-                    <td class="table-td hidden text-gray-500 lg:table-cell">{{ $app->created_at->format('d M Y') }}</td>
+                    <td class="table-td hidden text-gray-500 lg:table-cell">{{ et_date($app->created_at) }}</td>
                     <td class="table-td text-right">
                         <a href="{{ route('admin.applications.show', $app) }}" class="text-xs font-medium text-brand hover:text-brand-dark">{{ __('messages.view') }}</a>
                     </td>

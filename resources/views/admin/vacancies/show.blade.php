@@ -48,8 +48,8 @@
                     __('vacancies.positions')          => $vacancy->number_of_positions,
                     __('vacancies.education_level')    => $vacancy->education_level?->getLabel() ?? '—',
                     __('vacancies.minimum_experience') => ($vacancy->minimum_experience ?? 0) . ' yrs',
-                    __('vacancies.opening_date')       => $vacancy->opening_date?->format('d M Y'),
-                    __('vacancies.closing_date')       => $vacancy->closing_date?->format('d M Y'),
+                    __('vacancies.opening_date')       => et_date($vacancy->opening_date),
+                    __('vacancies.closing_date')       => et_date($vacancy->closing_date),
                     __('vacancies.applications')       => $vacancy->applications->count(),
                 ];
                 @endphp
@@ -94,7 +94,7 @@
                     <tr class="table-row">
                         <td class="table-td font-medium text-gray-900">{{ $app->applicant?->full_name }}</td>
                         <td class="table-td"><span class="{{ $badgeClass }}">{{ $app->status->getLabel() }}</span></td>
-                        <td class="table-td text-gray-500">{{ $app->created_at->format('d M Y') }}</td>
+                        <td class="table-td text-gray-500">{{ et_date($app->created_at) }}</td>
                         <td class="table-td text-right">
                             <a href="{{ route('admin.applications.show', $app) }}" class="text-xs font-medium text-brand hover:text-brand-dark">{{ __('messages.view') }}</a>
                         </td>

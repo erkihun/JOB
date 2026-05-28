@@ -39,7 +39,7 @@
                 @php
                 $info = [
                     __('fields.gender')            => $application->applicant?->gender?->getLabel(),
-                    __('fields.date_of_birth')     => $application->applicant?->date_of_birth?->format('d M Y'),
+                    __('fields.date_of_birth')     => et_date($application->applicant?->date_of_birth),
                     __('fields.national_id')       => $canViewSensitive ? $application->applicant?->national_id : __('dashboard.restricted'),
                     __('fields.nationality')       => $application->applicant?->nationality,
                     __('fields.phone')             => $canViewSensitive ? $application->applicant?->phone : __('dashboard.restricted'),
@@ -121,7 +121,7 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">{{ __('messages.submitted') }}</span>
-                        <span class="font-medium text-gray-800">{{ $application->created_at->format('d M Y') }}</span>
+                        <span class="font-medium text-gray-800">{{ et_date($application->created_at) }}</span>
                     </div>
                 </div>
             </div>
@@ -140,7 +140,7 @@
                             <span class="text-xs font-semibold {{ $review->decision->value === 'passed' ? 'text-green-600' : 'text-red-600' }}">
                                 {{ $review->decision->getLabel() }}
                             </span>
-                            <span class="text-xs text-gray-400">{{ $review->created_at->format('d M Y') }}</span>
+                            <span class="text-xs text-gray-400">{{ et_date($review->created_at) }}</span>
                         </div>
                         <p class="mt-1 text-xs text-gray-500">{{ $review->reviewer?->name }}</p>
                         @if($review->remarks)

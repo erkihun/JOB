@@ -20,10 +20,15 @@
             <option value="{{ $s->value }}" {{ request('status') === $s->value ? 'selected' : '' }}>{{ $s->getLabel() }}</option>
             @endforeach
         </select>
+        @if(app()->getLocale() === 'am')
+            <x-ethiopian-datepicker name="date_from" :label="__('messages.date_from')" :value="request('date_from')"/>
+            <x-ethiopian-datepicker name="date_until" :label="__('messages.date_until')" :value="request('date_until')"/>
+        @else
         <input type="date" name="date_from" value="{{ request('date_from') }}"
                class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
         <input type="date" name="date_until" value="{{ request('date_until') }}"
                class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
+        @endif
         <button type="submit" class="btn btn-navy">{{ __('messages.filter') }}</button>
         @if(request()->hasAny(['vacancy_id','status','date_from','date_until']))
         <a href="{{ route('admin.reports.index') }}" class="btn btn-secondary">{{ __('messages.reset') }}</a>
@@ -71,7 +76,7 @@
                     <td class="table-td hidden text-gray-600 sm:table-cell">{{ $app->vacancy?->title }}</td>
                     <td class="table-td hidden font-mono text-xs text-gray-400 md:table-cell">{{ $app->reference_number }}</td>
                     <td class="table-td"><span class="{{ $badgeClass }}">{{ $app->status->getLabel() }}</span></td>
-                    <td class="table-td hidden text-gray-500 lg:table-cell">{{ $app->created_at->format('d M Y') }}</td>
+                    <td class="table-td hidden text-gray-500 lg:table-cell">{{ et_date($app->created_at) }}</td>
                 </tr>
                 @empty
                 <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">{{ __('messages.no_records') }}</td></tr>

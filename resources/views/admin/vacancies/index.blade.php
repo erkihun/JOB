@@ -55,7 +55,7 @@
                     <td class="table-td font-mono text-xs text-gray-500">{{ $vacancy->code }}</td>
                     <td class="table-td font-medium text-gray-900">{{ $vacancy->title }}</td>
                     <td class="hidden table-td text-gray-500 sm:table-cell">{{ $vacancy->department ?? '—' }}</td>
-                    <td class="hidden table-td text-gray-500 md:table-cell">{{ $vacancy->closing_date?->format('d M Y') }}</td>
+                    <td class="hidden table-td text-gray-500 md:table-cell">{{ et_date($vacancy->closing_date) }}</td>
                     <td class="table-td">
                         <span class="{{ $statusBadge }}">{{ $vacancy->status->getLabel() }}</span>
                     </td>

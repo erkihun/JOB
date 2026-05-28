@@ -109,13 +109,13 @@
 
             <div>
                 <dt class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ __('vacancies.opening_date') }}</dt>
-                <dd class="mt-1 text-sm font-semibold text-gray-900">{{ $vacancy->opening_date->format('M d, Y') }}</dd>
+                <dd class="mt-1 text-sm font-semibold text-gray-900">{{ et_date($vacancy->opening_date, 'M d, Y') }}</dd>
             </div>
 
             <div>
                 <dt class="text-xs font-medium text-gray-400 uppercase tracking-wide">{{ __('vacancies.closing_date') }}</dt>
                 <dd class="mt-1 text-sm font-semibold {{ $vacancy->closing_date->isPast() ? 'text-red-600' : 'text-gray-900' }}">
-                    {{ $vacancy->closing_date->format('M d, Y') }}
+                    {{ et_date($vacancy->closing_date, 'M d, Y') }}
                     @if(!$vacancy->closing_date->isPast())
                     <span class="text-xs font-normal text-gray-400 ml-1">({{ $vacancy->closing_date->diffForHumans() }})</span>
                     @endif

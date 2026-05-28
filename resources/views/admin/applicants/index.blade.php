@@ -63,7 +63,7 @@
                             {{ $applicant->applications_count }}
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-gray-500 text-xs">{{ $applicant->created_at->format('d M Y') }}</td>
+                    <td class="px-4 py-3 text-gray-500 text-xs">{{ et_date($applicant->created_at) }}</td>
                     <td class="px-4 py-3 text-right">
                         <a href="{{ route('admin.applicants.show', $applicant) }}"
                            class="text-xs font-medium text-brand hover:text-brand-dark">{{ __('messages.view') }}</a>

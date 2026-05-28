@@ -35,7 +35,7 @@
                     @php
                         $personalFields = [
                             __('fields.gender')           => $application->applicant?->gender?->getLabel(),
-                            __('fields.date_of_birth')    => $application->applicant?->date_of_birth?->format('d M Y'),
+                            __('fields.date_of_birth')    => et_date($application->applicant?->date_of_birth),
                             __('fields.nationality')      => $application->applicant?->nationality,
                             __('fields.ethnicity')        => $application->applicant?->ethnicity,
                             __('fields.national_id')      => $canViewSensitive ? $application->applicant?->national_id : __('dashboard.restricted'),
@@ -108,7 +108,7 @@
                         __('fields.university_name')  => $application->applicant?->university_name,
                         __('fields.field_of_study')   => $application->applicant?->field_of_study,
                         __('fields.graduation_year')  => $application->applicant?->graduation_year,
-                        __('fields.graduation_date')  => $application->applicant?->graduation_date?->format('d M Y'),
+                        __('fields.graduation_date')  => et_date($application->applicant?->graduation_date),
                         __('fields.gpa')              => $application->applicant?->gpa,
                     ] as $label => $value)
                         <div>
@@ -256,7 +256,7 @@
                             <div class="rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm">
                                 <div class="flex justify-between">
                                     <span class="font-medium {{ $review->decision->value === 'passed' ? 'text-green-700' : ($review->decision->value === 'correction_required' ? 'text-orange-600' : 'text-red-600') }}">{{ $review->decision->getLabel() }}</span>
-                                    <span class="text-xs text-gray-400">{{ $review->created_at->format('d M Y') }}</span>
+                                    <span class="text-xs text-gray-400">{{ et_date($review->created_at) }}</span>
                                 </div>
                                 <p class="mt-0.5 text-xs text-gray-500">{{ $review->reviewer?->name }}</p>
                                 @if ($review->remark)

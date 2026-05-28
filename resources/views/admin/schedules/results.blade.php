@@ -11,7 +11,7 @@
             </a>
             <h1 class="mt-2 text-lg font-semibold text-gray-900">{{ __('messages.record_results') }}</h1>
             <p class="mt-1 text-sm text-gray-500">
-                {{ $schedule->title }} · {{ $schedule->type->getLabel() }} · {{ $schedule->date?->format('d M Y') }} {{ $schedule->start_time }}
+                {{ $schedule->title }} · {{ $schedule->type->getLabel() }} · {{ et_date($schedule->date) }} {{ $schedule->start_time }}
             </p>
         </div>
         <span class="{{ $schedule->type->value === 'exam' ? 'badge-blue' : 'badge-amber' }}">

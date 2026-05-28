@@ -207,6 +207,18 @@
                     >
                 </div>
 
+                @if(app()->getLocale() === 'am')
+                    <x-ethiopian-datepicker
+                        name="opening_date"
+                        :label="__('vacancies.opening_date')"
+                        :value="old('opening_date', $vacancy->opening_date?->format('Y-m-d') ?? '')"
+                        required/>
+                    <x-ethiopian-datepicker
+                        name="closing_date"
+                        :label="__('vacancies.closing_date')"
+                        :value="old('closing_date', $vacancy->closing_date?->format('Y-m-d') ?? '')"
+                        required/>
+                @else
                 <div>
                     <label class="block text-sm font-medium text-gray-700">
                         {{ __('vacancies.opening_date') }} <span class="text-red-500">*</span>
@@ -232,6 +244,7 @@
                     >
                     @error('closing_date')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
+                @endif
             </div>
         </div>
 

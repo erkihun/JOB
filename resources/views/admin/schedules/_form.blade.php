@@ -24,11 +24,19 @@
                 @endforeach
             </select>
         </div>
+        @if(app()->getLocale() === 'am')
+            <x-ethiopian-datepicker
+                name="date"
+                :label="__('dashboard.table.date')"
+                :value="old('date', $schedule->date?->format('Y-m-d') ?? '')"
+                required/>
+        @else
         <div>
             <label class="block text-sm font-medium text-gray-700">{{ __('dashboard.table.date') }} <span class="text-red-500">*</span></label>
             <input type="date" name="date" value="{{ old('date', $schedule->date?->format('Y-m-d') ?? '') }}"
                    class="form-input mt-1 @error('date') form-input-error @enderror">
         </div>
+        @endif
         <div>
             <label class="block text-sm font-medium text-gray-700">{{ __('dashboard.table.time') }} <span class="text-red-500">*</span></label>
             <div class="mt-1 flex gap-2">

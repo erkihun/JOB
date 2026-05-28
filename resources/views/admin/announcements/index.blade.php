@@ -56,7 +56,7 @@
                         @endif
                     </td>
                     <td class="px-4 py-3 text-sm text-gray-500">
-                        {{ $ann->published_at?->format('d M Y') ?? '—' }}
+                        {{ et_date($ann->published_at) }}
                     </td>
                     <td class="px-4 py-3 text-sm text-gray-500">{{ $ann->author?->name ?? '—' }}</td>
                     <td class="px-4 py-3">
