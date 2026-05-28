@@ -9,13 +9,27 @@
 
 @php
     $hasServerError = $errors->has($name);
-    $gcValue = old($name, $value) ?? '';
-    $safeMax = $max ?? '';
+    $gcValue  = old($name, $value) ?? '';
+    $safeMax  = $max ?? '';
+
+    // Compute today's Ethiopian year/month in PHP so the calendar opens on the
+    // correct month immediately — without waiting for Alpine's init() to patch it.
+    $today      = now();
+    $gy = $today->year; $gm = $today->month; $gd = $today->day;
+    $prevLeap   = ($gy - 1) % 400 === 0 || (($gy - 1) % 4 === 0 && ($gy - 1) % 100 !== 0);
+    $nyDay      = $prevLeap ? 12 : 11;
+    $etY        = ($gm > 9 || ($gm === 9 && $gd >= $nyDay)) ? $gy - 7 : $gy - 8;
+    $nyGcY      = $etY + 7;
+    $prevNyLeap = ($nyGcY - 1) % 400 === 0 || (($nyGcY - 1) % 4 === 0 && ($nyGcY - 1) % 100 !== 0);
+    $ny         = $prevNyLeap ? 12 : 11;
+    $diffDays   = (int) \Carbon\Carbon::create($nyGcY, 9, $ny)->diffInDays($today, false);
+    $todayEtYear  = $etY;
+    $todayEtMonth = intdiv($diffDays, 30) + 1;
+    $todayEtDay   = ($diffDays % 30) + 1;
 @endphp
 
 <div class="{{ $class }}"
-     x-data="ethiopianDatepicker(@js($name), @js($gcValue), @js($safeMax))"
-     x-init="init()"
+     x-data="ethiopianDatepicker(@js($name), @js($gcValue), @js($safeMax), {{ $todayEtYear }}, {{ $todayEtMonth }}, {{ $todayEtDay }})"
      @click.outside="open = false"
      @keydown.escape.window="open = false">
 
@@ -66,17 +80,13 @@
                 </button>
 
                 <div class="flex items-center gap-1">
-                    {{-- Month selector --}}
                     <select x-model.number="viewMonth"
-                            @change.stop=""
                             class="rounded border-0 bg-transparent py-0.5 text-sm font-semibold text-gray-800 focus:ring-1 focus:ring-blue-400">
                         <template x-for="(m, i) in monthNames" :key="i">
                             <option :value="i + 1" x-text="m"></option>
                         </template>
                     </select>
-                    {{-- Year selector --}}
                     <select x-model.number="viewYear"
-                            @change.stop=""
                             class="rounded border-0 bg-transparent py-0.5 text-sm font-semibold text-gray-800 focus:ring-1 focus:ring-blue-400">
                         <template x-for="y in yearRange" :key="y">
                             <option :value="y" x-text="y"></option>
@@ -101,11 +111,9 @@
 
             {{-- Day cells --}}
             <div class="grid grid-cols-7 gap-0.5 p-2">
-                {{-- Leading empty cells --}}
                 <template x-for="b in leadingBlanks" :key="'b'+b">
                     <div></div>
                 </template>
-                {{-- Day buttons --}}
                 <template x-for="d in daysInMonth" :key="d">
                     <button type="button"
                             @click.stop="selectDay(d)"
@@ -132,7 +140,6 @@
         </div>
     </div>
 
-    {{-- Errors --}}
     @if($hasServerError)
     <p x-show="!touched" class="mt-1 text-xs text-red-600">{{ $errors->first($name) }}</p>
     @endif
@@ -142,14 +149,15 @@
 @once
 @push('scripts')
 <script>
-function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue) {
+function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue, todayEtYear, todayEtMonth, todayEtDay) {
     return {
         fieldName,
         open: false,
         gcValue: '',
         displayValue: '',
-        viewYear: 2016,
-        viewMonth: 1,
+        // Initialise view to today's ET month/year (computed PHP-side, no race condition)
+        viewYear: todayEtYear,
+        viewMonth: todayEtMonth,
         selYear: null,
         selMonth: null,
         selDay: null,
@@ -161,7 +169,7 @@ function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue) {
 
         get yearRange() {
             const years = [];
-            for (let y = 2070; y >= 1900; y--) years.push(y);
+            for (let y = todayEtYear + 10; y >= 1900; y--) years.push(y);
             return years;
         },
 
@@ -179,12 +187,6 @@ function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue) {
 
         init() {
             if (gcInitialValue) this.setFromGc(gcInitialValue);
-            else {
-                const t = new Date();
-                const et = this.gcToEt(t.getFullYear(), t.getMonth() + 1, t.getDate());
-                this.viewYear = et.year;
-                this.viewMonth = et.month;
-            }
         },
 
         setFromGc(str) {
@@ -199,30 +201,27 @@ function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue) {
 
         getDayClass(d) {
             const isSel = d === this.selDay && this.viewMonth === this.selMonth && this.viewYear === this.selYear;
-            const t = new Date();
-            const te = this.gcToEt(t.getFullYear(), t.getMonth() + 1, t.getDate());
-            const isToday = d === te.day && this.viewMonth === te.month && this.viewYear === te.year;
+            const isToday = d === todayEtDay && this.viewMonth === todayEtMonth && this.viewYear === todayEtYear;
             if (this.isDayDisabled(d)) return 'text-gray-300';
-            if (isSel) return 'bg-blue-600 text-white font-semibold';
-            if (isToday) return 'bg-blue-50 text-blue-700 font-medium ring-1 ring-inset ring-blue-200';
+            if (isSel)    return 'bg-blue-600 text-white font-semibold';
+            if (isToday)  return 'bg-blue-50 text-blue-700 font-medium ring-1 ring-inset ring-blue-200';
             return 'text-gray-700 hover:bg-gray-100';
         },
 
         isDayDisabled(d) {
             if (!maxGcValue) return false;
-            const gc = this.etToGc(this.viewYear, this.viewMonth, d);
-            const pad = n => String(n).padStart(2,'0');
-            const gcStr = `${gc.year}-${pad(gc.month)}-${pad(gc.day)}`;
-            return gcStr > maxGcValue;
+            const gc  = this.etToGc(this.viewYear, this.viewMonth, d);
+            const pad = n => String(n).padStart(2, '0');
+            return `${gc.year}-${pad(gc.month)}-${pad(gc.day)}` > maxGcValue;
         },
 
         selectDay(d) {
             if (this.isDayDisabled(d)) return;
             this.selYear = this.viewYear; this.selMonth = this.viewMonth; this.selDay = d;
             this.touched = true; this.error = '';
-            const gc = this.etToGc(this.viewYear, this.viewMonth, d);
-            const pad = n => String(n).padStart(2,'0');
-            this.gcValue = `${gc.year}-${pad(gc.month)}-${pad(gc.day)}`;
+            const gc  = this.etToGc(this.viewYear, this.viewMonth, d);
+            const pad = n => String(n).padStart(2, '0');
+            this.gcValue      = `${gc.year}-${pad(gc.month)}-${pad(gc.day)}`;
             this.displayValue = this.formatEt(this.viewYear, this.viewMonth, d);
             this.open = false;
         },
@@ -243,35 +242,31 @@ function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue) {
         },
 
         goToToday() {
-            const t = new Date();
-            const et = this.gcToEt(t.getFullYear(), t.getMonth() + 1, t.getDate());
-            this.viewYear = et.year; this.viewMonth = et.month;
-            this.selectDay(et.day);
+            this.viewYear = todayEtYear; this.viewMonth = todayEtMonth;
+            this.selectDay(todayEtDay);
         },
 
-        formatEt(y, m, d) {
-            return `${d} ${this.monthNames[m - 1]} ${y}`;
-        },
+        formatEt(y, m, d) { return `${d} ${this.monthNames[m - 1]} ${y}`; },
 
         gcToEt(gy, gm, gd) {
-            const prev = gy - 1;
-            const prevLeap = prev % 400 === 0 || (prev % 4 === 0 && prev % 100 !== 0);
-            const nyDay = prevLeap ? 12 : 11;
-            let etY = (gm > 9 || (gm === 9 && gd >= nyDay)) ? gy - 7 : gy - 8;
-            const nyGcY = etY + 7;
-            const p2 = nyGcY - 1;
+            const p      = gy - 1;
+            const pLeap  = p % 400 === 0 || (p % 4 === 0 && p % 100 !== 0);
+            const nyDay  = pLeap ? 12 : 11;
+            const etY    = (gm > 9 || (gm === 9 && gd >= nyDay)) ? gy - 7 : gy - 8;
+            const nyGcY  = etY + 7;
+            const p2     = nyGcY - 1;
             const p2Leap = p2 % 400 === 0 || (p2 % 4 === 0 && p2 % 100 !== 0);
-            const ny = p2Leap ? 12 : 11;
-            const diff = Math.round((new Date(gy, gm-1, gd) - new Date(nyGcY, 8, ny)) / 86400000);
+            const ny     = p2Leap ? 12 : 11;
+            const diff   = Math.round((new Date(gy, gm-1, gd) - new Date(nyGcY, 8, ny)) / 86400000);
             return { year: etY, month: Math.floor(diff / 30) + 1, day: (diff % 30) + 1 };
         },
 
         etToGc(ey, em, ed) {
             const nyGcY = ey + 7;
-            const p = nyGcY - 1;
+            const p     = nyGcY - 1;
             const pLeap = p % 400 === 0 || (p % 4 === 0 && p % 100 !== 0);
             const nyDay = pLeap ? 12 : 11;
-            const d = new Date(nyGcY, 8, nyDay);
+            const d     = new Date(nyGcY, 8, nyDay);
             d.setDate(d.getDate() + (em - 1) * 30 + (ed - 1));
             return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
         },
