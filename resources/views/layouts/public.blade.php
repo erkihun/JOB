@@ -112,13 +112,13 @@
                 </form>
             @endif
         @else
-            <a href="{{ route('applicant.login') }}"
-               class="text-sm font-medium text-gray-600 hover:text-blue-600 transition px-3 py-2">
-                {{ __('menus.login') }}
-            </a>
             <a href="{{ route('applicant.register') }}"
-               class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition shadow-sm">
+               class="text-sm font-medium text-gray-600 hover:text-gray-900 transition px-3 py-2">
                 {{ __('menus.register') }}
+            </a>
+            <a href="{{ route('applicant.login') }}"
+               class="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition shadow-sm">
+                {{ __('menus.login') }}
             </a>
         @endauth
     </div>
