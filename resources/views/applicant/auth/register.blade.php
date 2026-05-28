@@ -164,7 +164,11 @@
                     </div>
 
                     {{-- Date of birth --}}
-                    <x-reg-field name="date_of_birth" :label="__('fields.date_of_birth')" type="date"/>
+                    @if(app()->getLocale() === 'am')
+                        <x-ethiopian-datepicker name="date_of_birth" :label="__('fields.date_of_birth')" :value="old('date_of_birth')" :max="now()->toDateString()"/>
+                    @else
+                        <x-reg-field name="date_of_birth" :label="__('fields.date_of_birth')" type="date"/>
+                    @endif
 
                     {{-- Nationality --}}
                     <x-reg-field name="nationality" :label="__('fields.nationality')"/>

@@ -58,13 +58,22 @@
                     @error('gender')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
 
+                @if(app()->getLocale() === 'am')
+                    <x-ethiopian-datepicker
+                        name="date_of_birth"
+                        :label="__('fields.date_of_birth')"
+                        :value="old('date_of_birth', $applicant->date_of_birth?->format('Y-m-d'))"
+                        :max="now()->toDateString()"/>
+                @else
                 <div>
                     <label for="date_of_birth" class="block text-sm font-medium text-gray-700">{{ __('fields.date_of_birth') }}</label>
                     <input type="date" id="date_of_birth" name="date_of_birth"
                            value="{{ old('date_of_birth', $applicant->date_of_birth?->format('Y-m-d')) }}"
+                           max="{{ now()->toDateString() }}"
                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                     @error('date_of_birth')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
+                @endif
 
                 <div>
                     <label for="national_id" class="block text-sm font-medium text-gray-700">{{ __('fields.national_id') }} <span class="text-red-500">*</span></label>

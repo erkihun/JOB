@@ -35,6 +35,14 @@
                 </div>
 
                 {{-- Graduation Date --}}
+                @if(app()->getLocale() === 'am')
+                    <x-ethiopian-datepicker
+                        name="graduation_date"
+                        :label="__('fields.graduation_date')"
+                        :value="old('graduation_date')"
+                        :max="now()->toDateString()"
+                        required/>
+                @else
                 <div>
                     <label for="graduation_date" class="block text-sm font-medium text-gray-700">
                         {{ __('fields.graduation_date') }}
@@ -46,6 +54,7 @@
                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('graduation_date') border-red-400 @enderror">
                     @error('graduation_date')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
+                @endif
 
                 {{-- CGPA --}}
                 <div>

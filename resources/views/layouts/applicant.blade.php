@@ -506,5 +506,6 @@
     </div>
 </nav>
 
+@stack('scripts')
 </body>
 </html>
