@@ -78,6 +78,23 @@ return [
     'mark_all_read' => 'ሁሉንም እንደ ተነቡ ምልክት አድርግ',
     'unread' => 'ያልተነቡ',
 
+    // ── Relative time (used by et_diff_for_humans()) ──────────────────────────
+    'just_now'       => 'ድሜ',
+    'ago'            => 'በፊት',
+    'from_now'       => 'ቆይቶ',
+    'minute_one'     => 'ከ1 ደቂቃ',
+    'minutes_many'   => 'ከ:n ደቂቃዎች',
+    'hour_one'       => 'ከ1 ሰዓት',
+    'hours_many'     => 'ከ:n ሰዓቶች',
+    'day_one'        => 'ከ1 ቀን',
+    'days_many'      => 'ከ:n ቀናት',
+    'week_one'       => 'ከ1 ሳምንት',
+    'weeks_many'     => 'ከ:n ሳምንታት',
+    'month_one'      => 'ከ1 ወር',
+    'months_many'    => 'ከ:n ወራት',
+    'year_one'       => 'ከ1 ዓመት',
+    'years_many'     => 'ከ:n ዓመታት',
+
     // ── Auth ──────────────────────────────────────────────────────────────────
     'sign_in' => 'ወደ መለያዎ ይግቡ',
     'new_here' => 'አዲስ ተጠቃሚ ነዎት?',
@@ -161,4 +178,14 @@ return [
     'ethnicity_optional' => 'ብሔር (አማራጭ)',
     'address_optional' => 'አድራሻ (አማራጭ)',
     'disability_label' => 'የአካል ጉዳት አለብኝ',
+
+    // ── Status timeline labels ─────────────────────────────────────────────────
+    'timeline_submitted' => 'ቀርቧል',
+    'timeline_review' => 'በሂደት ላይ',
+    'timeline_screening' => 'ምልመላ',
+    'timeline_exam' => 'ፈተና / ቃለ-መጠይቅ',
+    'timeline_result' => 'የመጨረሻ ውጤት',
+
+    // ── Application list ──────────────────────────────────────────────────────
+    'applications_count' => ':count ማመልከቻ',
 ];

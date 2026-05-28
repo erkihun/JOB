@@ -253,8 +253,12 @@
             'icon'  => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
         ];
 
-        if ($authUser->hasAnyPermission(['vacancies.view','applications.view','screening.view']) || $canManageExamInterview)
+        if ($authUser->hasAnyPermission(['institutions.view','vacancies.view','applications.view','screening.view']) || $canManageExamInterview)
             $nav[] = 'recruitment';
+        if ($authUser->hasPermissionTo('institutions.view')) {
+            $nav[] = ['route'=>'admin.institutions.index','label'=>__('menus.institutions'),'match'=>'admin.institutions.*',
+                'icon'=>'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z'];
+        }
         if ($authUser->hasPermissionTo('vacancies.view')) {
             $nav[] = ['route'=>'admin.vacancies.index',    'label'=>__('menus.vacancies'),    'match'=>'admin.vacancies.*',
                 'icon'=>'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'];

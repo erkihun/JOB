@@ -53,7 +53,7 @@ class VacancyController extends Controller
             $query->where('closing_date', '<=', $closingDate);
         }
 
-        $vacancies = $query->latest('published_at')->paginate(12)->withQueryString();
+        $vacancies = $query->with('institution')->latest('published_at')->paginate(12)->withQueryString();
 
         $departments = Vacancy::where('status', VacancyStatus::Open)
             ->distinct()
@@ -72,6 +72,7 @@ class VacancyController extends Controller
     {
         abort_unless($vacancy->status === VacancyStatus::Open, 404);
 
+        $vacancy->load(['institution', 'requiredDocuments']);
         $canApply = $vacancy->canAcceptApplications();
 
         $alreadyApplied = false;

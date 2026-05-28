@@ -10,7 +10,7 @@ return [
     'application_submitted' => 'ማመልከቻዎ በተሳካ ሁኔታ ተልኳል።',
     'application_updated' => 'ማመልከቻዎ ተዘምኗል።',
     'deadline_locked' => 'ይህ ማመልከቻ ሊስተካከል አይችልም። የክፍት ቦታው ማብቂያ ጊዜ አልፏል።',
-    'duplicate_application' => 'ለዚህ ክፍት ቦታ አስቀድሞ ማመልከቻ አቅርበዋል።',
+    'duplicate_application' => 'ለዚህ የስራ ማስታወቂያ አስቀድሞ አመልክተዋል። ለሌሎች ክፍት ቦታዎች ማመልከት ይችላሉ።',
     'file_too_large' => 'ፋይሉ ከ 2 ሜባ ያለፈ ነው።',
     'invalid_file_type' => 'ልክ ያልሆነ የፋይል ዓይነት። PDF, JPG, JPEG, እና PNG ብቻ ይፈቀዳሉ።',
     'required_document_missing' => 'ከማስገባቶ በፊት ሁሉም አስፈላጊ ሰነዶችን ይጫኑ።',

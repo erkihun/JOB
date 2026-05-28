@@ -7,6 +7,7 @@ use App\Models\ApplicantProfileDocument;
 use App\Models\Application;
 use App\Models\ApplicationDocument;
 use App\Models\AuditLog;
+use App\Models\Institution;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\Vacancy;
@@ -14,6 +15,7 @@ use App\Policies\ApplicantProfileDocumentPolicy;
 use App\Policies\ApplicationDocumentPolicy;
 use App\Policies\ApplicationPolicy;
 use App\Policies\AuditLogPolicy;
+use App\Policies\InstitutionPolicy;
 use App\Policies\SettingPolicy;
 use App\Policies\UserPolicy;
 use App\Policies\VacancyPolicy;
@@ -74,6 +76,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Institution::class, InstitutionPolicy::class);
         Gate::policy(Vacancy::class, VacancyPolicy::class);
         Gate::policy(Application::class, ApplicationPolicy::class);
         Gate::policy(ApplicationDocument::class, ApplicationDocumentPolicy::class);

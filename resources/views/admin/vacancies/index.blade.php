@@ -25,8 +25,16 @@
             <option value="{{ $s->value }}" {{ request('status') === $s->value ? 'selected' : '' }}>{{ $s->getLabel() }}</option>
             @endforeach
         </select>
+        <select name="institution_id" class="form-select w-auto">
+            <option value="">{{ __('admin.all_institutions') }}</option>
+            @foreach($institutions as $inst)
+            <option value="{{ $inst->id }}" {{ request('institution_id') === $inst->id ? 'selected' : '' }}>
+                {{ $inst->short_name ?? $inst->name }}
+            </option>
+            @endforeach
+        </select>
         <button type="submit" class="btn-navy btn">{{ __('messages.filter') }}</button>
-        @if(request()->hasAny(['search','status']))
+        @if(request()->hasAny(['search','status','institution_id']))
         <a href="{{ route('admin.vacancies.index') }}" class="btn-secondary btn">{{ __('messages.reset') }}</a>
         @endif
     </form>
@@ -38,6 +46,7 @@
                 <tr>
                     <th class="table-th">{{ __('vacancies.code') }}</th>
                     <th class="table-th">{{ __('vacancies.title') }}</th>
+                    <th class="hidden table-th lg:table-cell">{{ __('admin.institution_name') }}</th>
                     <th class="hidden table-th sm:table-cell">{{ __('vacancies.department') }}</th>
                     <th class="hidden table-th md:table-cell">{{ __('vacancies.closing_date') }}</th>
                     <th class="table-th">{{ __('vacancies.status') }}</th>
@@ -54,6 +63,7 @@
                 <tr class="table-row">
                     <td class="table-td font-mono text-xs text-gray-500">{{ $vacancy->code }}</td>
                     <td class="table-td font-medium text-gray-900">{{ $vacancy->title }}</td>
+                    <td class="hidden table-td text-gray-500 lg:table-cell">{{ $vacancy->institution?->displayName() ?? '—' }}</td>
                     <td class="hidden table-td text-gray-500 sm:table-cell">{{ $vacancy->department ?? '—' }}</td>
                     <td class="hidden table-td text-gray-500 md:table-cell">{{ et_date($vacancy->closing_date) }}</td>
                     <td class="table-td">

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\VacancyStatus;
+use App\Models\Institution;
 use App\Models\User;
 use App\Models\Vacancy;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -14,6 +15,7 @@ class VacancyFactory extends Factory
     public function definition(): array
     {
         return [
+            'institution_id' => Institution::factory(),
             'title' => ['en' => fake()->jobTitle(), 'am' => fake()->jobTitle()],
             'code' => strtoupper(fake()->unique()->bothify('VAC-####')),
             'department' => fake()->randomElement(['IT', 'Finance', 'HR', 'Legal', 'Operations']),

@@ -87,6 +87,53 @@
     @else
     <div class="space-y-3">
         @foreach($vacancies as $vacancy)
+        @php
+            $hasMap = $vacancy->institution && $vacancy->institution->latitude && $vacancy->institution->longitude;
+            $mapId  = 'map-modal-app-' . $vacancy->id;
+        @endphp
+
+        {{-- Map modal --}}
+        @if($hasMap)
+        <div id="{{ $mapId }}"
+             x-data="{ open: false }"
+             x-show="open"
+             x-cloak
+             @keydown.escape.window="open = false"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4"
+             style="display:none">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="open = false"></div>
+            <div class="relative z-10 w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                    <div class="min-w-0">
+                        <p class="font-semibold text-gray-900 text-sm truncate">{{ $vacancy->institution->name }}</p>
+                        @if($vacancy->institution->address)
+                        <p class="text-xs text-gray-400 truncate">{{ $vacancy->institution->address }}</p>
+                        @endif
+                    </div>
+                    <button type="button" @click="open = false"
+                            class="ml-3 shrink-0 flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <iframe
+                    width="100%" height="300" style="border:0;display:block;" loading="lazy"
+                    allowfullscreen referrerpolicy="no-referrer-when-downgrade"
+                    src="https://www.google.com/maps?q={{ $vacancy->institution->latitude }},{{ $vacancy->institution->longitude }}&hl={{ app()->getLocale() }}&z=15&output=embed">
+                </iframe>
+                <div class="px-4 py-2.5 border-t border-gray-100 flex justify-end">
+                    <a href="https://www.google.com/maps?q={{ $vacancy->institution->latitude }},{{ $vacancy->institution->longitude }}"
+                       target="_blank" rel="noopener noreferrer"
+                       class="text-xs font-medium text-blue-600 hover:underline">
+                        {{ __('admin.institution_open_in_maps') }} ↗
+                    </a>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <div x-data="{}">
         <a href="{{ route('applicant.vacancies.show', $vacancy) }}"
            class="group flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 sm:p-5 shadow-sm transition hover:shadow-md hover:border-blue-300">
             <div class="flex-1 min-w-0">
@@ -102,6 +149,27 @@
                 </div>
 
                 <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                    @if($vacancy->institution)
+                    <span class="inline-flex items-center gap-1 text-indigo-600 font-medium">
+                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
+                        </svg>
+                        {{ $vacancy->institution->displayName() }}
+                        @if($hasMap)
+                        <button type="button"
+                                @click.prevent.stop="document.getElementById('{{ $mapId }}')._x_dataStack[0].open = true"
+                                title="{{ __('admin.institution_open_in_maps') }}"
+                                class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 hover:text-blue-700 transition">
+                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </button>
+                        @endif
+                    </span>
+                    @endif
                     @if($vacancy->department)
                     <span>{{ $vacancy->department }}</span>
                     @endif
@@ -122,7 +190,7 @@
             <div class="shrink-0 flex sm:flex-col sm:items-end items-center justify-between gap-2">
                 <div class="text-xs text-gray-500">
                     {{ app()->getLocale() === 'am' ? 'ይዘጋል:' : 'Closes:' }}
-                    <span class="{{ $vacancy->closing_date->diffInDays(now()) <= 3 ? 'text-red-600 font-semibold' : 'text-gray-700 font-medium' }}">
+                    <span class="{{ (int) $vacancy->closing_date->diffInDays(now()) <= 3 ? 'text-red-600 font-semibold' : 'text-gray-700 font-medium' }}">
                         {{ et_date($vacancy->closing_date, 'M d, Y') }}
                     </span>
                 </div>
@@ -131,6 +199,7 @@
                 </span>
             </div>
         </a>
+        </div>{{-- /x-data wrapper --}}
         @endforeach
     </div>
 

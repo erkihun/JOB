@@ -25,6 +25,10 @@ class RolesAndPermissionsSeeder extends Seeder
     private function getPermissions(): array
     {
         return [
+            // Institution Management
+            'institutions.view', 'institutions.create', 'institutions.update', 'institutions.delete',
+            'institutions.activate', 'institutions.deactivate',
+
             // User Management
             'users.view', 'users.create', 'users.update', 'users.delete',
             'users.activate', 'users.deactivate', 'users.reset-password', 'users.assign-role',
@@ -95,6 +99,8 @@ class RolesAndPermissionsSeeder extends Seeder
         // Admin
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $admin->syncPermissions([
+            'institutions.view', 'institutions.create', 'institutions.update',
+            'institutions.activate', 'institutions.deactivate',
             'users.view', 'users.create', 'users.update', 'users.activate', 'users.deactivate',
             'users.reset-password', 'users.assign-role',
             'vacancies.view', 'vacancies.create', 'vacancies.update', 'vacancies.delete',

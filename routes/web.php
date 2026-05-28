@@ -4,14 +4,14 @@ use App\Http\Controllers\Admin\AdminApplicantController;
 use App\Http\Controllers\Admin\AdminApplicantProfileDocumentDownloadController;
 use App\Http\Controllers\Admin\AdminApplicantProfileDocumentPreviewController;
 use App\Http\Controllers\Admin\AdminAuthController;
-use App\Http\Controllers\Admin\AdminPasswordResetController;
-use App\Http\Controllers\Auth\ApplicantPasswordResetController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDocumentDownloadController;
+use App\Http\Controllers\Admin\AdminPasswordResetController;
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\ExamInterviewResultController;
+use App\Http\Controllers\Admin\FinalResultAnnouncementController;
 use App\Http\Controllers\Admin\FinalResultController;
 use App\Http\Controllers\Admin\HeroSliderController;
 use App\Http\Controllers\Admin\NotificationTemplateController;
@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\ScreeningController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VacancyAnnouncementController;
+use App\Http\Controllers\Admin\InstitutionController as AdminInstitutionController;
 use App\Http\Controllers\Admin\VacancyController as AdminVacancyController;
 use App\Http\Controllers\Applicant\ApplicantDashboardController;
 use App\Http\Controllers\Applicant\ApplicantNotificationController;
@@ -33,6 +34,7 @@ use App\Http\Controllers\Applicant\ProfilePhotoController;
 use App\Http\Controllers\Applicant\VacancyController as ApplicantVacancyController;
 use App\Http\Controllers\Auth\ApplicantAuthController;
 use App\Http\Controllers\Auth\ApplicantEmailVerificationController;
+use App\Http\Controllers\Auth\ApplicantPasswordResetController;
 use App\Http\Controllers\Public\AnnouncementController as PublicAnnouncementController;
 use App\Http\Controllers\Public\ApplicationTrackingController;
 use App\Http\Controllers\Public\HomeController;
@@ -81,16 +83,16 @@ Route::middleware('guest')->prefix('applicant')->name('applicant.')->group(funct
     Route::post('/login', [ApplicantAuthController::class, 'login'])->middleware('throttle:5,1');
 
     // Registration helpers
-    Route::get('/temp-photo',      [ApplicantAuthController::class, 'tempPhoto'])->name('temp-photo');
-    Route::get('/validate-field',  [ApplicantAuthController::class, 'validateField'])->name('validate-field');
+    Route::get('/temp-photo', [ApplicantAuthController::class, 'tempPhoto'])->name('temp-photo');
+    Route::get('/validate-field', [ApplicantAuthController::class, 'validateField'])->name('validate-field');
 
     // Password reset via OTP
-    Route::get('/forgot-password',  [ApplicantPasswordResetController::class, 'showForgotForm'])->name('password.request');
+    Route::get('/forgot-password', [ApplicantPasswordResetController::class, 'showForgotForm'])->name('password.request');
     Route::post('/forgot-password', [ApplicantPasswordResetController::class, 'sendOtp'])->middleware('throttle:5,1')->name('password.email');
-    Route::get('/verify-otp',       [ApplicantPasswordResetController::class, 'showOtpForm'])->name('password.otp');
-    Route::post('/verify-otp',      [ApplicantPasswordResetController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('password.verify-otp');
-    Route::get('/reset-password',   [ApplicantPasswordResetController::class, 'showResetForm'])->name('password.reset.show');
-    Route::post('/reset-password',  [ApplicantPasswordResetController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.reset');
+    Route::get('/verify-otp', [ApplicantPasswordResetController::class, 'showOtpForm'])->name('password.otp');
+    Route::post('/verify-otp', [ApplicantPasswordResetController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('password.verify-otp');
+    Route::get('/reset-password', [ApplicantPasswordResetController::class, 'showResetForm'])->name('password.reset.show');
+    Route::post('/reset-password', [ApplicantPasswordResetController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.reset');
 });
 
 // Applicant logout (auth only — no applicant role check needed)
@@ -114,12 +116,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/login', [AdminAuthController::class, 'login'])->middleware('throttle:5,1');
 
         // Password reset via OTP
-        Route::get('/forgot-password',  [AdminPasswordResetController::class, 'showForgotForm'])->name('password.request');
+        Route::get('/forgot-password', [AdminPasswordResetController::class, 'showForgotForm'])->name('password.request');
         Route::post('/forgot-password', [AdminPasswordResetController::class, 'sendOtp'])->middleware('throttle:5,1')->name('password.email');
-        Route::get('/verify-otp',       [AdminPasswordResetController::class, 'showOtpForm'])->name('password.otp');
-        Route::post('/verify-otp',      [AdminPasswordResetController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('password.verify-otp');
-        Route::get('/reset-password',   [AdminPasswordResetController::class, 'showResetForm'])->name('password.reset.show');
-        Route::post('/reset-password',  [AdminPasswordResetController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.reset');
+        Route::get('/verify-otp', [AdminPasswordResetController::class, 'showOtpForm'])->name('password.otp');
+        Route::post('/verify-otp', [AdminPasswordResetController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('password.verify-otp');
+        Route::get('/reset-password', [AdminPasswordResetController::class, 'showResetForm'])->name('password.reset.show');
+        Route::post('/reset-password', [AdminPasswordResetController::class, 'resetPassword'])->middleware('throttle:5,1')->name('password.reset');
     });
 
     Route::post('/logout', [AdminAuthController::class, 'logout'])->middleware('auth')->name('logout');
@@ -135,6 +137,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', AdminDashboardController::class)
             ->middleware('permission:dashboard.view')
             ->name('dashboard');
+
+        // Institution management
+        Route::resource('institutions', AdminInstitutionController::class)
+            ->middleware('permission:institutions.view')
+            ->middlewareFor(['create', 'store'], 'permission:institutions.create')
+            ->middlewareFor(['edit', 'update'], 'permission:institutions.update')
+            ->middlewareFor('destroy', 'permission:institutions.delete');
+        Route::post('/institutions/{institution}/activate', [AdminInstitutionController::class, 'activate'])
+            ->middleware('permission:institutions.activate')
+            ->name('institutions.activate');
+        Route::post('/institutions/{institution}/deactivate', [AdminInstitutionController::class, 'deactivate'])
+            ->middleware('permission:institutions.deactivate')
+            ->name('institutions.deactivate');
 
         Route::resource('vacancies', AdminVacancyController::class)
             ->middleware('permission:vacancies.view')
@@ -207,6 +222,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/final-results/{application}/create', [FinalResultController::class, 'create'])
             ->name('final-results.create')
+            ->middleware('role_or_permission:super_admin|admin|hr_manager|exam_officer|interview_officer');
+
+        Route::post('/final-results/announce', [FinalResultAnnouncementController::class, 'store'])
+            ->name('final-results.announce')
             ->middleware('role_or_permission:super_admin|admin|hr_manager|exam_officer|interview_officer');
 
         Route::post('/final-results/{application}', [FinalResultController::class, 'store'])

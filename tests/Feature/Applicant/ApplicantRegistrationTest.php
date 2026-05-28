@@ -70,7 +70,7 @@ test('registration page renders in amharic', function (): void {
 test('applicant can register with all required fields', function (): void {
     $response = $this->post(route('applicant.register'), validRegistrationData());
 
-    $response->assertRedirect(route('applicant.dashboard'));
+    $response->assertRedirect(route('applicant.verify-email'));
     expect(User::latest()->first())->not->toBeNull();
 });
 
@@ -175,7 +175,7 @@ test('disability type is not required when disability status is no', function ()
 
     $response = $this->post(route('applicant.register'), $data);
 
-    $response->assertRedirect(route('applicant.dashboard'));
+    $response->assertRedirect(route('applicant.verify-email'));
     $response->assertSessionHasNoErrors();
 });
 
@@ -187,7 +187,7 @@ test('profile photo accepts jpg and png', function (): void {
 
     $response = $this->post(route('applicant.register'), $data);
 
-    $response->assertRedirect(route('applicant.dashboard'));
+    $response->assertRedirect(route('applicant.verify-email'));
     $response->assertSessionHasNoErrors();
 });
 

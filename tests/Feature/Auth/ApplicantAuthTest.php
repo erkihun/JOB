@@ -35,7 +35,7 @@ test('applicant can register with valid data', function () {
         'terms' => '1',
     ]);
 
-    $response->assertRedirect(route('applicant.dashboard'));
+    $response->assertRedirect(route('applicant.verify-email'));
 
     $this->assertDatabaseHas('users', ['email' => 'applicant@test.com']);
     $this->assertDatabaseHas('applicants', ['email' => 'applicant@test.com']);

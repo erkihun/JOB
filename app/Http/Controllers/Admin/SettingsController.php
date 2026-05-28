@@ -52,7 +52,7 @@ class SettingsController extends Controller
             'org.linkedin' => ['nullable', 'url'],
             'org.youtube' => ['nullable', 'url'],
             'org.logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:1024'],
-            'org.favicon' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg,svg,webp', 'max:512'],
+            'org.favicon' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg,webp', 'max:512'],
             'recruitment.max_file_size_mb' => ['nullable', 'integer', 'min:1', 'max:10'],
             'recruitment.allow_registration' => ['nullable', 'boolean'],
             'recruitment.reference_format' => ['nullable', 'string', 'max:100'],

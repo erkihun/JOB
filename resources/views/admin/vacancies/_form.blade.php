@@ -10,6 +10,27 @@
             </div>
 
             <div class="space-y-4">
+
+                {{-- Institution --}}
+                @if(isset($institutions) && $institutions->isNotEmpty())
+                <div>
+                    <label class="block text-sm font-medium text-gray-700" for="institution_id">
+                        {{ __('admin.institution_name') }}
+                    </label>
+                    <select name="institution_id" id="institution_id"
+                            class="form-select mt-1 @error('institution_id') form-input-error @enderror">
+                        <option value="">— {{ __('admin.institution_select') }} —</option>
+                        @foreach($institutions as $inst)
+                        <option value="{{ $inst->id }}"
+                            {{ old('institution_id', $vacancy->institution_id ?? '') === $inst->id ? 'selected' : '' }}>
+                            {{ $inst->short_name ? "{$inst->short_name} — {$inst->name}" : $inst->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                    @error('institution_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+                @endif
+
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">

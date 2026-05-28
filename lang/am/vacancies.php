@@ -43,4 +43,18 @@ return [
     'details' => 'ዝርዝሮች',
     'create_vacancy' => 'ክፍት ስራ ፍጠር',
     'edit_vacancy' => 'ክፍት ስራ አርትዕ',
+
+    // Vacancy detail page
+    'detail_max' => 'ከፍተኛ',
+    'login_to_apply' => 'ለማመልከት ይግቡ ወይም ይመዝገቡ',
+    'share_vacancy' => 'ይህን ክፍት ቦታ አጋሩ',
+    'copy_link' => 'አገናኝ ቅዳ',
+    'link_copied' => 'ተቀድቷል!',
+
+    // Institution / organization
+    'institution' => 'ተቋም',
+    'posted_by'   => 'የለቀቀው',
+    'recruiting_institution' => 'አሰሪ ተቋም',
+    'filter_by_institution'  => 'በተቋም ማጣሪያ',
+    'all_institutions'       => 'ሁሉም ተቋማት',
 ];

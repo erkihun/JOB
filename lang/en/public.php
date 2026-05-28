@@ -18,6 +18,9 @@ return [
     'hero_subtitle' => 'Your Career Starts Here',
     'hero_description' => 'Explore career opportunities at :org. We are committed to a fair, transparent, and merit-based recruitment process.',
     'browse_vacancies' => 'Browse Vacancies',
+    'hero_search_title' => 'Search open vacancies by title, code, department, or field of study',
+    'hero_search_placeholder' => 'Search jobs, vacancy code, department, or field of study...',
+    'search_jobs' => 'Search Jobs',
 
     // Section labels
     'now_hiring' => 'Now Hiring',
@@ -75,4 +78,11 @@ return [
     'required' => 'Required',
     'optional' => 'Optional',
     'years' => 'year(s)',
+
+    // Vacancy listing — countdown & empty state
+    'closes_today' => 'Closes today',
+    'closes_in_days' => 'Closes in :days day(s)',
+    'no_results_title' => 'No vacancies found',
+    'more_filters' => 'More filters',
+    'hide_filters' => 'Hide filters',
 ];

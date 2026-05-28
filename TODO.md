@@ -14,6 +14,9 @@
 - [x] English and Amharic localization
 - [x] Noto Serif Ethiopic rollout for Amharic typography
 - [x] Tailwind-only UI confirmed across admin, applicant, and public pages
+- [x] Search-first public job portal UI modernization
+- [x] Modern applicant application listing and tracking UI
+- [x] Reusable Blade UI components for cards, badges, empty states, headers, and vacancy search
 - [x] Admin side checked end-to-end on the actual Blade admin stack
 - [x] Announcement HTML server-side sanitization
 - [x] SVG upload blocking for logo and hero image uploads

@@ -5,6 +5,7 @@ return [
     'users' => 'ተጠቃሚዎች',
     'roles' => 'ሚናዎች',
     'roles_permissions' => 'ሚናዎች እና ፈቃዶች',
+    'institutions' => 'ተቋማት',
     'vacancies' => 'ክፍት ስራዎች',
     'announcements' => 'ማስታወቂያዎች',
     'applications' => 'ሁሉም ማመልከቻዎች',

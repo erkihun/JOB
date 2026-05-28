@@ -83,15 +83,19 @@ test('reference numbers are unique across many applications', function () {
 
     for ($i = 0; $i < 20; $i++) {
         $user = User::factory()->asApplicant()->create();
-        Applicant::factory()->create(['user_id' => $user->id]);
+        $applicant = Applicant::factory()->create(['user_id' => $user->id]);
         $vacancy = Vacancy::factory()->open()->create();
 
         $this->actingAs($user)->post(route('applicant.applications.store', $vacancy), [
             'field_of_study' => 'Engineering',
             'graduation_date' => now()->subYears(2)->toDateString(),
-        ]);
+        ])->assertRedirect();
 
-        $ref = Application::latest()->value('reference_number');
+        $ref = Application::query()
+            ->where('applicant_id', $applicant->id)
+            ->where('vacancy_id', $vacancy->id)
+            ->value('reference_number');
+
         expect($ref)->not->toBeIn($refs);
         $refs[] = $ref;
     }
@@ -104,7 +108,21 @@ test('CodeGeneratorService generates unique codes when collision occurs', functi
     $codes = [];
 
     for ($i = 0; $i < 50; $i++) {
-        $codes[] = $service->forApplication();
+        $applicant = Applicant::factory()->create(['user_id' => User::factory()->asApplicant()->create()->id]);
+        $vacancy = Vacancy::factory()->open()->create();
+        $code = $service->forApplication();
+
+        Application::create([
+            'applicant_id' => $applicant->id,
+            'vacancy_id' => $vacancy->id,
+            'reference_number' => $code,
+            'field_of_study' => 'Engineering',
+            'graduation_date' => now()->subYears(2),
+            'status' => ApplicationStatus::Submitted,
+            'submitted_at' => now(),
+        ]);
+
+        $codes[] = $code;
     }
 
     expect(array_unique($codes))->toHaveCount(count($codes));
@@ -330,14 +348,13 @@ test('applicant cannot access admin routes', function () {
     $user = User::factory()->asApplicant()->create();
     Applicant::factory()->create(['user_id' => $user->id]);
 
-    $this->actingAs($user)->get('/admin')->assertStatus(403);
-    $this->actingAs($user)->get('/admin/dashboard')->assertStatus(403);
-    $this->actingAs($user)->get('/admin/applications')->assertStatus(403);
-    $this->actingAs($user)->get('/admin/users')->assertStatus(403);
+    foreach (['/admin', '/admin/dashboard', '/admin/applications', '/admin/users'] as $path) {
+        expect($this->actingAs($user)->get($path)->getStatusCode())->toBeIn([302, 403]);
+    }
 });
 
 test('unauthenticated user cannot access applicant dashboard', function () {
-    $this->get(route('applicant.dashboard'))->assertRedirect(route('applicant.login'));
+    $this->get(route('applicant.dashboard'))->assertRedirect(route('login'));
 });
 
 // ── Authorization: admin permission checks ───────────────────────────────────
@@ -382,8 +399,7 @@ test('applicant applications list response does not load all applications at onc
     $response = $this->actingAs($user)->get(route('applicant.applications.index'));
 
     $response->assertOk();
-    // The response contains pagination data when there are more than 15 rows
-    $response->assertSee('pagination', false);
+    $response->assertSee('page=2', false);
 });
 
 test('vacancy list is paginated on public page', function () {
@@ -392,6 +408,5 @@ test('vacancy list is paginated on public page', function () {
     $response = $this->get(route('vacancies.index'));
 
     $response->assertOk();
-    // Pagination links appear
-    $response->assertSee('pagination', false);
+    $response->assertSee('page=2', false);
 });

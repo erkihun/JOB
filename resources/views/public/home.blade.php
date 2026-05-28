@@ -6,152 +6,177 @@
 @section('content')
 
 {{-- ══════════════════════════════════════════════════════ HERO ══ --}}
+@php $orgName = \App\Models\Setting::get('org.name', config('app.name')); @endphp
+
 @if($sliders->isNotEmpty())
+{{-- ── Slider hero ── --}}
 <section
-    class="relative min-h-[calc(92vh-4rem)] overflow-hidden bg-slate-950 text-white"
+    class="relative h-[90vh] min-h-[560px] max-h-[860px] overflow-hidden bg-slate-950 text-white"
     x-data="{ active: 0, total: {{ $sliders->count() }} }"
-    x-init="total > 1 && setInterval(() => active = (active + 1) % total, 6000)"
+    x-init="total > 1 && setInterval(() => active = (active + 1) % total, 7000)"
 >
+    {{-- Slides --}}
     @foreach($sliders as $i => $slider)
+    @php
+        $btn  = $slider->getTranslation('button_text', app()->getLocale(), false) ?: $slider->getTranslation('button_text', 'en', false);
+        $link = $slider->button_link ?: route('vacancies.index');
+        $sub  = $slider->getTranslation('subtitle',   app()->getLocale(), false) ?: $slider->getTranslation('subtitle',   'en', false);
+    @endphp
     <div
         x-show="active === {{ $i }}"
         x-transition:enter="transition duration-1000 ease-out"
-        x-transition:enter-start="opacity-0 scale-105"
+        x-transition:enter-start="opacity-0 scale-[1.03]"
         x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="transition duration-1000 ease-in"
-        x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
+        x-transition:leave="transition duration-700 ease-in"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
         class="absolute inset-0"
         style="{{ $i === 0 ? '' : 'display:none' }}"
     >
+        {{-- Background image --}}
         @if($slider->image_path)
-        <div class="absolute inset-0">
-            <img src="{{ Storage::disk('public')->url($slider->image_path) }}" alt="" class="h-full w-full object-cover opacity-70">
+        <img src="{{ Storage::disk('public')->url($slider->image_path) }}" alt=""
+             class="absolute inset-0 h-full w-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/55 to-slate-900/30"></div>
+        @else
+        {{-- Gradient fallback --}}
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-950 via-indigo-950 to-slate-950">
+            <div class="absolute inset-0 opacity-20"
+                 style="background-image:radial-gradient(circle at 25% 60%, #3b82f6 0%, transparent 55%), radial-gradient(circle at 75% 30%, #6366f1 0%, transparent 50%)"></div>
         </div>
         @endif
-        <div class="absolute inset-0 bg-slate-950/70"></div>
 
-        <div class="relative mx-auto flex min-h-[calc(92vh-4rem)] max-w-7xl items-center justify-center px-4 py-20 text-center sm:px-6 lg:px-8">
-            <div class="max-w-4xl">
-                @php $heroLogo = \App\Models\Setting::get('org.logo', ''); @endphp
-                @if($heroLogo)
-                <img src="{{ Storage::url($heroLogo) }}" alt="{{ \App\Models\Setting::get('org.name', config('app.name')) }}" class="mx-auto mb-5 h-20 w-auto sm:h-24">
-                @endif
+        {{-- Content — bottom-anchored on desktop, centered on mobile --}}
+        <div class="relative flex h-full flex-col items-center justify-end pb-16 px-5 sm:px-8 lg:px-16 text-center sm:text-left sm:items-start">
 
-                <span class="mb-5 inline-flex items-center justify-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-xs font-bold uppercase text-white">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            {{-- Eyebrow --}}
+            <p class="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-orange-400">
+                {{ $orgName }}
+            </p>
+
+            {{-- Title --}}
+            <h1 class="max-w-2xl text-3xl font-extrabold leading-tight text-white drop-shadow-sm sm:text-4xl lg:text-5xl">
+                {{ $slider->getTranslation('title', app()->getLocale(), false) ?: $slider->getTranslation('title', 'en', false) }}
+            </h1>
+
+            {{-- Subtitle (optional, single line) --}}
+            @if($sub)
+            <p class="mt-3 max-w-xl text-sm leading-7 text-slate-200 sm:text-base line-clamp-2">{{ $sub }}</p>
+            @endif
+
+            {{-- Single CTA --}}
+            <div class="mt-6 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
+                <a href="{{ $link }}"
+                   class="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                    {{ $btn ?: __('public.browse_vacancies') }}
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-6-6l6 6-6 6"/>
                     </svg>
-                    <span>{{ \App\Models\Setting::get('org.name', config('app.name')) }}</span>
-                </span>
-
-                <h1 class="mx-auto max-w-4xl text-4xl font-black leading-tight text-white sm:text-5xl lg:text-6xl">
-                    {{ $slider->getTranslation('title', app()->getLocale(), false) ?: $slider->getTranslation('title', 'en', false) }}
-                </h1>
-
-                @php $sub = $slider->getTranslation('subtitle', app()->getLocale(), false) ?: $slider->getTranslation('subtitle', 'en', false); @endphp
-                @if($sub)
-                <p class="mx-auto mt-5 max-w-2xl text-base leading-8 text-slate-100 sm:text-lg">{{ $sub }}</p>
-                @endif
-
-                @php
-                    $btn = $slider->getTranslation('button_text', app()->getLocale(), false) ?: $slider->getTranslation('button_text', 'en', false);
-                    $primaryText = $btn ?: __('public.browse_vacancies');
-                    $primaryLink = $slider->button_link ?: route('vacancies.index');
-                @endphp
-                <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                    <a href="{{ $primaryLink }}"
-                       class="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-950/20 transition hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-300">
-                        <span>{{ $primaryText }}</span>
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-6-6l6 6-6 6"/>
-                        </svg>
-                    </a>
-                    <a href="{{ route('track.show') }}"
-                       class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-                        </svg>
-                        <span>{{ __('menus.track_application') }}</span>
-                    </a>
-                </div>
-
+                </a>
+                <a href="{{ route('track.show') }}"
+                   class="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20">
+                    {{ __('menus.track_application') }}
+                </a>
             </div>
         </div>
     </div>
     @endforeach
 
+    {{-- Prev / Next arrows --}}
     @if($sliders->count() > 1)
     <button type="button" @click="active = (active - 1 + total) % total"
-            class="absolute left-4 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/20 md:flex"
+            class="absolute left-4 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/25 text-white backdrop-blur-sm transition hover:bg-black/50 md:flex"
             aria-label="Previous slide">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
     </button>
     <button type="button" @click="active = (active + 1) % total"
-            class="absolute right-4 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/20 md:flex"
+            class="absolute right-4 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/25 text-white backdrop-blur-sm transition hover:bg-black/50 md:flex"
             aria-label="Next slide">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
     </button>
-    <div class="absolute bottom-7 left-0 right-0 z-10 flex justify-center gap-2">
+
+    {{-- Dot indicators --}}
+    <div class="absolute bottom-5 left-0 right-0 z-20 flex justify-center gap-1.5">
         @foreach($sliders as $i => $slider)
         <button type="button" @click="active = {{ $i }}"
-                :class="active === {{ $i }} ? 'bg-orange-500 w-8' : 'bg-white/50 w-2.5'"
-                class="h-2.5 rounded-full transition-all duration-300"
-                aria-label="Go to slide {{ $i + 1 }}"></button>
+                :class="active === {{ $i }} ? 'bg-orange-500 w-6' : 'bg-white/40 w-2'"
+                class="h-2 rounded-full transition-all duration-300"
+                aria-label="Slide {{ $i + 1 }}"></button>
         @endforeach
     </div>
     @endif
+
 </section>
+
+{{-- Search bar below slider — full width, overlaps border --}}
+<div class="relative z-10 -mt-8 mx-auto w-full max-w-3xl px-4">
+    <x-public.vacancy-search />
+</div>
+<div class="h-10 bg-white"></div>
 
 @else
-{{-- Default hero --}}
-<section class="relative min-h-[calc(92vh-4rem)] overflow-hidden bg-slate-950 text-white">
-    <div class="relative mx-auto flex min-h-[calc(92vh-4rem)] max-w-7xl items-center justify-center px-4 py-20 text-center sm:px-6 lg:px-8">
-        <div class="max-w-4xl">
-            @php $heroLogo = \App\Models\Setting::get('org.logo', ''); @endphp
-            @if($heroLogo)
-            <img src="{{ Storage::url($heroLogo) }}" alt="{{ \App\Models\Setting::get('org.name', config('app.name')) }}" class="mx-auto mb-5 h-20 w-auto sm:h-24">
-            @endif
-
-            <span class="mb-5 inline-flex items-center justify-center gap-2 rounded-full bg-orange-500 px-4 py-2 text-xs font-bold uppercase text-white">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-                <span>{{ \App\Models\Setting::get('org.name', config('app.name')) }}</span>
-            </span>
-
-            <h1 class="mx-auto max-w-4xl text-4xl font-black leading-tight text-white sm:text-5xl lg:text-6xl">
-                {{ __('public.hero_subtitle') }}
-            </h1>
-
-            <p class="mx-auto mt-5 max-w-2xl text-base leading-8 text-slate-100 sm:text-lg">
-                {{ __('public.hero_description', ['org' => \App\Models\Setting::get('org.name', config('app.name'))]) }}
-            </p>
-
-            <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <a href="{{ route('vacancies.index') }}"
-                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-950/20 transition hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-300">
-                    <span>{{ __('public.browse_vacancies') }}</span>
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-6-6l6 6-6 6"/>
-                    </svg>
-                </a>
-                <a href="{{ route('track.show') }}"
-                   class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-                    </svg>
-                    <span>{{ __('menus.track_application') }}</span>
-                </a>
-            </div>
-
-        </div>
+{{-- ── Default hero (no slider images) ── --}}
+<section class="relative overflow-hidden bg-gradient-to-br from-blue-950 via-indigo-950 to-slate-950 text-white">
+    {{-- Subtle radial glows --}}
+    <div class="pointer-events-none absolute inset-0">
+        <div class="absolute -top-32 -left-32 h-[500px] w-[500px] rounded-full bg-blue-600/20 blur-[120px]"></div>
+        <div class="absolute -bottom-32 -right-32 h-[400px] w-[400px] rounded-full bg-indigo-600/20 blur-[100px]"></div>
     </div>
+
+    <div class="relative mx-auto flex max-w-4xl flex-col items-center justify-center px-5 py-24 text-center sm:px-8 sm:py-32">
+
+        {{-- Eyebrow --}}
+        <span class="mb-5 inline-flex items-center gap-2 rounded-full border border-orange-400/30 bg-orange-500/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-orange-300">
+            <span class="h-1.5 w-1.5 rounded-full bg-orange-400 animate-pulse"></span>
+            {{ $orgName }}
+        </span>
+
+        {{-- Headline --}}
+        <h1 class="text-4xl font-black leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl">
+            {{ __('public.hero_subtitle') }}
+        </h1>
+
+        {{-- Sub --}}
+        <p class="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
+            {{ __('public.hero_description', ['org' => $orgName]) }}
+        </p>
+
+        {{-- CTAs --}}
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <a href="{{ route('vacancies.index') }}"
+               class="inline-flex items-center gap-1.5 rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg transition hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-300">
+                {{ __('public.browse_vacancies') }}
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-6-6l6 6-6 6"/>
+                </svg>
+            </a>
+            <a href="{{ route('track.show') }}"
+               class="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/90 backdrop-blur-sm transition hover:bg-white/20">
+                {{ __('menus.track_application') }}
+            </a>
+            @guest
+            <a href="{{ route('applicant.register') }}"
+               class="inline-flex items-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/90 backdrop-blur-sm transition hover:bg-white/20">
+                {{ __('menus.register') }}
+            </a>
+            @endguest
+        </div>
+
+    </div>
+
+    {{-- Bottom fade to white --}}
+    <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-white to-transparent"></div>
 </section>
+
+{{-- Search bar sits right below the hero, overlapping the fade --}}
+<div class="relative z-10 -mt-8 mx-auto w-full max-w-3xl px-4">
+    <x-public.vacancy-search />
+</div>
+<div class="h-8"></div>
 @endif
 
 {{-- ═══════════════════════════════════════════ ANNOUNCEMENTS ══ --}}
@@ -186,7 +211,7 @@
                     <h3 class="font-semibold text-gray-900 leading-snug group-hover:text-amber-700 transition text-sm sm:text-base">
                         {{ $ann->subject }}
                     </h3>
-                    <span class="shrink-0 text-xs text-gray-400 mt-0.5">{{ $ann->published_at->format('d M Y') }}</span>
+                    <span class="shrink-0 text-xs text-gray-400 mt-0.5">{{ et_date($ann->published_at, 'd M Y') }}</span>
                 </div>
                 <div
                     class="flex-1 prose prose-sm max-w-none text-gray-700 text-justify"
@@ -251,79 +276,180 @@
             <p class="text-gray-500 font-medium">{{ __('public.no_vacancies') }}</p>
         </div>
         @else
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             @foreach($vacancies as $vacancy)
             @php
-                $daysLeft = now()->diffInDays($vacancy->closing_date, false);
-                $urgent = $daysLeft >= 0 && $daysLeft <= 3;
+                $daysLeft    = (int) now()->diffInDays($vacancy->closing_date, false);
+                $urgent      = $daysLeft >= 0 && $daysLeft <= 3;
+                $isUrgent    = $daysLeft >= 0 && $daysLeft <= 6;
+                $isPast      = $daysLeft < 0;
+                $hasMap      = $vacancy->institution && $vacancy->institution->latitude && $vacancy->institution->longitude;
+                $mapId       = 'map-modal-home-' . $vacancy->id;
+                $loc         = $vacancy->getTranslation('location', app()->getLocale(), false) ?: $vacancy->getTranslation('location', 'en', false);
+                $desc        = $vacancy->getTranslation('description', app()->getLocale(), false) ?: $vacancy->getTranslation('description', 'en', false);
+                $descExcerpt = $desc ? Str::limit(strip_tags($desc), 100) : null;
             @endphp
-            <a href="{{ route('vacancies.show', $vacancy) }}"
-               class="group flex flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm hover:shadow-lg hover:border-blue-200 hover:-translate-y-0.5 transition-all duration-200">
 
-                <div class="flex items-start justify-between gap-3 mb-3">
-                    <div class="flex-1 min-w-0">
-                        @if($vacancy->code)
-                        <p class="text-[10px] font-mono text-gray-400 mb-1">{{ $vacancy->code }}</p>
+            {{-- Map modal --}}
+            @if($hasMap)
+            <div id="{{ $mapId }}"
+                 x-data="{ open: false }"
+                 x-show="open"
+                 x-cloak
+                 @keydown.escape.window="open = false"
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                 style="display:none">
+                {{-- Backdrop --}}
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="open = false"></div>
+                {{-- Modal --}}
+                <div class="relative z-10 w-full max-w-lg rounded-2xl bg-white shadow-2xl overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                        <div class="min-w-0">
+                            <p class="font-semibold text-gray-900 text-sm truncate">{{ $vacancy->institution->name }}</p>
+                            @if($vacancy->institution->address)
+                            <p class="text-xs text-gray-400 truncate">{{ $vacancy->institution->address }}</p>
+                            @endif
+                        </div>
+                        <button type="button" @click="open = false"
+                                class="ml-3 shrink-0 flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <iframe
+                        width="100%" height="300" style="border:0;display:block;" loading="lazy"
+                        allowfullscreen referrerpolicy="no-referrer-when-downgrade"
+                        src="https://www.google.com/maps?q={{ $vacancy->institution->latitude }},{{ $vacancy->institution->longitude }}&hl={{ app()->getLocale() }}&z=15&output=embed">
+                    </iframe>
+                    <div class="px-4 py-2.5 border-t border-gray-100 flex justify-end">
+                        <a href="https://www.google.com/maps?q={{ $vacancy->institution->latitude }},{{ $vacancy->institution->longitude }}"
+                           target="_blank" rel="noopener noreferrer"
+                           class="text-xs font-medium text-blue-600 hover:underline">
+                            {{ __('admin.institution_open_in_maps') }} ↗
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <div x-data="{}" class="group relative flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-blue-200 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden">
+
+                {{-- Top colour bar — clipped by overflow-hidden to follow card corners --}}
+                @if($isUrgent && !$isPast)
+                <div class="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-orange-400 to-transparent"></div>
+                @elseif(!$isPast)
+                <div class="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-green-400 to-transparent"></div>
+                @endif
+
+                <div class="flex flex-col flex-1 p-5 pt-6">
+
+                    {{-- Header --}}
+                    <div class="flex items-start justify-between gap-3 mb-3">
+                        <div class="flex-1 min-w-0">
+                            @if($vacancy->code)
+                            <span class="inline-block font-mono text-[10px] font-medium text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 mb-1.5">{{ $vacancy->code }}</span>
+                            @endif
+                            <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition leading-snug text-sm sm:text-base">
+                                {{ $vacancy->getTranslation('title', app()->getLocale(), false) ?: $vacancy->getTranslation('title', 'en', false) }}
+                            </h3>
+                        </div>
+                        @if($vacancy->employment_type)
+                        <span class="shrink-0 rounded-lg bg-blue-50 border border-blue-100 px-2.5 py-1 text-[11px] font-semibold text-blue-700 whitespace-nowrap">
+                            {{ $vacancy->employment_type->label() }}
+                        </span>
                         @endif
-                        <h3 class="font-bold text-gray-900 group-hover:text-blue-700 transition leading-snug text-sm sm:text-base">
-                            {{ $vacancy->getTranslation('title', app()->getLocale(), false) ?: $vacancy->getTranslation('title', 'en', false) }}
-                        </h3>
                     </div>
-                    @if($vacancy->employment_type)
-                    <span class="shrink-0 rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                        {{ $vacancy->employment_type->label() }}
-                    </span>
-                    @endif
-                </div>
 
-                <div class="space-y-1.5 text-xs text-gray-500 flex-1">
-                    @if($vacancy->department)
-                    <div class="flex items-center gap-1.5">
-                        <svg class="h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                        </svg>
-                        <span>{{ $vacancy->department }}</span>
+                    {{-- Meta chips --}}
+                    <div class="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
+                        @if($vacancy->institution)
+                        <span class="inline-flex items-center gap-1 rounded-lg bg-indigo-50 border border-indigo-100 px-2 py-1 text-indigo-700 font-medium">
+                            <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
+                            </svg>
+                            {{ Str::limit($vacancy->institution->displayName(), 30) }}
+                            @if($hasMap)
+                            <button type="button"
+                                    @click.prevent.stop="document.getElementById('{{ $mapId }}')._x_dataStack[0].open = true"
+                                    title="{{ __('admin.institution_open_in_maps') }}"
+                                    class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition">
+                                <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </button>
+                            @endif
+                        </span>
+                        @endif
+                        @if($vacancy->department)
+                        <span class="inline-flex items-center gap-1 rounded-lg bg-gray-50 border border-gray-100 px-2 py-1">
+                            <svg class="h-3.5 w-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            {{ Str::limit($vacancy->department, 25) }}
+                        </span>
+                        @endif
+                        @if($loc)
+                        <span class="inline-flex items-center gap-1 rounded-lg bg-gray-50 border border-gray-100 px-2 py-1">
+                            <svg class="h-3.5 w-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            {{ $loc }}
+                        </span>
+                        @endif
+                        @if($vacancy->number_of_positions)
+                        <span class="inline-flex items-center gap-1 rounded-lg bg-gray-50 border border-gray-100 px-2 py-1">
+                            <svg class="h-3.5 w-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            {{ $vacancy->number_of_positions }} {{ __('public.positions') }}
+                        </span>
+                        @endif
                     </div>
-                    @endif
-                    @php $loc = $vacancy->getTranslation('location', app()->getLocale(), false) ?: $vacancy->getTranslation('location', 'en', false); @endphp
-                    @if($loc)
-                    <div class="flex items-center gap-1.5">
-                        <svg class="h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        <span>{{ $loc }}</span>
-                    </div>
-                    @endif
-                    @if($vacancy->number_of_positions)
-                    <div class="flex items-center gap-1.5">
-                        <svg class="h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        <span>{{ $vacancy->number_of_positions }} {{ __('public.positions') }}</span>
-                    </div>
-                    @endif
-                </div>
 
-                <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                    <span class="text-xs {{ $urgent ? 'font-bold text-red-600' : 'text-gray-400' }}">
-                        @if($urgent && $daysLeft >= 0)
-                        <span class="inline-flex items-center gap-1">
-                            <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                            {{ __('public.closes') }} {{ $vacancy->closing_date->format('M d') }}
+                    {{-- Description excerpt --}}
+                    @if($descExcerpt)
+                    <p class="text-xs text-gray-500 leading-relaxed mb-4 flex-1">{{ $descExcerpt }}</p>
+                    @else
+                    <div class="flex-1"></div>
+                    @endif
+
+                    {{-- Footer --}}
+                    <div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between gap-2">
+                        {{-- Deadline status --}}
+                        @if($isPast)
+                        <span class="text-xs font-semibold text-red-600 inline-flex items-center gap-1">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            {{ __('vacancies.deadline_passed') }}
+                        </span>
+                        @elseif($isUrgent)
+                        <span class="text-xs font-bold text-orange-600 inline-flex items-center gap-1">
+                            <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            {{ $daysLeft === 0 ? __('public.closes_today') : __('public.closes_in_days', ['days' => $daysLeft]) }}
                         </span>
                         @else
-                        {{ __('public.closes') }} {{ $vacancy->closing_date->format('M d, Y') }}
+                        <span class="text-xs text-gray-400">
+                            {{ __('public.closes') }} {{ et_date($vacancy->closing_date, 'M d, Y') }}
+                        </span>
                         @endif
-                    </span>
-                    <span class="text-xs font-semibold text-blue-600 group-hover:text-blue-800 transition flex items-center gap-0.5">
-                        {{ __('vacancies.view_details') }}
-                        <svg class="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </span>
+
+                        {{-- CTA --}}
+                        <a href="{{ route('vacancies.show', $vacancy) }}"
+                           class="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 transition shrink-0">
+                            {{ __('vacancies.apply_now') }}
+                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-6-6l6 6-6 6"/>
+                            </svg>
+                        </a>
+                    </div>
                 </div>
-            </a>
+            </div>
             @endforeach
         </div>
 

@@ -10,7 +10,7 @@ return [
     'application_submitted' => 'Your application has been submitted successfully.',
     'application_updated' => 'Your application has been updated.',
     'deadline_locked' => 'This application can no longer be edited. The vacancy deadline has passed.',
-    'duplicate_application' => 'You have already submitted an application for this vacancy.',
+    'duplicate_application' => 'You have already applied for this vacancy notice. You may apply to other vacancy notices.',
     'file_too_large' => 'The file exceeds the maximum allowed size of 2 MB.',
     'invalid_file_type' => 'Invalid file type. Only PDF, JPG, JPEG, and PNG files are allowed.',
     'required_document_missing' => 'Please upload all required documents before submitting.',

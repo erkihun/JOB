@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Translatable\HasTranslations;
+use App\Models\Institution;
 
 class Vacancy extends Model
 {
@@ -24,6 +25,7 @@ class Vacancy extends Model
     ];
 
     protected $fillable = [
+        'institution_id',
         'title',
         'code',
         'department',
@@ -53,6 +55,11 @@ class Vacancy extends Model
             'number_of_positions' => 'integer',
             'minimum_experience' => 'integer',
         ];
+    }
+
+    public function institution(): BelongsTo
+    {
+        return $this->belongsTo(Institution::class);
     }
 
     public function createdBy(): BelongsTo

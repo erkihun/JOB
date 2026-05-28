@@ -161,4 +161,14 @@ return [
     'ethnicity_optional' => 'Ethnicity (optional)',
     'address_optional' => 'Address (optional)',
     'disability_label' => 'I have a disability',
+
+    // ── Status timeline labels ─────────────────────────────────────────────────
+    'timeline_submitted' => 'Submitted',
+    'timeline_review' => 'Under Review',
+    'timeline_screening' => 'Screening',
+    'timeline_exam' => 'Exam / Interview',
+    'timeline_result' => 'Final Result',
+
+    // ── Application list ──────────────────────────────────────────────────────
+    'applications_count' => ':count application(s)',
 ];

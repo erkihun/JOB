@@ -1,20 +1,14 @@
-<!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="ltr">
+﻿<!DOCTYPE html>
+<html lang="{{ app()->getLocale() }}" dir="ltr" class="locale-{{ app()->getLocale() }} lang-{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', config('app.name')) &mdash; {{ \App\Models\Setting::get('org.name', config('app.name')) }}</title>
     <meta name="description" content="@yield('meta_description', 'Job Vacancy Announcement System')">
     @include('partials.favicon')
-    @if(app()->getLocale() === 'am')
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Abyssinica+SIL&display=swap" rel="stylesheet">
-    <style>* { font-family: 'Abyssinica SIL', serif !important; }</style>
-    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-gray-50 font-sans text-gray-900 antialiased"
+<body class="min-h-screen bg-gray-50 font-sans text-gray-900 antialiased locale-{{ app()->getLocale() }} lang-{{ app()->getLocale() }}"
       x-data="{ drawerOpen: false }">
 
 @php
@@ -481,3 +475,4 @@
 @stack('scripts')
 </body>
 </html>
+

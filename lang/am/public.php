@@ -18,6 +18,9 @@ return [
     'hero_subtitle' => 'ሙያዎ ይጀምር',
     'hero_description' => 'በ :org ላይ የሙያ ዕድሎችን ያስሱ። ፍትሃዊ፣ ግልጽ እና ብቃት ላይ ተመስርቶ ለሁሉም ዕድልን እናሰጣለን።',
     'browse_vacancies' => 'ክፍት ቦታዎችን ይመልከቱ',
+    'hero_search_title' => 'በሥራ ርዕስ፣ ኮድ፣ መምሪያ ወይም የትምህርት መስክ ይፈልጉ',
+    'hero_search_placeholder' => 'ሥራ፣ የክፍት ቦታ ኮድ፣ መምሪያ ወይም የትምህርት መስክ ይፈልጉ...',
+    'search_jobs' => 'ሥራዎችን ፈልግ',
 
     // Section labels
     'now_hiring' => 'አሁን ክፍት ቦታ አለ',
@@ -75,4 +78,11 @@ return [
     'required' => 'ግዴታ',
     'optional' => 'አማራጭ',
     'years' => 'ዓመት',
+
+    // Vacancy listing — countdown & empty state
+    'closes_today' => 'ዛሬ ይዘጋል',
+    'closes_in_days' => 'ይዘጋል በ :days ቀን',
+    'no_results_title' => 'ምንም ክፍት ቦታ አልተገኘም',
+    'more_filters' => 'ተጨማሪ ማጣሪያ',
+    'hide_filters' => 'ማጣሪያ ደብቅ',
 ];

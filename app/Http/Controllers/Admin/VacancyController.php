@@ -8,6 +8,7 @@ use App\Enums\EducationLevel;
 use App\Enums\EmploymentType;
 use App\Enums\VacancyStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Institution;
 use App\Models\Vacancy;
 use App\Services\CodeGeneratorService;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,7 @@ class VacancyController extends Controller
 
     public function index(Request $request): View
     {
-        $query = Vacancy::withCount('applications')->latest();
+        $query = Vacancy::with('institution')->withCount('applications')->latest();
 
         if ($search = $request->query('search')) {
             $query->where(fn ($q) => $q->where('title->en', 'like', "%$search%")
@@ -31,10 +32,14 @@ class VacancyController extends Controller
         if ($status = $request->query('status')) {
             $query->where('status', $status);
         }
+        if ($institutionId = $request->query('institution_id')) {
+            $query->where('institution_id', $institutionId);
+        }
 
         return view('admin.vacancies.index', [
-            'vacancies' => $query->paginate(20)->withQueryString(),
-            'statuses' => VacancyStatus::cases(),
+            'vacancies'    => $query->paginate(20)->withQueryString(),
+            'statuses'     => VacancyStatus::cases(),
+            'institutions' => Institution::orderBy('name')->get(['id', 'name', 'short_name']),
         ]);
     }
 
@@ -43,12 +48,13 @@ class VacancyController extends Controller
         $autoCode = $this->codes->vacancyAutoGenerate();
 
         return view('admin.vacancies.create', [
-            'vacancy' => new Vacancy,
-            'statuses' => VacancyStatus::cases(),
+            'vacancy'        => new Vacancy,
+            'statuses'       => VacancyStatus::cases(),
             'educationLevels' => EducationLevel::cases(),
             'employmentTypes' => EmploymentType::cases(),
-            'autoCode' => $autoCode,
-            'codePreview' => $autoCode ? $this->codes->forVacancy() : null,
+            'institutions'   => Institution::where('status', 'active')->orderBy('name')->get(['id', 'name', 'short_name']),
+            'autoCode'       => $autoCode,
+            'codePreview'    => $autoCode ? $this->codes->forVacancy() : null,
         ]);
     }
 
@@ -80,12 +86,13 @@ class VacancyController extends Controller
         $autoCode = $this->codes->vacancyAutoGenerate();
 
         return view('admin.vacancies.edit', [
-            'vacancy' => $vacancy,
-            'statuses' => VacancyStatus::cases(),
+            'vacancy'        => $vacancy,
+            'statuses'       => VacancyStatus::cases(),
             'educationLevels' => EducationLevel::cases(),
             'employmentTypes' => EmploymentType::cases(),
-            'autoCode' => $autoCode,
-            'codePreview' => null,
+            'institutions'   => Institution::where('status', 'active')->orderBy('name')->get(['id', 'name', 'short_name']),
+            'autoCode'       => $autoCode,
+            'codePreview'    => null,
         ]);
     }
 
@@ -115,6 +122,7 @@ class VacancyController extends Controller
             : ['required', 'string', 'max:50', Rule::unique('vacancies', 'code')->ignore($ignoreId)];
 
         return [
+            'institution_id' => ['nullable', 'uuid', 'exists:institutions,id'],
             'code' => $codeRule,
             'title' => ['required', 'array'],
             'title.en' => ['required', 'string', 'max:255'],

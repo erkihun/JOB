@@ -32,6 +32,7 @@
                 <tr>
                     <th class="table-th">{{ __('messages.applicant') }}</th>
                     <th class="table-th hidden sm:table-cell">{{ __('menus.vacancies') }}</th>
+                    <th class="table-th hidden xl:table-cell">{{ __('admin.institution_name') }}</th>
                     <th class="table-th hidden md:table-cell">{{ __('messages.reference') }}</th>
                     <th class="table-th">{{ __('vacancies.status') }}</th>
                     <th class="table-th hidden lg:table-cell">{{ __('messages.submitted') }}</th>
@@ -52,6 +53,9 @@
                     <td class="table-td hidden sm:table-cell">
                         <p class="font-medium text-gray-800">{{ $app->vacancy?->title }}</p>
                         <p class="text-xs text-gray-400">{{ $app->vacancy?->code }}</p>
+                    </td>
+                    <td class="table-td hidden xl:table-cell text-gray-500 text-xs">
+                        {{ $app->vacancy?->institution?->displayName() ?? '—' }}
                     </td>
                     <td class="table-td hidden font-mono text-xs text-gray-500 md:table-cell">{{ $app->reference_number }}</td>
                     <td class="table-td"><span class="{{ $badgeClass }}">{{ $app->status->getLabel() }}</span></td>

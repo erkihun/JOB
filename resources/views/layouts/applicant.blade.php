@@ -1,16 +1,10 @@
-<!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="ltr">
+﻿<!DOCTYPE html>
+<html lang="{{ app()->getLocale() }}" dir="ltr" class="locale-{{ app()->getLocale() }} lang-{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', __('menus.dashboard')) &mdash; {{ \App\Models\Setting::get('org.name', config('app.name')) }}</title>
     @include('partials.favicon')
-    @if(app()->getLocale() === 'am')
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Abyssinica+SIL&display=swap" rel="stylesheet">
-    <style>* { font-family: 'Abyssinica SIL', serif !important; }</style>
-    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
     @php
@@ -31,7 +25,7 @@
     }
     </style>
 </head>
-<body class="min-h-screen bg-gray-50 font-sans text-gray-900 antialiased"
+<body class="min-h-screen bg-gray-50 font-sans text-gray-900 antialiased locale-{{ app()->getLocale() }} lang-{{ app()->getLocale() }}"
       x-data="{ mobileOpen: false, userOpen: false, darkMode: localStorage.getItem('theme')==='dark', toggleDark(){ this.darkMode=!this.darkMode; localStorage.setItem('theme',this.darkMode?'dark':'light'); document.documentElement.classList.toggle('dark',this.darkMode); } }">
 
 @php
@@ -509,3 +503,4 @@
 @stack('scripts')
 </body>
 </html>
+

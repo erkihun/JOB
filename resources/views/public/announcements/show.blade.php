@@ -9,7 +9,7 @@
             ← {{ __('menus.announcements') }}
         </a>
         <h1 class="text-2xl font-bold sm:text-3xl">{{ $announcement->subject }}</h1>
-        <p class="mt-2 text-sm text-blue-200">{{ $announcement->published_at->format('d M Y') }}</p>
+        <p class="mt-2 text-sm text-blue-200">{{ et_date($announcement->published_at, 'd M Y') }}</p>
     </div>
 </div>
 

@@ -15,7 +15,9 @@ The admin side is a Laravel Blade admin under `/admin`.
 ## Completed Areas
 
 - Public vacancy listing and vacancy detail pages
+- Search-first public job portal UI with responsive vacancy filters and cards
 - Applicant registration, login, profile, dashboard, notifications
+- Modern applicant application list and status tracking views
 - Application submission and private document upload flow
 - Screening workflow and reviewer assignment
 - Exam and interview scheduling
@@ -59,6 +61,8 @@ php artisan serve
 - No external design-tool dependency or generated design artifact in maintained source
 - Amharic uses `Noto Serif Ethiopic`
 - Locale switching is handled by `/lang/{locale}` plus `SetLocale` middleware
+- Shared UI components live under `resources/views/components`
+- Public vacancy search uses `/vacancies?search=...` and preserves existing listing filters
 
 ## Documentation
 

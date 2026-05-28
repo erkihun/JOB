@@ -43,4 +43,18 @@ return [
     'details' => 'Details',
     'create_vacancy' => 'Create Vacancy',
     'edit_vacancy' => 'Edit Vacancy',
+
+    // Vacancy detail page
+    'detail_max' => 'Max',
+    'login_to_apply' => 'Login or register to apply',
+    'share_vacancy' => 'Share this vacancy',
+    'copy_link' => 'Copy link',
+    'link_copied' => 'Copied!',
+
+    // Institution / organization
+    'institution' => 'Institution',
+    'posted_by'   => 'Posted By',
+    'recruiting_institution' => 'Recruiting Institution',
+    'filter_by_institution'  => 'Filter by Institution',
+    'all_institutions'       => 'All Institutions',
 ];

@@ -89,7 +89,7 @@
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 uppercase font-medium">{{ __('applications.submitted_at') }}</p>
-                    <p class="text-sm text-gray-700 mt-0.5">{{ $application->submitted_at?->format('d M Y, H:i') ?? '—' }}</p>
+                    <p class="text-sm text-gray-700 mt-0.5">{{ $application->submitted_at ? et_date($application->submitted_at, 'd M Y H:i') : '—' }}</p>
                 </div>
             </div>
 

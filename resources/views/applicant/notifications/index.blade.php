@@ -44,7 +44,7 @@
                         <p class="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{{ $notification->message }}</p>
                     </div>
                     <div class="shrink-0 text-right">
-                        <p class="text-xs text-gray-400 whitespace-nowrap">{{ $notification->created_at->diffForHumans() }}</p>
+                        <p class="text-xs text-gray-400 whitespace-nowrap">{{ et_diff_for_humans($notification->created_at) }}</p>
                     </div>
                 </div>
             </div>

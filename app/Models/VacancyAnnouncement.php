@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Services\SanitizeHtml;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -25,6 +26,16 @@ class VacancyAnnouncement extends Model
         return [
             'published_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return Attribute<string, string>
+     */
+    protected function content(): Attribute
+    {
+        return Attribute::set(
+            fn (?string $value): string => app(SanitizeHtml::class)->clean($value),
+        );
     }
 
     public function author(): BelongsTo

@@ -12,6 +12,27 @@ The public and applicant sides are Blade + Tailwind CSS + Alpine.js.
 
 Custom styling is Tailwind-only.
 
+## Modern UI Components
+
+Reusable Blade components keep the public and applicant UI consistent:
+
+- `resources/views/components/page-header.blade.php`
+- `resources/views/components/stat-card.blade.php`
+- `resources/views/components/status-badge.blade.php`
+- `resources/views/components/empty-state.blade.php`
+- `resources/views/components/public/vacancy-search.blade.php`
+
+Use these before adding one-off cards, badges, empty states, or search panels.
+
+## Public Job Portal Pattern
+
+The public home page is search-first:
+
+- hero vacancy search posts to `/vacancies`
+- open vacancy cards use the same blue/orange/green/slate brand system
+- vacancy listing keeps filters responsive and paginated
+- vacancy detail keeps the apply CTA visible without changing deadline or duplicate-application rules
+
 ## Routes
 
 Public:
@@ -78,6 +99,7 @@ It applies to:
 
 ```bash
 php artisan test tests/Feature/Applicant/
+php artisan test tests/Feature/UiLoadTest.php
 php artisan test
 npm run build
 php artisan serve

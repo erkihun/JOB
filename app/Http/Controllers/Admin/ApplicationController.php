@@ -17,7 +17,7 @@ class ApplicationController extends Controller
     {
         $canViewSensitive = auth()->user()?->hasPermissionTo('applications.view-sensitive') ?? false;
 
-        $query = Application::with(['applicant', 'vacancy'])->latest();
+        $query = Application::with(['applicant', 'vacancy.institution'])->latest();
 
         if ($search = $request->get('search')) {
             $query->whereHas('applicant', fn ($q) => $q

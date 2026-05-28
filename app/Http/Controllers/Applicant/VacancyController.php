@@ -53,7 +53,7 @@ class VacancyController extends Controller
             $query->where('closing_date', '<=', $closingDate);
         }
 
-        $vacancies = $query->latest('published_at')->paginate(12)->withQueryString();
+        $vacancies = $query->with('institution')->latest('published_at')->paginate(12)->withQueryString();
 
         $departments = Vacancy::where('status', VacancyStatus::Open)
             ->distinct()->pluck('department')->sort()->values();

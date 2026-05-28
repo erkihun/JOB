@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class ApplicantPasswordResetController extends Controller
@@ -34,8 +35,8 @@ class ApplicantPasswordResetController extends Controller
             PasswordResetOtp::where('email', $request->email)->delete();
 
             PasswordResetOtp::create([
-                'email'      => $request->email,
-                'otp'        => Hash::make($otp),
+                'email' => $request->email,
+                'otp' => Hash::make($otp),
                 'expires_at' => now()->addMinutes(10),
             ]);
 
@@ -101,8 +102,8 @@ class ApplicantPasswordResetController extends Controller
     public function resetPassword(Request $request): RedirectResponse
     {
         $request->validate([
-            'token'                 => ['required'],
-            'password'              => ['required', 'string', 'min:8', 'confirmed'],
+            'token' => ['required'],
+            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
             'password_confirmation' => ['required'],
         ]);
 

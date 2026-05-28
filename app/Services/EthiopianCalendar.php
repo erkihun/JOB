@@ -39,10 +39,11 @@ class EthiopianCalendar
      * Format a Carbon date in Ethiopian calendar, respecting the GC format hint.
      *
      * Supported GC format hints → ET output:
-     *   'M Y' / 'F Y'            → "ግንቦት 2018"
-     *   'Y'                      → "2018"
-     *   anything with 'H:i'      → "19 ግንቦት 2018 14:05"
-     *   everything else          → "19 ግንቦት 2018"
+     *   'Y'                       → "2018"
+     *   'M Y' / 'F Y' / 'M, Y'   → "ግንቦት 2018"
+     *   'M d' / 'M d, Y'          → "19 ግንቦት" / "19 ግንቦት 2018"
+     *   anything with 'H:i'       → "19 ግንቦት 2018 14:05"
+     *   everything else           → "19 ግንቦት 2018"
      */
     public static function formatGc(Carbon $date, string $gcFormat = 'd M Y'): string
     {
@@ -55,6 +56,11 @@ class EthiopianCalendar
 
         if (in_array($gcFormat, ['M Y', 'F Y', 'M, Y'], true)) {
             return "{$name} {$et['year']}";
+        }
+
+        // Month + day only, no year (e.g. timeline short display)
+        if (in_array($gcFormat, ['M d', 'd M'], true)) {
+            return "{$et['day']} {$name}";
         }
 
         $base = "{$et['day']} {$name} {$et['year']}";

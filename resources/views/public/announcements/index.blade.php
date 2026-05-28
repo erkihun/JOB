@@ -22,7 +22,7 @@
                class="group block rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-blue-300 transition">
                 <div class="flex items-start justify-between gap-4">
                     <h2 class="text-base font-semibold text-gray-900 group-hover:text-blue-700">{{ $ann->subject }}</h2>
-                    <span class="shrink-0 text-xs text-gray-400">{{ $ann->published_at->format('d M Y') }}</span>
+                    <span class="shrink-0 text-xs text-gray-400">{{ et_date($ann->published_at, 'd M Y') }}</span>
                 </div>
                 <p class="mt-2 text-sm text-gray-500 line-clamp-2">
                     {{ strip_tags($ann->content) }}

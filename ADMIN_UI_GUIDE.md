@@ -24,6 +24,7 @@ The admin panel in this repository is controller-and-Blade driven.
 - Alpine.js for small layout interactions
 - No external design-tool dependency or generated design artifact
 - No Bootstrap or external dashboard kit
+- Admin page transitions use the Blade admin shell and progressively swap the content frame for safe internal links, preserving normal full navigation for downloads, previews, exports, logout, and script-heavy workflows
 
 Shared frontend entry:
 
@@ -191,6 +192,7 @@ Primary commands:
 ```bash
 php artisan route:list --path=admin
 php artisan test tests/Feature/Admin/
+php artisan test tests/Feature/UiLoadTest.php
 php artisan test
 npm run build
 ```

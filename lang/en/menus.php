@@ -5,6 +5,7 @@ return [
     'users' => 'Users',
     'roles' => 'Roles',
     'roles_permissions' => 'Roles & Permissions',
+    'institutions' => 'Institutions',
     'vacancies' => 'Vacancies',
     'announcements' => 'Announcements',
     'applications' => 'All Applications',
