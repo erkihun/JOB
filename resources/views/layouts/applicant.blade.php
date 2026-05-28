@@ -8,8 +8,8 @@
     @if(app()->getLocale() === 'am')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>* { font-family: 'Noto Sans Ethiopic', sans-serif !important; }</style>
+    <link href="https://fonts.googleapis.com/css2?family=Abyssinica+SIL&display=swap" rel="stylesheet">
+    <style>* { font-family: 'Abyssinica SIL', serif !important; }</style>
     @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
