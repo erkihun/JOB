@@ -187,6 +187,43 @@ html.dark .form-textarea {
     @apply px-4 py-3;
 }
 
+/* ── Announcement / TinyMCE content — responsive tables ───────────── */
+.announcement-content table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.announcement-content table th,
+.announcement-content table td {
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+}
+.announcement-content table th {
+    background-color: #f3f4f6;
+    font-weight: 600;
+    color: #111827;
+}
+.announcement-content table tr:nth-child(even) td {
+    background-color: #f9fafb;
+}
+/* Scroll wrapper so tables don't overflow on mobile */
+.announcement-content table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+}
+/* But let non-table cells wrap normally */
+.announcement-content table th,
+.announcement-content table td {
+    white-space: normal;
+    min-width: 100px;
+}
+
 /* ── Status Badges ─────────────────────────────────────────────────── */
 .badge-blue   { @apply rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700; }
 .badge-green  { @apply rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700; }

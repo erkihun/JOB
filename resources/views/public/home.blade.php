@@ -235,7 +235,7 @@
                     <span class="shrink-0 text-xs text-gray-400 mt-0.5">{{ et_date($ann->published_at, 'd M Y') }}</span>
                 </div>
                 <div
-                    class="flex-1 prose prose-sm max-w-none text-gray-700 text-justify"
+                    class="flex-1 prose prose-sm max-w-none text-gray-700 text-justify announcement-content"
                     :class="expanded ? '' : 'line-clamp-3'"
                 >
                     {!! $ann->renderableHtml() !!}

@@ -15,7 +15,7 @@
 
 <div class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
     @php $safeHtml = $announcement->renderableHtml(); @endphp
-    <div class="rounded-xl border border-gray-100 bg-white p-8 shadow-sm prose prose-sm max-w-none text-gray-700">
+    <div class="rounded-xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm prose prose-sm max-w-none text-gray-700 announcement-content">
         {!! $safeHtml !!}
     </div>
 </div>
