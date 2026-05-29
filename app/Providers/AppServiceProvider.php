@@ -21,6 +21,7 @@ use App\Policies\UserPolicy;
 use App\Policies\VacancyPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Throwable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->applySystemSettings();
+
         User::deleting(function (User $user): bool {
             if (! $user->isSuperAdmin()) {
                 return true;
@@ -83,5 +86,19 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ApplicantProfileDocument::class, ApplicantProfileDocumentPolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
         Gate::policy(Setting::class, SettingPolicy::class);
+    }
+
+    private function applySystemSettings(): void
+    {
+        try {
+            config([
+                'mail.from.name' => Setting::get('mail.from_name', config('mail.from.name')),
+                'mail.from.address' => Setting::get('mail.from_address', config('mail.from.address')),
+                'app.fallback_locale' => Setting::get('app.fallback_locale', config('app.fallback_locale', 'en')),
+                'app.available_locales' => Setting::get('app.available_locales', config('app.available_locales', ['en', 'am'])),
+            ]);
+        } catch (Throwable) {
+            // Settings table may not exist during install, migrations, or early bootstrap.
+        }
     }
 }

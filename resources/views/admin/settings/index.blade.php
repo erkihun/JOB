@@ -48,7 +48,7 @@
                     <img src="{{ Storage::url($favicon) }}" alt="" class="h-10 w-10 rounded-lg border border-gray-200 object-contain p-1">
                 </div>
                 @endif
-                <input type="file" name="org[favicon]" accept=".ico,.jpg,.jpeg,.png,.svg,.webp"
+                <input type="file" name="org[favicon]" accept=".ico,.jpg,.jpeg,.png,.webp"
                        class="mt-1 block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-muted file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand hover:file:bg-blue-100">
                 <p class="mt-1 text-xs text-gray-400">{{ __('settings.favicon_hint') }}</p>
                 @error('org.favicon')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
@@ -110,12 +110,34 @@
                            class="form-input mt-1">
                 </div>
             </div>
+            @php $allowedTypes = (array) old('recruitment.allowed_file_types', $settings['recruitment.allowed_file_types'] ?: ['pdf', 'jpg', 'jpeg', 'png']); @endphp
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Allowed Upload File Types</label>
+                <div class="mt-2 flex flex-wrap gap-3">
+                    @foreach(['pdf' => 'PDF', 'jpg' => 'JPG', 'jpeg' => 'JPEG', 'png' => 'PNG'] as $type => $label)
+                        <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                            <input type="checkbox" name="recruitment[allowed_file_types][]" value="{{ $type }}"
+                                   {{ in_array($type, $allowedTypes, true) ? 'checked' : '' }}
+                                   class="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand">
+                            <span>{{ $label }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('recruitment.allowed_file_types')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+            </div>
             <div class="flex items-center gap-2">
                 <input type="hidden" name="recruitment[allow_registration]" value="0">
                 <input type="checkbox" id="allow_reg" name="recruitment[allow_registration]" value="1"
                        {{ $settings['recruitment.allow_registration'] ? 'checked' : '' }}
                        class="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand">
                 <label for="allow_reg" class="text-sm font-medium text-gray-700">Allow Public Registration</label>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="hidden" name="recruitment[show_archived_vacancies]" value="0">
+                <input type="checkbox" id="show_archived_vacancies" name="recruitment[show_archived_vacancies]" value="1"
+                       {{ $settings['recruitment.show_archived_vacancies'] ? 'checked' : '' }}
+                       class="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand">
+                <label for="show_archived_vacancies" class="text-sm font-medium text-gray-700">Enable Public Vacancy Archive</label>
             </div>
         </div>
 
@@ -278,6 +300,40 @@
                     <option value="am" {{ ($settings['localization.default_locale'] ?? '') === 'am' ? 'selected' : '' }}>አማርኛ</option>
                 </select>
             </div>
+            @php $availableLocales = (array) old('app.available_locales', $settings['app.available_locales'] ?: ['en', 'am']); @endphp
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Available Languages</label>
+                <div class="mt-2 flex flex-wrap gap-3">
+                    @foreach(['en' => 'English', 'am' => 'አማርኛ'] as $locale => $label)
+                        <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                            <input type="checkbox" name="app[available_locales][]" value="{{ $locale }}"
+                                   {{ in_array($locale, $availableLocales, true) ? 'checked' : '' }}
+                                   class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span>{{ $label }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                @error('app.available_locales')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Fallback Language</label>
+                    <select name="app[fallback_locale]" class="form-select mt-1">
+                        <option value="en" {{ ($settings['app.fallback_locale'] ?? 'en') === 'en' ? 'selected' : '' }}>English</option>
+                        <option value="am" {{ ($settings['app.fallback_locale'] ?? '') === 'am' ? 'selected' : '' }}>አማርኛ</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Date Format</label>
+                    <select name="app[date_format]" class="form-select mt-1">
+                        @foreach(['Y-m-d', 'd/m/Y', 'm/d/Y', 'd M Y', 'M d, Y'] as $format)
+                            <option value="{{ $format }}" {{ ($settings['app.date_format'] ?? 'Y-m-d') === $format ? 'selected' : '' }}>
+                                {{ now()->format($format) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
             <div class="flex items-start gap-3 pt-2">
                 <div class="flex h-5 items-center">
                     <input type="hidden" name="localization[show_language_switcher]" value="0">
@@ -301,12 +357,12 @@
             <div class="grid gap-4 sm:grid-cols-2">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Mail From Name</label>
-                    <input type="text" name="notifications[mail_from_name]" value="{{ old('notifications.mail_from_name', $settings['notifications.mail_from_name']) }}"
+                    <input type="text" name="mail[from_name]" value="{{ old('mail.from_name', $settings['mail.from_name']) }}"
                            class="form-input mt-1">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Mail From Address</label>
-                    <input type="email" name="notifications[mail_from_address]" value="{{ old('notifications.mail_from_address', $settings['notifications.mail_from_address']) }}"
+                    <input type="email" name="mail[from_address]" value="{{ old('mail.from_address', $settings['mail.from_address']) }}"
                            class="form-input mt-1">
                 </div>
             </div>

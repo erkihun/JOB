@@ -16,6 +16,7 @@ class SetLocale
         $locale = $this->resolveLocale($request);
 
         app()->setLocale($locale);
+        app()->setFallbackLocale((string) $this->setting('app.fallback_locale', config('app.fallback_locale', 'en')));
 
         return $next($request);
     }

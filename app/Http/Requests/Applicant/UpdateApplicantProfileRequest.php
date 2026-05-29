@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Applicant;
 
 use App\Enums\EducationLevel;
+use App\Models\Setting;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,6 +20,8 @@ class UpdateApplicantProfileRequest extends FormRequest
     {
         $applicantId = $this->user()->applicant->id;
         $currentYear = (int) now()->format('Y');
+        $maxKb = ((int) Setting::get('recruitment.max_file_size_mb', 2)) * 1024;
+        $documentMimes = implode(',', (array) Setting::get('recruitment.allowed_file_types', ['pdf', 'jpg', 'jpeg', 'png']));
 
         return [
             // Name
@@ -67,10 +70,10 @@ class UpdateApplicantProfileRequest extends FormRequest
             'ethnicity' => ['nullable', 'string', 'max:100'],
 
             // Profile photo (optional update)
-            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', "max:{$maxKb}"],
 
             // Combined documents PDF (optional — replaces existing when uploaded)
-            'documents' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
+            'documents' => ['nullable', 'file', "mimes:{$documentMimes}", "max:{$maxKb}"],
         ];
     }
 }

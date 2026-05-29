@@ -176,6 +176,18 @@ test('settings page requires settings view permission', function (): void {
         ->assertForbidden();
 });
 
+test('authorized admin can access integrated settings page', function (): void {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->get('/admin/settings')
+        ->assertOk()
+        ->assertSee('Allowed Upload File Types')
+        ->assertSee('Available Languages')
+        ->assertSee('Fallback Language')
+        ->assertSee('Mail From Name');
+});
+
 test('audit logs page requires audit view permission', function (): void {
     $screeningOfficer = User::factory()->screeningOfficer()->create();
 
@@ -316,4 +328,48 @@ test('admin logo size setting is saved and rendered in admin layout', function (
         ->get('/admin')
         ->assertOk()
         ->assertSee('width: 56px; height: 56px;', false);
+});
+
+test('settings save typed system values and runtime mail configuration', function (): void {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->put(route('admin.settings.update'), [
+            'app' => [
+                'available_locales' => ['en', 'am'],
+                'fallback_locale' => 'am',
+                'date_format' => 'Y-m-d',
+            ],
+            'recruitment' => [
+                'max_file_size_mb' => 3,
+                'allowed_file_types' => ['pdf', 'png'],
+                'allow_registration' => '0',
+                'show_archived_vacancies' => '1',
+            ],
+            'localization' => [
+                'default_locale' => 'am',
+                'show_language_switcher' => '0',
+            ],
+            'mail' => [
+                'from_name' => 'Recruitment Office',
+                'from_address' => 'jobs@example.com',
+            ],
+            'security' => [
+                'session_timeout' => 45,
+                'login_attempts' => 4,
+            ],
+        ])
+        ->assertRedirect();
+
+    expect(Setting::get('app.available_locales'))->toBe(['en', 'am'])
+        ->and(Setting::get('app.fallback_locale'))->toBe('am')
+        ->and(Setting::get('recruitment.allowed_file_types'))->toBe(['pdf', 'png'])
+        ->and(Setting::get('recruitment.max_file_size_mb'))->toBe(3)
+        ->and(Setting::get('recruitment.allow_registration'))->toBeFalse()
+        ->and(Setting::get('recruitment.show_archived_vacancies'))->toBeTrue()
+        ->and(Setting::get('localization.show_language_switcher'))->toBeFalse()
+        ->and(Setting::get('mail.from_name'))->toBe('Recruitment Office')
+        ->and(Setting::get('mail.from_address'))->toBe('jobs@example.com')
+        ->and(config('mail.from.name'))->toBe('Recruitment Office')
+        ->and(config('mail.from.address'))->toBe('jobs@example.com');
 });

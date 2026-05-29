@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Auth;
 
 use App\Enums\EducationLevel;
+use App\Models\Setting;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -21,6 +22,8 @@ class ApplicantRegisterRequest extends FormRequest
     public function rules(): array
     {
         $currentYear = (int) now()->format('Y');
+        $maxKb = ((int) Setting::get('recruitment.max_file_size_mb', 2)) * 1024;
+        $documentMimes = implode(',', (array) Setting::get('recruitment.allowed_file_types', ['pdf', 'jpg', 'jpeg', 'png']));
 
         return [
             // ── Personal ────────────────────────────────────────────────
@@ -66,8 +69,8 @@ class ApplicantRegisterRequest extends FormRequest
             'terms' => ['required', 'accepted'],
 
             // ── Documents ────────────────────────────────────────────────
-            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-            'documents' => ['nullable', 'file', 'mimes:pdf', 'max:2048'],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', "max:{$maxKb}"],
+            'documents' => ['nullable', 'file', "mimes:{$documentMimes}", "max:{$maxKb}"],
         ];
     }
 
@@ -86,17 +89,17 @@ class ApplicantRegisterRequest extends FormRequest
         // Save valid uploaded files to temp storage so they survive the redirect
         if ($this->hasFile('profile_photo') && ! $validator->errors()->has('profile_photo')) {
             $file = $this->file('profile_photo');
-            $ext  = $file->getClientOriginalExtension();
+            $ext = $file->getClientOriginalExtension();
             $path = $file->storeAs('temp/reg-photos', Str::random(32).'.'.$ext, 'local');
             session(['reg_temp_photo' => $path]);
         }
 
         if ($this->hasFile('documents') && ! $validator->errors()->has('documents')) {
             $file = $this->file('documents');
-            $ext  = $file->getClientOriginalExtension();
+            $ext = $file->getClientOriginalExtension();
             $path = $file->storeAs('temp/reg-docs', Str::random(32).'.'.$ext, 'local');
             session([
-                'reg_temp_docs'      => $path,
+                'reg_temp_docs' => $path,
                 'reg_temp_docs_name' => $file->getClientOriginalName(),
             ]);
         }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Application;
 
+use App\Models\Setting;
 use App\Models\Vacancy;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -28,8 +29,8 @@ class StoreApplicationRequest extends FormRequest
 
         if ($vacancy) {
             foreach ($vacancy->requiredDocuments as $doc) {
-                $maxKb = ($doc->max_size_mb ?? 2) * 1024;
-                $mimes = implode(',', $doc->allowed_types ?? ['pdf', 'jpg', 'jpeg', 'png']);
+                $maxKb = ($doc->max_size_mb ?? Setting::get('recruitment.max_file_size_mb', 2)) * 1024;
+                $mimes = implode(',', $doc->allowed_types ?? (array) Setting::get('recruitment.allowed_file_types', ['pdf', 'jpg', 'jpeg', 'png']));
                 $presence = $doc->is_required ? 'required' : 'nullable';
 
                 $rules["documents.{$doc->id}"] = [
