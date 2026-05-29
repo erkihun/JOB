@@ -59,7 +59,7 @@
             x-transition:enter="transition duration-700 delay-200"
             x-transition:enter-start="opacity-0 translate-y-4"
             x-transition:enter-end="opacity-100 translate-y-0"
-            class="max-w-3xl text-3xl font-black leading-tight text-white sm:text-5xl lg:text-6xl"
+            class="max-w-2xl text-2xl font-black leading-tight text-white sm:text-4xl lg:text-5xl"
             style="{{ $i === 0 ? '' : 'display:none' }}"
         >
             {{ $slider->getTranslation('title', app()->getLocale(), false) ?: $slider->getTranslation('title', 'en', false) }}
@@ -157,7 +157,7 @@
         </span>
 
         {{-- Headline --}}
-        <h1 class="text-4xl font-black leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-6xl">
+        <h1 class="text-2xl font-black leading-[1.2] tracking-tight text-white sm:text-3xl lg:text-4xl">
             {{ __('public.hero_subtitle') }}
         </h1>
 
