@@ -11,112 +11,133 @@
 @if($sliders->isNotEmpty())
 {{-- ── Slider hero ── --}}
 <section
-    class="relative h-[90vh] min-h-[560px] max-h-[860px] overflow-hidden bg-slate-950 text-white"
+    class="relative h-screen min-h-[600px] max-h-[820px] overflow-hidden bg-slate-950"
     x-data="{ active: 0, total: {{ $sliders->count() }} }"
-    x-init="total > 1 && setInterval(() => active = (active + 1) % total, 7000)"
+    x-init="total > 1 && setInterval(() => active = (active + 1) % total, 6000)"
 >
     {{-- Slides --}}
     @foreach($sliders as $i => $slider)
-    @php
-        $btn  = $slider->getTranslation('button_text', app()->getLocale(), false) ?: $slider->getTranslation('button_text', 'en', false);
-        $link = $slider->button_link ?: route('vacancies.index');
-        $sub  = $slider->getTranslation('subtitle',   app()->getLocale(), false) ?: $slider->getTranslation('subtitle',   'en', false);
-    @endphp
     <div
         x-show="active === {{ $i }}"
-        x-transition:enter="transition duration-1000 ease-out"
-        x-transition:enter-start="opacity-0 scale-[1.03]"
-        x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="transition duration-700 ease-in"
+        x-transition:enter="transition duration-[1200ms] ease-out"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition duration-[600ms] ease-in"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         class="absolute inset-0"
         style="{{ $i === 0 ? '' : 'display:none' }}"
     >
-        {{-- Background image --}}
+        {{-- BG --}}
         @if($slider->image_path)
         <img src="{{ Storage::disk('public')->url($slider->image_path) }}" alt=""
-             class="absolute inset-0 h-full w-full object-cover">
-        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/55 to-slate-900/30"></div>
+             class="absolute inset-0 h-full w-full object-cover scale-[1.03] transition-transform duration-[8000ms]"
+             style="animation: kenBurns 8s ease-out forwards">
         @else
-        {{-- Gradient fallback --}}
-        <div class="absolute inset-0 bg-gradient-to-br from-blue-950 via-indigo-950 to-slate-950">
-            <div class="absolute inset-0 opacity-20"
-                 style="background-image:radial-gradient(circle at 25% 60%, #3b82f6 0%, transparent 55%), radial-gradient(circle at 75% 30%, #6366f1 0%, transparent 50%)"></div>
+        <div class="absolute inset-0"
+             style="background: linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#0f172a 100%)">
+            <div class="absolute inset-0" style="background:radial-gradient(ellipse at 30% 50%,rgba(59,130,246,.25) 0%,transparent 60%),radial-gradient(ellipse at 75% 30%,rgba(99,102,241,.2) 0%,transparent 55%)"></div>
         </div>
         @endif
-
-        {{-- Content — bottom-anchored on desktop, centered on mobile --}}
-        <div class="relative flex h-full flex-col items-center justify-end pb-16 px-5 sm:px-8 lg:px-16 text-center sm:text-left sm:items-start">
-
-            {{-- Eyebrow --}}
-            <p class="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-orange-400">
-                {{ $orgName }}
-            </p>
-
-            {{-- Title --}}
-            <h1 class="max-w-2xl text-3xl font-extrabold leading-tight text-white drop-shadow-sm sm:text-4xl lg:text-5xl">
-                {{ $slider->getTranslation('title', app()->getLocale(), false) ?: $slider->getTranslation('title', 'en', false) }}
-            </h1>
-
-            {{-- Subtitle (optional, single line) --}}
-            @if($sub)
-            <p class="mt-3 max-w-xl text-sm leading-7 text-slate-200 sm:text-base line-clamp-2">{{ $sub }}</p>
-            @endif
-
-            {{-- Single CTA --}}
-            <div class="mt-6 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
-                <a href="{{ $link }}"
-                   class="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-300">
-                    {{ $btn ?: __('public.browse_vacancies') }}
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-6-6l6 6-6 6"/>
-                    </svg>
-                </a>
-                <a href="{{ route('track.show') }}"
-                   class="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20">
-                    {{ __('menus.track_application') }}
-                </a>
-            </div>
-        </div>
+        {{-- Overlay: dark at bottom for text, subtle at top --}}
+        <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(0,0,0,.85) 0%, rgba(0,0,0,.35) 45%, rgba(0,0,0,.05) 100%)"></div>
     </div>
     @endforeach
 
-    {{-- Prev / Next arrows --}}
+    {{-- Single centred content block --}}
+    <div class="relative z-10 flex h-full flex-col items-center justify-end pb-16 px-4 text-center sm:pb-20">
+
+        {{-- Org pill --}}
+        <p class="mb-4 text-[11px] font-bold uppercase tracking-[0.25em] text-white/60">
+            {{ $orgName }}
+        </p>
+
+        {{-- Slide title — changes with slide --}}
+        @foreach($sliders as $i => $slider)
+        <h1
+            x-show="active === {{ $i }}"
+            x-transition:enter="transition duration-700 delay-200"
+            x-transition:enter-start="opacity-0 translate-y-4"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            class="max-w-3xl text-3xl font-black leading-tight text-white sm:text-5xl lg:text-6xl"
+            style="{{ $i === 0 ? '' : 'display:none' }}"
+        >
+            {{ $slider->getTranslation('title', app()->getLocale(), false) ?: $slider->getTranslation('title', 'en', false) }}
+        </h1>
+        @endforeach
+
+        {{-- Search bar — always visible, white card --}}
+        <div class="mt-8 w-full max-w-2xl">
+            <x-public.vacancy-search />
+        </div>
+
+        {{-- Minimal ghost links --}}
+        <div class="mt-5 flex items-center gap-4">
+            <a href="{{ route('vacancies.index') }}"
+               class="text-xs font-semibold text-white/70 hover:text-white transition underline-offset-4 hover:underline">
+                {{ __('public.browse_vacancies') }}
+            </a>
+            <span class="text-white/30">·</span>
+            <a href="{{ route('track.show') }}"
+               class="text-xs font-semibold text-white/70 hover:text-white transition underline-offset-4 hover:underline">
+                {{ __('menus.track_application') }}
+            </a>
+            @guest
+            <span class="text-white/30">·</span>
+            <a href="{{ route('applicant.register') }}"
+               class="text-xs font-semibold text-orange-400 hover:text-orange-300 transition underline-offset-4 hover:underline">
+                {{ __('menus.register') }}
+            </a>
+            @endguest
+        </div>
+    </div>
+
+    {{-- Slide counter top-right --}}
     @if($sliders->count() > 1)
+    <div class="absolute top-6 right-6 z-20 flex items-center gap-3">
+        <span class="text-xs font-semibold text-white/50 tabular-nums">
+            <span x-text="active + 1">1</span><span class="text-white/30">/{{ $sliders->count() }}</span>
+        </span>
+        <div class="flex gap-1">
+            @foreach($sliders as $i => $slider)
+            <button type="button" @click="active = {{ $i }}"
+                    :class="active === {{ $i }} ? 'bg-white w-5' : 'bg-white/35 w-1.5'"
+                    class="h-1.5 rounded-full transition-all duration-500"
+                    aria-label="Slide {{ $i + 1 }}"></button>
+            @endforeach
+        </div>
+    </div>
+
+    {{-- Prev / Next --}}
     <button type="button" @click="active = (active - 1 + total) % total"
-            class="absolute left-4 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/25 text-white backdrop-blur-sm transition hover:bg-black/50 md:flex"
-            aria-label="Previous slide">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="absolute left-4 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/25 md:flex"
+            aria-label="Previous">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
     </button>
     <button type="button" @click="active = (active + 1) % total"
-            class="absolute right-4 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/25 text-white backdrop-blur-sm transition hover:bg-black/50 md:flex"
-            aria-label="Next slide">
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="absolute right-4 top-1/2 z-20 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/25 md:flex"
+            aria-label="Next">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
     </button>
-
-    {{-- Dot indicators --}}
-    <div class="absolute bottom-5 left-0 right-0 z-20 flex justify-center gap-1.5">
-        @foreach($sliders as $i => $slider)
-        <button type="button" @click="active = {{ $i }}"
-                :class="active === {{ $i }} ? 'bg-orange-500 w-6' : 'bg-white/40 w-2'"
-                class="h-2 rounded-full transition-all duration-300"
-                aria-label="Slide {{ $i + 1 }}"></button>
-        @endforeach
-    </div>
     @endif
 
+    {{-- Scroll hint --}}
+    <div class="absolute bottom-5 left-1/2 z-20 -translate-x-1/2 animate-bounce">
+        <svg class="h-5 w-5 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+    </div>
 </section>
 
-{{-- Search bar below slider — full width, overlaps border --}}
-<div class="relative z-10 -mt-8 mx-auto w-full max-w-3xl px-4">
-    <x-public.vacancy-search />
-</div>
-<div class="h-10 bg-white"></div>
+{{-- Ken Burns keyframe --}}
+<style>
+@keyframes kenBurns { from { transform: scale(1.05); } to { transform: scale(1); } }
+</style>
+<div class="h-6 bg-white"></div>
 
 @else
 {{-- ── Default hero (no slider images) ── --}}
