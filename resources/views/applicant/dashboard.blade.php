@@ -65,25 +65,12 @@
     @endif
 
     {{-- Stats --}}
-    @if($applicant && $applications->isNotEmpty())
+    @if($applicant && $applicationStats['total'] > 0)
     @php
-        $total    = $applications->count();
-        $active   = $applications->filter(fn ($a) => in_array($a->status, [
-                        \App\Enums\ApplicationStatus::Submitted,
-                        \App\Enums\ApplicationStatus::UnderReview,
-                        \App\Enums\ApplicationStatus::CorrectionRequired]))->count();
-        $positive = $applications->filter(fn ($a) => in_array($a->status, [
-                        \App\Enums\ApplicationStatus::PassedScreening,
-                        \App\Enums\ApplicationStatus::ShortlistedExam,
-                        \App\Enums\ApplicationStatus::ShortlistedInterview,
-                        \App\Enums\ApplicationStatus::Selected,
-                        \App\Enums\ApplicationStatus::ExamCompleted,
-                        \App\Enums\ApplicationStatus::InterviewCompleted,
-                        \App\Enums\ApplicationStatus::Waitlisted]))->count();
-        $rejected = $applications->filter(fn ($a) => in_array($a->status, [
-                        \App\Enums\ApplicationStatus::FailedScreening,
-                        \App\Enums\ApplicationStatus::NotSelected,
-                        \App\Enums\ApplicationStatus::Withdrawn]))->count();
+        $total = $applicationStats['total'];
+        $active = $applicationStats['active'];
+        $positive = $applicationStats['positive'];
+        $rejected = $applicationStats['rejected'];
     @endphp
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div class="rounded-xl border bg-white p-5 text-center shadow-sm">
@@ -163,7 +150,7 @@
             </a>
             @endforeach
         </div>
-        @if($applications->count() > 5)
+        @if($applicationStats['total'] > 5)
         <div class="mt-3 text-right">
             <a href="{{ route('applicant.applications.index') }}" class="text-sm text-blue-600 hover:text-blue-800">
                 {{ __('public.view_all') }}
