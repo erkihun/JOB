@@ -205,7 +205,7 @@
 <section class="bg-amber-50 border-y border-amber-100 py-12">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex items-center justify-between mb-8 scroll-animate sa-fade">
             <div class="flex items-center gap-3">
                 <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100">
                     <svg class="h-5 w-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,7 +227,8 @@
             @foreach($announcements->take(3) as $ann)
             <article
                x-data="{ expanded: false }"
-               class="group flex flex-col rounded-2xl border border-amber-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-amber-200 transition-all">
+               class="group flex flex-col rounded-2xl border border-amber-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-amber-200 transition-all scroll-animate"
+               data-delay="{{ $loop->iteration }}">
                 <div class="flex items-start justify-between gap-3 mb-3">
                     <h3 class="font-semibold text-gray-900 leading-snug group-hover:text-amber-700 transition text-sm sm:text-base">
                         {{ $ann->subject }}
@@ -271,7 +272,7 @@
 <section class="py-14 sm:py-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-        <div class="flex items-end justify-between mb-8 sm:mb-10">
+        <div class="flex items-end justify-between mb-8 sm:mb-10 scroll-animate sa-fade">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-1">{{ __('public.now_hiring') }}</p>
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900">{{ __('public.open_vacancies') }}</h2>
@@ -354,7 +355,7 @@
             </div>
             @endif
 
-            <div x-data="{}" class="group relative flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-blue-200 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden">
+            <div x-data="{}" class="group relative flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-blue-200 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden scroll-animate" data-delay="{{ ($loop->index % 3) + 1 }}">
 
                 {{-- Top colour bar — clipped by overflow-hidden to follow card corners --}}
                 @if($isUrgent && !$isPast)
@@ -490,7 +491,7 @@
 {{-- ══════════════════════════════════════════ HOW TO APPLY ══ --}}
 <section class="bg-white border-t border-gray-100 py-14 sm:py-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
+        <div class="text-center mb-12 scroll-animate sa-fade">
             <p class="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-2">{{ __('public.simple_steps') }}</p>
             <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900">{{ __('public.how_it_works') }}</h2>
         </div>
@@ -505,7 +506,7 @@
                 ['num' => '3', 'title' => __('public.process_step_3_title'), 'desc' => __('public.process_step_3_desc'), 'bg' => 'bg-violet-600', 'ring' => 'ring-violet-200'],
                 ['num' => '4', 'title' => __('public.process_step_4_title'), 'desc' => __('public.process_step_4_desc'), 'bg' => 'bg-purple-600', 'ring' => 'ring-purple-200'],
             ] as $step)
-            <div class="relative flex flex-col items-center text-center px-2">
+            <div class="relative flex flex-col items-center text-center px-2 scroll-animate sa-scale" data-delay="{{ $loop->iteration }}">
                 <div class="relative mb-5">
                     <div class="h-12 w-12 rounded-full {{ $step['bg'] }} ring-4 {{ $step['ring'] }} text-white text-lg font-extrabold flex items-center justify-center shadow-md">
                         {{ $step['num'] }}
@@ -532,7 +533,7 @@
 {{-- ══════════════════════════════════════ WHY APPLY WITH US ══ --}}
 <section class="bg-gray-50 border-t border-gray-100 py-14 sm:py-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
+        <div class="text-center mb-12 scroll-animate sa-fade">
             <p class="text-xs font-semibold uppercase tracking-widest text-blue-600 mb-2">{{ __('public.our_commitment') }}</p>
             <h2 class="text-2xl sm:text-3xl font-extrabold text-gray-900">{{ __('public.why_apply_title') }}</h2>
         </div>
@@ -564,7 +565,7 @@
                     'ring' => 'ring-violet-100',
                 ],
             ] as $item)
-            <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-shadow scroll-animate" data-delay="{{ $loop->iteration }}">
                 <div class="flex h-12 w-12 items-center justify-center rounded-xl {{ $item['bg'] }} ring-2 {{ $item['ring'] }} mb-5">
                     <svg class="h-6 w-6 {{ $item['color'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}"/>
@@ -582,7 +583,7 @@
 <section class="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 py-14 sm:py-20 text-white">
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.1),_transparent_60%)]"></div>
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col items-center text-center lg:flex-row lg:items-center lg:justify-between lg:text-left gap-8">
+        <div class="flex flex-col items-center text-center lg:flex-row lg:items-center lg:justify-between lg:text-left gap-8 scroll-animate sa-fade">
             <div class="max-w-xl">
                 <h2 class="text-2xl sm:text-3xl font-extrabold">{{ __('public.track_cta_title') }}</h2>
                 <p class="mt-3 text-blue-100 leading-relaxed">{{ __('public.track_cta_desc') }}</p>

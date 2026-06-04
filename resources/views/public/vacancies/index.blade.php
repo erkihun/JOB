@@ -165,7 +165,7 @@
             $desc        = $vacancy->getTranslation('description', app()->getLocale(), false) ?: $vacancy->getTranslation('description', 'en', false);
             $descExcerpt = $desc ? Str::limit(strip_tags($desc), 100) : null;
         @endphp
-        <div class="group relative flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-blue-200 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden">
+        <div class="group relative flex flex-col rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-blue-200 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden scroll-animate" data-delay="{{ ($loop->index % 3) + 1 }}">
 
             {{-- Urgency indicator --}}
             @if($isUrgent && !$isPast)

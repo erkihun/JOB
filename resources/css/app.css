@@ -231,3 +231,40 @@ html.dark .form-textarea {
 .badge-amber  { @apply rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700; }
 .badge-gray   { @apply rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600; }
 .badge-orange { @apply rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-700; }
+
+/* ── Scroll-triggered entrance animations ──────────────────────────── */
+@keyframes saRevealUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: none; }
+}
+@keyframes saRevealFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes saRevealLeft {
+    from { opacity: 0; transform: translateX(-24px); }
+    to   { opacity: 1; transform: none; }
+}
+@keyframes saRevealScale {
+    from { opacity: 0; transform: scale(0.94); }
+    to   { opacity: 1; transform: none; }
+}
+
+.scroll-animate                  { opacity: 0; }
+.scroll-animate.in-view          { animation: saRevealUp    0.5s ease both; }
+.scroll-animate.sa-fade.in-view  { animation: saRevealFade  0.5s ease both; }
+.scroll-animate.sa-left.in-view  { animation: saRevealLeft  0.5s ease both; }
+.scroll-animate.sa-scale.in-view { animation: saRevealScale 0.5s ease both; }
+
+/* Stagger delays — place after variant rules so equal-specificity wins */
+.scroll-animate[data-delay="1"].in-view { animation-delay:  80ms; }
+.scroll-animate[data-delay="2"].in-view { animation-delay: 160ms; }
+.scroll-animate[data-delay="3"].in-view { animation-delay: 240ms; }
+.scroll-animate[data-delay="4"].in-view { animation-delay: 320ms; }
+
+/* After animation ends, JS adds .sa-done so hover transforms are unblocked */
+.sa-done { opacity: 1 !important; animation: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+    .scroll-animate { opacity: 1 !important; animation: none !important; }
+}
