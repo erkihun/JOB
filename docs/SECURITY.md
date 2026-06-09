@@ -37,15 +37,67 @@ CACHE_STORE=redis
 
 ## Authentication
 
+### Unified Login
+
+The system uses one authentication source: the `web` guard with the `users` provider and the `users` table. Admins, HR users, screening users, and applicants all sign in through `/login`.
+
+Legacy `/admin/login` and `/applicant/login` URLs do not render separate login pages; they redirect to the unified login or submit through the same unified login controller for compatibility.
+
+Role-based redirect rules after login:
+
+- Users with any non-applicant role go to `/admin`.
+- Users with only the `applicant` role go to `/applicant/dashboard`.
+- Users with both applicant and admin/staff roles go to `/admin`.
+- Inactive or suspended users are blocked before session access is granted.
+
+Applicant registration still creates one `users` row, one linked `applicants` profile row via `applicants.user_id`, and assigns the `applicant` role. Do not create duplicate applicant-only authentication records.
+
+### MFA
+
+MFA uses authenticator-app TOTP backed by the existing `google2fa_secret` field, plus hashed recovery codes and remembered-device tokens. MFA is controlled from **Admin > System Settings > Security**.
+
+Environment defaults:
+
+```env
+MFA_ENABLED=true
+MFA_REQUIRED_FOR_ADMINS=true
+MFA_REQUIRED_FOR_APPLICANTS=false
+MFA_ISSUER_NAME="Job Vacancy System"
+```
+
+Precedence: `.env` defines deployment defaults; System Settings override those values at runtime.
+
+Production recommendation: keep MFA enabled and required for admins, keep applicant MFA optional unless policy requires it, use a clear issuer name, and set remembered devices to `0` for highest assurance or a short value such as `7` days for managed devices.
+
 ### Password Hashing
 
 All passwords are hashed using Bcrypt via Laravel's `password` cast (`'hashed'`). The `BCRYPT_ROUNDS` environment variable is set to `12` in `.env.example`, which is the recommended production value.
 
 ### Password Strength
 
-- **Registration:** Minimum 8 characters, mixed case, numbers, and symbols (enforced via `Password::min(8)->mixedCase()->numbers()->symbols()`).
-- **Password reset (both admin and applicant):** Same strong rule enforced on the reset form.
-- **Admin user creation:** Minimum 8 characters, mixed case, and numbers.
+Password length and complexity are managed from **Admin > System Settings > Security**. Admin and applicant accounts have separate policies so privileged staff accounts can be stricter than public applicant accounts.
+
+Default policy:
+
+| Scope | Minimum | Uppercase | Lowercase | Number | Symbol | Common Password Block |
+| --- | ---: | --- | --- | --- | --- | --- |
+| Admin | 12 | Yes | Yes | Yes | Yes | Yes |
+| Applicant | 8 | Yes | Yes | Yes | No | Yes |
+
+Enforced flows:
+
+- Admin user creation and admin password updates by authorized admins.
+- Admin self-service profile password changes.
+- Admin password reset.
+- Applicant registration.
+- Applicant password reset.
+
+Recommended production values:
+
+- Admin: minimum 14-16 characters, uppercase, lowercase, number, symbol, common-password blocking enabled.
+- Applicant: minimum 10-12 characters, uppercase, lowercase, number, common-password blocking enabled; require symbols only if support volume is acceptable.
+
+Password expiry days and password history count are stored in settings and visible in the Security tab. They are **not enforced yet** because the current schema does not store password-change timestamps or password history hashes. Do not rely on those two values as active controls until password-age/history storage is added.
 
 ### Login Throttling
 

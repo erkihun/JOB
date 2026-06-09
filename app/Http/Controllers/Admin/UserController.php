@@ -6,17 +6,40 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\User;
+use App\Services\Security\PasswordPolicyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    /**
+     * Roles that may only be granted by a Super Admin. Prevents a privilege
+     * escalation where a user holding users.create / users.update assigns the
+     * super_admin role to themselves or another account.
+     */
+    private const PRIVILEGED_ROLES = ['super_admin'];
+
+    /**
+     * Guard role assignment so a non-Super-Admin can never grant a privileged
+     * role. Throws a validation error rather than silently dropping the role.
+     */
+    private function guardRoleAssignment(string $role): void
+    {
+        if (in_array($role, self::PRIVILEGED_ROLES, true) && ! auth()->user()->isSuperAdmin()) {
+            throw ValidationException::withMessages([
+                'role' => [__('auth.not_authorized')],
+            ]);
+        }
+    }
+
     public function index(Request $request): View
     {
         $query = User::with('roles')
@@ -54,6 +77,8 @@ class UserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', User::class);
+
         if ($request->national_id) {
             $request->merge(['national_id' => preg_replace('/\s+/', '', $request->national_id)]);
         }
@@ -71,10 +96,12 @@ class UserController extends Controller
             'national_id' => ['nullable', 'digits:16', 'unique:users,national_id'],
             'gender' => ['nullable', 'string', 'in:male,female,other'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-            'status' => ['required', 'string'],
+            'status' => ['required', Rule::enum(UserStatus::class)],
             'role' => ['required', 'string', 'exists:roles,name'],
-            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
+            'password' => ['required', 'confirmed', ...app(PasswordPolicyService::class)->adminRules()],
         ]);
+
+        $this->guardRoleAssignment($data['role']);
 
         $photoPath = null;
         if ($request->hasFile('profile_photo')) {
@@ -96,6 +123,12 @@ class UserController extends Controller
 
         $user->syncRoles([$data['role']]);
 
+        AuditLog::record('user_created', 'users', (string) $user->id, null, [
+            'email' => $user->email,
+            'role' => $data['role'],
+            'status' => $data['status'],
+        ]);
+
         return redirect()->route('admin.users.index')
             ->with('success', __('messages.user_created'));
     }
@@ -109,6 +142,8 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
+        $this->authorize('update', $user);
+
         if ($request->national_id) {
             $request->merge(['national_id' => preg_replace('/\s+/', '', $request->national_id)]);
         }
@@ -126,10 +161,12 @@ class UserController extends Controller
             'national_id' => ['nullable', 'digits:16', 'unique:users,national_id,'.$user->id],
             'gender' => ['nullable', 'string', 'in:male,female,other'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-            'status' => ['required', 'string'],
+            'status' => ['required', Rule::enum(UserStatus::class)],
             'role' => ['required', 'string', 'exists:roles,name'],
-            'new_password' => ['nullable', 'confirmed', Password::min(8)->mixedCase()->numbers()],
+            'new_password' => ['nullable', 'confirmed', ...app(PasswordPolicyService::class)->adminRules()],
         ]);
+
+        $this->guardRoleAssignment($data['role']);
 
         $updates = [
             'name' => $data['name'],
@@ -156,13 +193,36 @@ class UserController extends Controller
 
         $user->syncRoles([$data['role']]);
 
+        AuditLog::record('user_updated', 'users', (string) $user->id, null, [
+            'role' => $data['role'],
+            'status' => $data['status'],
+            'password_changed' => ! empty($data['new_password']),
+        ]);
+
         return redirect()->route('admin.users.index')
             ->with('success', __('messages.user_updated'));
     }
 
     public function destroy(User $user): RedirectResponse
     {
-        $user->delete();
+        $this->authorize('delete', $user);
+
+        $deletedEmail = $user->email;
+        $deletedRoles = $user->getRoleNames()->all();
+
+        // The model-level `User::deleting` guard returns false (halting the
+        // delete) when this is the last active super admin — even for an actor
+        // who bypasses the policy gate. Honour that result instead of reporting
+        // a deletion that did not happen.
+        if ($user->delete() === false) {
+            return redirect()->route('admin.users.index')
+                ->with('error', __('messages.cannot_delete_last_super_admin'));
+        }
+
+        AuditLog::record('user_deleted', 'users', (string) $user->id, [
+            'email' => $deletedEmail,
+            'roles' => $deletedRoles,
+        ]);
 
         return redirect()->route('admin.users.index')
             ->with('success', __('messages.user_deleted'));

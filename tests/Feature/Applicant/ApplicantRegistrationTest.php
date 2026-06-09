@@ -25,7 +25,7 @@ function validRegistrationData(array $overrides = []): array
         'gender' => 'male',
         'date_of_birth' => '1995-06-15',
         'nationality' => 'Ethiopian',
-        'national_id' => 'ETH-TEST-'.uniqid(),
+        'national_id' => fake()->unique()->numerify('################'),
         'disability_status' => '0',
         'disability_type' => null,
         'university_name' => 'Addis Ababa University',
@@ -44,7 +44,7 @@ function validRegistrationData(array $overrides = []): array
         'password' => 'Password@123',
         'password_confirmation' => 'Password@123',
         'preferred_locale' => 'en',
-        'terms' => '1',
+        'documents' => UploadedFile::fake()->create('documents.pdf', 500, 'application/pdf'),
     ], $overrides);
 }
 
@@ -63,6 +63,27 @@ test('registration page renders in amharic', function (): void {
 
     $response->assertOk();
     $response->assertSee(__('applicant.step_1_heading'));
+});
+
+test('date of birth uses a native gregorian input in english', function (): void {
+    $this->get(route('lang.switch', 'en'));
+    $response = $this->get(route('applicant.register'));
+
+    $response->assertOk()
+        // Native date input, no Ethiopian calendar Alpine component.
+        ->assertSee('type="date"', false)
+        ->assertSee('id="date_of_birth"', false)
+        ->assertDontSee('ethiopianDatepicker(', false);
+});
+
+test('date of birth uses the ethiopian calendar picker in amharic', function (): void {
+    $this->get(route('lang.switch', 'am'));
+    $response = $this->get(route('applicant.register'));
+
+    $response->assertOk()
+        // The Ethiopian datepicker Alpine component is wired up for the DOB field.
+        ->assertSee('ethiopianDatepicker(', false)
+        ->assertSee('"date_of_birth"', false);
 });
 
 // ── Successful registration ───────────────────────────────────────────────────
@@ -102,17 +123,13 @@ test('full name is auto-generated from name parts', function (): void {
     expect($applicant->full_name)->toBe('Sara Dawit Bekele');
 });
 
-test('full name omits empty middle name', function (): void {
-    $data = validRegistrationData([
-        'first_name' => 'Yonas',
-        'middle_name' => '',
-        'last_name' => 'Girma',
-    ]);
+test('middle name is required', function (): void {
+    $data = validRegistrationData(['middle_name' => '']);
 
-    $this->post(route('applicant.register'), $data);
+    $this->post(route('applicant.register'), $data)
+        ->assertSessionHasErrors('middle_name');
 
-    $applicant = Applicant::where('email', $data['email'])->first();
-    expect($applicant->full_name)->toBe('Yonas Girma');
+    expect(Applicant::where('email', $data['email'])->exists())->toBeFalse();
 });
 
 test('preferred locale is saved on registration', function (): void {
@@ -127,13 +144,32 @@ test('preferred locale is saved on registration', function (): void {
 // ── Uniqueness validation ─────────────────────────────────────────────────────
 
 test('national id must be unique', function (): void {
-    $existingApplicant = Applicant::factory()->create(['national_id' => 'UNIQUE-123']);
+    $existingApplicant = Applicant::factory()->create(['national_id' => '1234567890123456']);
 
     $response = $this->post(route('applicant.register'), validRegistrationData([
-        'national_id' => 'UNIQUE-123',
+        'national_id' => '1234 5678 9012 3456',
     ]));
 
     $response->assertSessionHasErrors('national_id');
+});
+
+test('national id is normalized and must contain sixteen digits', function (): void {
+    $data = validRegistrationData([
+        'national_id' => '1111 2222 3333 4444',
+    ]);
+
+    $this->post(route('applicant.register'), $data)
+        ->assertRedirect(route('applicant.verify-email'));
+
+    expect(Applicant::where('email', $data['email'])->value('national_id'))->toBe('1111222233334444');
+
+    auth()->logout();
+    session()->invalidate();
+    session()->regenerateToken();
+
+    $this->post(route('applicant.register'), validRegistrationData([
+        'national_id' => '1234 5678',
+    ]))->assertSessionHasErrors('national_id');
 });
 
 test('phone must be unique', function (): void {
@@ -144,6 +180,25 @@ test('phone must be unique', function (): void {
     ]));
 
     $response->assertSessionHasErrors('phone');
+});
+
+test('phone is normalized and must be unique', function (): void {
+    $data = validRegistrationData([
+        'phone' => '0911 222 333',
+    ]);
+
+    $this->post(route('applicant.register'), $data)
+        ->assertRedirect(route('applicant.verify-email'));
+
+    expect(Applicant::where('email', $data['email'])->value('phone'))->toBe('+251911222333');
+
+    auth()->logout();
+    session()->invalidate();
+    session()->regenerateToken();
+
+    $this->post(route('applicant.register'), validRegistrationData([
+        'phone' => '0111 222 333',
+    ]))->assertSessionHasErrors('phone');
 });
 
 test('email must be unique', function (): void {
@@ -181,19 +236,9 @@ test('disability type is not required when disability status is no', function ()
 
 // ── File upload validation ────────────────────────────────────────────────────
 
-test('profile photo accepts jpg and png', function (): void {
+test('profile photo is updated later and prohibited during registration', function (): void {
     $data = validRegistrationData();
     $data['profile_photo'] = UploadedFile::fake()->image('photo.jpg', 100, 100)->size(500);
-
-    $response = $this->post(route('applicant.register'), $data);
-
-    $response->assertRedirect(route('applicant.verify-email'));
-    $response->assertSessionHasNoErrors();
-});
-
-test('profile photo rejects pdf', function (): void {
-    $data = validRegistrationData();
-    $data['profile_photo'] = UploadedFile::fake()->create('doc.pdf', 500, 'application/pdf');
 
     $response = $this->post(route('applicant.register'), $data);
 
@@ -203,6 +248,14 @@ test('profile photo rejects pdf', function (): void {
 test('document over 2 MB is rejected', function (): void {
     $data = validRegistrationData();
     $data['documents'] = UploadedFile::fake()->create('docs.pdf', 2049, 'application/pdf');
+
+    $response = $this->post(route('applicant.register'), $data);
+
+    $response->assertSessionHasErrors('documents');
+});
+
+test('document is required to register', function (): void {
+    $data = validRegistrationData(['documents' => null]);
 
     $response = $this->post(route('applicant.register'), $data);
 
@@ -245,8 +298,82 @@ test('applicant dashboard shows profile completion percentage', function (): voi
     $response->assertSee('profile');
 });
 
-test('terms must be accepted to register', function (): void {
-    $response = $this->post(route('applicant.register'), validRegistrationData(['terms' => '0']));
+test('terms agreement is not required on registration review', function (): void {
+    $response = $this->post(route('applicant.register'), validRegistrationData());
 
-    $response->assertSessionHasErrors('terms');
+    $response->assertRedirect(route('applicant.verify-email'));
+});
+
+test('review step pre-populates fields from old input after a failed submission', function (): void {
+    // Submit with an invalid password to trigger a server redirect back with old() values.
+    $data = validRegistrationData([
+        'first_name' => 'Tigist',
+        'middle_name' => 'Haile',
+        'last_name' => 'Bekele',
+        'date_of_birth' => '1990-03-25',
+        'national_id' => '1111222233334444',
+        'phone' => '+251911555666',
+        'email' => 'review_test_'.uniqid().'@example.com',
+        'password' => 'weak',
+        'password_confirmation' => 'weak',
+    ]);
+
+    $response = $this->post(route('applicant.register'), $data);
+
+    // Should redirect back with errors (password too weak).
+    $response->assertSessionHasErrors('password');
+
+    // Follow the redirect to get the re-rendered form.
+    $page = $this->get(route('applicant.register'));
+    $page->assertOk();
+
+    // The Alpine reactive properties are seeded from old() in the <script> block.
+    // Assert each value is embedded so the review step renders correctly.
+    $page->assertSee("firstName: 'Tigist'", false);
+    $page->assertSee("middleName: 'Haile'", false);
+    $page->assertSee("lastName: 'Bekele'", false);
+    $page->assertSee("dateOfBirth: '1990-03-25'", false);
+    $page->assertSee("nationalId: '1111222233334444'", false);
+    $page->assertSee("phone: '+251911555666'", false);
+    $page->assertSee($data['email'], false);
+});
+
+test('review step date of birth displays in gregorian format for english locale', function (): void {
+    $this->get(route('lang.switch', 'en'));
+
+    $data = validRegistrationData([
+        'date_of_birth' => '1992-07-14',
+        'password' => 'weak',
+        'password_confirmation' => 'weak',
+    ]);
+
+    $this->post(route('applicant.register'), $data)->assertSessionHasErrors('password');
+
+    $page = $this->get(route('applicant.register'));
+    $page->assertOk();
+
+    // In English locale the JS formatDobForReview returns the raw YYYY-MM-DD string.
+    $page->assertSee('formatDobForReview(dateOfBirth)', false);
+    // Locale baked into the blade output should be 'en'.
+    $page->assertSee("locale = 'en'", false);
+});
+
+test('review step date of birth displays in ethiopian format for amharic locale', function (): void {
+    $this->get(route('lang.switch', 'am'));
+
+    $data = validRegistrationData([
+        'date_of_birth' => '2000-01-07',  // ET: 1992 ጥር 29
+        'preferred_locale' => 'am',
+        'password' => 'weak',
+        'password_confirmation' => 'weak',
+    ]);
+
+    $this->post(route('applicant.register'), $data)->assertSessionHasErrors('password');
+
+    $page = $this->get(route('applicant.register'));
+    $page->assertOk();
+
+    // In Amharic locale the blade output bakes locale = 'am' into the JS.
+    $page->assertSee("locale = 'am'", false);
+    $page->assertSee("dateOfBirth: '2000-01-07'", false);
 });

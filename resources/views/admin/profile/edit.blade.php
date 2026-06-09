@@ -143,5 +143,28 @@
             <button type="submit" class="btn btn-primary">{{ __('messages.save_changes') }}</button>
         </div>
     </form>
+
+    {{-- Two-Factor Authentication --}}
+    <div class="max-w-xl rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-sm font-semibold text-gray-900">Two-Factor Authentication</h2>
+                <p class="mt-0.5 text-xs text-gray-500">
+                    @if(auth()->user()->hasTwoFactorEnabled())
+                        <span class="inline-flex items-center gap-1 text-green-600">
+                            <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd"/></svg>
+                            Enabled
+                        </span>
+                    @else
+                        <span class="text-yellow-600">Not enabled — recommended for admin accounts</span>
+                    @endif
+                </p>
+            </div>
+            <a href="{{ route('mfa.show') }}"
+               class="text-sm font-medium text-blue-600 hover:text-blue-500 transition">
+                {{ auth()->user()->hasTwoFactorEnabled() ? 'Manage' : 'Set up' }} →
+            </a>
+        </div>
+    </div>
 </div>
 @endsection

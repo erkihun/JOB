@@ -11,6 +11,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use PragmaRX\Google2FA\Google2FA;
+use PragmaRX\Google2FALaravel\Support\Authenticator;
 
 class AdminAuthController extends Controller
 {
@@ -44,6 +46,54 @@ class AdminAuthController extends Controller
         }
 
         $request->session()->regenerate();
+
+        // If 2FA is configured, redirect to the login-step challenge before entering the panel
+        if ($user->hasTwoFactorEnabled()) {
+            return redirect()->route('admin.login.two-factor');
+        }
+
+        return redirect()->intended(route('admin.dashboard'));
+    }
+
+    public function showTwoFactorChallenge(Request $request): View|RedirectResponse
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if (! $user || ! $user->hasTwoFactorEnabled()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if (session(config('google2fa.session_var').'.auth_passed')) {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+
+        return view('admin.two-factor.challenge');
+    }
+
+    public function verifyTwoFactorChallenge(Request $request): RedirectResponse
+    {
+        $request->validate(['one_time_password' => ['required', 'digits:6']]);
+
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if (! $user || ! $user->hasTwoFactorEnabled()) {
+            return redirect()->route('admin.login');
+        }
+
+        $valid = app(Google2FA::class)->verifyKey(
+            (string) $user->google2fa_secret,
+            $request->input('one_time_password')
+        );
+
+        if (! $valid) {
+            return back()
+                ->withErrors(['one_time_password' => 'Invalid verification code. Please try again.'])
+                ->withInput();
+        }
+
+        app(Authenticator::class)->boot($request)->login();
 
         return redirect()->intended(route('admin.dashboard'));
     }

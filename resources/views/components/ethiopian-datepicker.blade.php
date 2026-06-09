@@ -5,6 +5,7 @@
     'required' => false,
     'class'    => '',
     'max'      => null,
+    'min'      => null,
 ])
 
 @php
@@ -14,18 +15,16 @@
 
     // Compute today's Ethiopian date in PHP — passed to JS so the calendar opens
     // on the right month/year from the very first render (no Alpine race condition).
+    // Uses the shared, exact JDN-based service so JS and PHP always agree.
     $today   = now();
-    $gy = $today->year; $gm = $today->month; $gd = $today->day;
-    $pLeap   = ($gy-1) % 400 === 0 || (($gy-1) % 4 === 0 && ($gy-1) % 100 !== 0);
-    $nyDay   = $pLeap ? 12 : 11;
-    $etY     = ($gm > 9 || ($gm === 9 && $gd >= $nyDay)) ? $gy - 7 : $gy - 8;
-    $nyGcY   = $etY + 7;
-    $p2Leap  = ($nyGcY-1) % 400 === 0 || (($nyGcY-1) % 4 === 0 && ($nyGcY-1) % 100 !== 0);
-    $ny      = $p2Leap ? 12 : 11;
-    $diff    = (int) \Carbon\Carbon::create($nyGcY, 9, $ny)->diffInDays($today, false);
-    $todayEtYear  = $etY;
-    $todayEtMonth = intdiv($diff, 30) + 1;
-    $todayEtDay   = ($diff % 30) + 1;
+    $todayEt = \App\Services\EthiopianCalendar::fromGregorian($today->year, $today->month, $today->day);
+    $todayEtYear  = $todayEt['year'];
+    $todayEtMonth = $todayEt['month'];
+    $todayEtDay   = $todayEt['day'];
+
+    $safeMin  = $min ?? '';
+    $initialViewYear  = $todayEtYear;
+    $initialViewMonth = $todayEtMonth;
 
     $etMonths = ['መስከረም','ጥቅምት','ህዳር','ታህሳስ','ጥር','የካቲት','መጋቢት','ሚያዚያ','ግንቦት','ሰኔ','ሐምሌ','ነሐሴ','ጳጉሜ'];
     $yearMin  = 1900;
@@ -33,7 +32,7 @@
 @endphp
 
 <div class="{{ $class }}"
-     x-data="ethiopianDatepicker(@js($name), @js($gcValue), @js($safeMax), {{ $todayEtYear }}, {{ $todayEtMonth }}, {{ $todayEtDay }})"
+     x-data="ethiopianDatepicker(@js($name), @js($gcValue), @js($safeMax), @js($safeMin), {{ $todayEtYear }}, {{ $todayEtMonth }}, {{ $todayEtDay }}, {{ $initialViewYear }}, {{ $initialViewMonth }})"
      @click.outside="open = false"
      @keydown.escape.window="open = false">
 
@@ -49,6 +48,9 @@
                :value="displayValue"
                @click="open = !open"
                readonly
+               role="combobox"
+               aria-haspopup="dialog"
+               :aria-expanded="open"
                placeholder="{{ app()->getLocale() === 'am' ? 'ቀን ይምረጡ…' : 'Select date…' }}"
                :class="({{ $hasServerError ? 'true' : 'false' }} && !touched) || (touched && !!error)
                    ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
@@ -64,6 +66,9 @@
         {{-- Calendar dropdown --}}
         <div x-show="open"
              x-cloak
+             role="dialog"
+             aria-modal="false"
+             aria-label="{{ app()->getLocale() === 'am' ? 'የቀን መምረጫ' : 'Date picker' }}"
              x-transition:enter="transition ease-out duration-100"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100"
@@ -123,6 +128,7 @@
                     <button type="button"
                             @click.stop="selectDay(d)"
                             :disabled="isDayDisabled(d)"
+                            :aria-pressed="d === selDay && viewMonth === selMonth && viewYear === selYear"
                             :class="getDayClass(d)"
                             class="rounded-lg py-1.5 text-center text-sm leading-none transition disabled:cursor-not-allowed disabled:opacity-30">
                         <span x-text="d"></span>
@@ -135,6 +141,7 @@
                 <button type="button" @click.stop="goToToday()"
                         class="text-xs font-medium text-blue-600 hover:text-blue-800 transition">
                     {{ app()->getLocale() === 'am' ? 'ዛሬ' : 'Today' }}
+                    <span class="ml-1 text-gray-500">{{ $todayEtDay }} {{ $etMonths[$todayEtMonth - 1] }} {{ $todayEtYear }}</span>
                 </button>
                 <button type="button" @click.stop="clear()"
                         x-show="gcValue"
@@ -154,14 +161,14 @@
 @once
 @push('scripts')
 <script>
-function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue, todayEtYear, todayEtMonth, todayEtDay) {
+function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue, minGcValue, todayEtYear, todayEtMonth, todayEtDay, initialViewYear, initialViewMonth) {
     return {
         fieldName,
         open: false,
         gcValue: '',
         displayValue: '',
-        viewYear: todayEtYear,
-        viewMonth: todayEtMonth,
+        viewYear: initialViewYear,
+        viewMonth: initialViewMonth,
         selYear: null, selMonth: null, selDay: null,
         touched: false, error: '',
 
@@ -204,10 +211,12 @@ function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue, todayEtYear,
         },
 
         isDayDisabled(d) {
-            if (!maxGcValue) return false;
             const gc  = this.etToGc(this.viewYear, this.viewMonth, d);
             const pad = n => String(n).padStart(2, '0');
-            return `${gc.year}-${pad(gc.month)}-${pad(gc.day)}` > maxGcValue;
+            const gcStr = `${gc.year}-${pad(gc.month)}-${pad(gc.day)}`;
+            if (maxGcValue && gcStr > maxGcValue) return true;
+            if (minGcValue && gcStr < minGcValue) return true;
+            return false;
         },
 
         selectDay(d) {
@@ -238,32 +247,52 @@ function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue, todayEtYear,
 
         goToToday() {
             this.viewYear = todayEtYear; this.viewMonth = todayEtMonth;
-            this.selectDay(todayEtDay);
         },
 
         formatEt(y, m, d) { return `${d} ${this.monthNames[m - 1]} ${y}`; },
 
+        // ── Exact integer JDN conversion (no Date/float, no DST drift) ──────
+        // Mirrors App\Services\EthiopianCalendar so client and server agree.
+        _ethiopicEpoch: 1724221,
+
+        gToJdn(y, m, d) {
+            return Math.floor((1461 * (y + 4800 + Math.floor((m - 14) / 12))) / 4)
+                + Math.floor((367 * (m - 2 - 12 * Math.floor((m - 14) / 12))) / 12)
+                - Math.floor((3 * Math.floor((y + 4900 + Math.floor((m - 14) / 12)) / 100)) / 4)
+                + d - 32075;
+        },
+
+        jdnToG(j) {
+            let l = j + 68569;
+            const n = Math.floor((4 * l) / 146097);
+            l = l - Math.floor((146097 * n + 3) / 4);
+            const i = Math.floor((4000 * (l + 1)) / 1461001);
+            l = l - Math.floor((1461 * i) / 4) + 31;
+            const k = Math.floor((80 * l) / 2447);
+            const d = l - Math.floor((2447 * k) / 80);
+            l = Math.floor(k / 11);
+            const m = k + 2 - 12 * l;
+            const y = 100 * (n - 49) + i + l;
+            return { year: y, month: m, day: d };
+        },
+
+        etToJdn(y, m, d) {
+            return this._ethiopicEpoch + 365 * (y - 1) + Math.floor(y / 4) + 30 * (m - 1) + (d - 1);
+        },
+
+        jdnToEt(j) {
+            const r = j - this._ethiopicEpoch;
+            const year = Math.floor((4 * r + 1463) / 1461);
+            const doy = r - (365 * (year - 1) + Math.floor(year / 4));
+            return { year, month: Math.floor(doy / 30) + 1, day: (doy % 30) + 1 };
+        },
+
         gcToEt(gy, gm, gd) {
-            const p      = gy - 1;
-            const pLeap  = p % 400 === 0 || (p % 4 === 0 && p % 100 !== 0);
-            const nyDay  = pLeap ? 12 : 11;
-            const etY    = (gm > 9 || (gm === 9 && gd >= nyDay)) ? gy - 7 : gy - 8;
-            const nyGcY  = etY + 7;
-            const p2     = nyGcY - 1;
-            const p2Leap = p2 % 400 === 0 || (p2 % 4 === 0 && p2 % 100 !== 0);
-            const ny     = p2Leap ? 12 : 11;
-            const diff   = Math.round((new Date(gy, gm - 1, gd) - new Date(nyGcY, 8, ny)) / 86400000);
-            return { year: etY, month: Math.floor(diff / 30) + 1, day: (diff % 30) + 1 };
+            return this.jdnToEt(this.gToJdn(gy, gm, gd));
         },
 
         etToGc(ey, em, ed) {
-            const nyGcY = ey + 7;
-            const p     = nyGcY - 1;
-            const pLeap = p % 400 === 0 || (p % 4 === 0 && p % 100 !== 0);
-            const nyDay = pLeap ? 12 : 11;
-            const d     = new Date(nyGcY, 8, nyDay);
-            d.setDate(d.getDate() + (em - 1) * 30 + (ed - 1));
-            return { year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate() };
+            return this.jdnToG(this.etToJdn(ey, em, ed));
         },
     };
 }

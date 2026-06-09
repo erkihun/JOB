@@ -22,10 +22,10 @@ class AdminApplicantController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('full_name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('national_id', 'like', "%{$search}%")
-                  ->orWhere('applicant_code', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('national_id', 'like', "%{$search}%")
+                    ->orWhere('applicant_code', 'like', "%{$search}%");
             });
         }
 
@@ -46,7 +46,7 @@ class AdminApplicantController extends Controller
         abort_unless($applicant->profile_photo_path, 404);
         abort_unless(Storage::disk('local')->exists($applicant->profile_photo_path), 404);
 
-        $content  = (string) Storage::disk('local')->get($applicant->profile_photo_path);
+        $content = (string) Storage::disk('local')->get($applicant->profile_photo_path);
         $mimeType = Storage::disk('local')->mimeType($applicant->profile_photo_path) ?: 'image/jpeg';
 
         return response($content, 200)

@@ -15,6 +15,35 @@ class StoreApplicationRequest extends FormRequest
         return (bool) ($this->user()?->hasPermissionTo('applicant.applications.create'));
     }
 
+    /**
+     * Back-fill academic fields from the applicant profile when the apply form
+     * omitted them (because the profile already supplies the value). The form
+     * hides fields the profile has, so they arrive empty/absent here.
+     */
+    protected function prepareForValidation(): void
+    {
+        $applicant = $this->user()?->applicant;
+
+        if (! $applicant) {
+            return;
+        }
+
+        $defaults = $applicant->applicationDefaults();
+        $merge = [];
+
+        foreach (['field_of_study', 'graduation_date', 'cgpa'] as $field) {
+            $submitted = $this->input($field);
+
+            if (($submitted === null || $submitted === '') && ! empty($defaults[$field])) {
+                $merge[$field] = $defaults[$field];
+            }
+        }
+
+        if ($merge !== []) {
+            $this->merge($merge);
+        }
+    }
+
     public function rules(): array
     {
         $rules = [
@@ -27,7 +56,11 @@ class StoreApplicationRequest extends FormRequest
         /** @var Vacancy|null $vacancy */
         $vacancy = $this->route('vacancy');
 
-        if ($vacancy) {
+        // When the profile is fully complete the applicant applies in one click;
+        // vacancy document uploads are not requested or required.
+        $profileComplete = $this->user()?->applicant?->profileCompletionPercentage() === 100;
+
+        if ($vacancy && ! $profileComplete) {
             foreach ($vacancy->requiredDocuments as $doc) {
                 $maxKb = ($doc->max_size_mb ?? Setting::get('recruitment.max_file_size_mb', 2)) * 1024;
                 $mimes = implode(',', $doc->allowed_types ?? (array) Setting::get('recruitment.allowed_file_types', ['pdf', 'jpg', 'jpeg', 'png']));

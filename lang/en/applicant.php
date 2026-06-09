@@ -111,6 +111,10 @@ return [
     'step_next' => 'Continue',
     'step_back' => 'Back',
     'step_of' => 'Step :current of :total',
+    'step_progress_label' => 'Registration progress',
+    'fix_errors_heading' => 'Please fix the following errors:',
+    'review_intro' => 'Review your basic information before submitting your registration.',
+    'profile_photo_notice' => 'Profile photo is added later from your profile after registration.',
 
     // ── Registration: disability ──────────────────────────────────────────────
     'disability_yes' => 'Yes',
@@ -151,6 +155,8 @@ return [
     'apply_for_position' => 'Apply for Position',
     'edit_application_title' => 'Edit Application',
     'academic_info' => 'Academic Information',
+    'applied_position' => 'Applied Position',
+    'change_position_hint' => 'You can change the position you applied for until it closes.',
     'replace_documents' => 'Replace Documents',
     'current_file' => 'Current',
     'replace' => 'Replace',

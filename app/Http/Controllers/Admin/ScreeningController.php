@@ -101,6 +101,11 @@ class ScreeningController extends Controller
         Application $application,
         ReviewApplicationAction $reviewApplicationAction,
     ): RedirectResponse {
+        // A screening officer may only submit a decision for an application
+        // that is assigned to them (or that has no assigned reviewer). Users
+        // with broader screening authority may review any application.
+        $this->authorize('screen', $application);
+
         $data = $request->validated();
 
         $reviewApplicationAction->handle(

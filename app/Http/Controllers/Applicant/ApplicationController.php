@@ -48,9 +48,23 @@ class ApplicationController extends Controller
                 ->with('error', __('applications.duplicate_application'));
         }
 
-        $requiredDocuments = $vacancy->requiredDocuments;
+        // When the profile is fully complete, apply in one click — no academic
+        // fields and no document uploads are requested (the profile already holds
+        // everything, including the applicant's general documents).
+        $profileComplete = $applicant->profileCompletionPercentage() === 100;
 
-        return view('applicant.applications.create', compact('vacancy', 'requiredDocuments'));
+        $requiredDocuments = $profileComplete
+            ? $vacancy->requiredDocuments->take(0)   // empty collection — skip uploads
+            : $vacancy->requiredDocuments;
+
+        // Pre-fill academic fields from the profile so the form only asks for what
+        // is still missing. Fields the profile already supplies are hidden and
+        // submitted silently from the stored values.
+        $defaults = $applicant->applicationDefaults();
+
+        return view('applicant.applications.create', compact(
+            'vacancy', 'requiredDocuments', 'defaults', 'profileComplete',
+        ));
     }
 
     public function store(
@@ -101,9 +115,18 @@ class ApplicationController extends Controller
                 ->with('error', __('applications.deadline_locked'));
         }
 
-        $application->load(['vacancy', 'vacancy.requiredDocuments', 'documents.vacancyDocument']);
+        $application->load(['vacancy', 'vacancy.institution', 'vacancy.requiredDocuments', 'documents.vacancyDocument']);
 
-        return view('applicant.applications.edit', compact('application'));
+        // Open positions the applicant can switch to. The current vacancy is always
+        // included; positions already applied to remain selectable but are rejected
+        // on submit with the duplicate message.
+        $openVacancies = Vacancy::with('institution')
+            ->where('status', VacancyStatus::Open)
+            ->where('closing_date', '>=', now()->toDateString())
+            ->orderBy('title->en')
+            ->get();
+
+        return view('applicant.applications.edit', compact('application', 'openVacancies'));
     }
 
     public function update(

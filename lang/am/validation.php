@@ -34,6 +34,8 @@ return [
     'national_id_taken' => 'ይህ ብሔራዊ መታወቂያ አስቀድሞ ተመዝግቧል።',
     'terms_required' => 'ለመመዝገብ ውሎቹን እና የፕሪቬሲ ፖሊሲን ምቀበላሉ ምልክት ማስቀመጥ አለብዎ።',
 
+    'password_policy' => 'የይለፍ ቃሉ የሚፈለገውን የጥንካሬ ፖሊሲ አያሟላም።',
+
     'attributes' => [
         'full_name' => 'ሙሉ ስም',
         'first_name' => 'የመጀመሪያ ስም',

@@ -195,6 +195,20 @@ server {
     ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
 
+    # HSTS — instruct browsers to use HTTPS only for 1 year (includeSubDomains optional)
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # Security headers (belt-and-suspenders alongside Laravel SecurityHeaders middleware)
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+    # Disable dangerous HTTP methods (TRACE / TRACK enable cross-site tracing)
+    if ($request_method ~* "^(TRACE|TRACK)$") {
+        return 405;
+    }
+
     # Deny access to private storage
     location /storage/app {
         deny all;

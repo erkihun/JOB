@@ -7,25 +7,12 @@
     @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
+    @include('partials.admin-theme')
     @php
-        $themePrimary = \App\Models\Setting::get('appearance.primary_color', '#1A56DB');
-        $themeSidebar = \App\Models\Setting::get('appearance.sidebar_color', '#1E3A8A');
-        $themeAccent  = \App\Models\Setting::get('appearance.accent_color',  '#FF6B2B');
         $adminLogoSize = min(max((int) \App\Models\Setting::get('appearance.logo_size', 36), 24), 72);
     @endphp
     <style>
     /* ── Brand CSS vars ─────────────────────────────────────────── */
-    :root {
-        --color-brand:        {{ $themePrimary }};
-        --color-brand-dark:   color-mix(in srgb, {{ $themePrimary }} 80%, black);
-        --color-navy:         {{ $themeSidebar }};
-        --color-navy-dark:    color-mix(in srgb, {{ $themeSidebar }} 80%, black);
-        --color-accent:       {{ $themeAccent }};
-        --color-accent-dark:  color-mix(in srgb, {{ $themeAccent }} 80%, black);
-        --color-brand-muted:  color-mix(in srgb, {{ $themePrimary }} 12%, white);
-        --color-accent-muted: color-mix(in srgb, {{ $themeAccent }} 12%, white);
-    }
-
     /* ── Sidebar design tokens — light mode (default) ───────────── */
     :root {
         --sb-text:          #1e293b;

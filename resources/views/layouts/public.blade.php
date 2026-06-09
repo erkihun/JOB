@@ -92,25 +92,28 @@
     {{-- Auth buttons --}}
     <div class="hidden md:flex items-center gap-2">
         @auth
-            @if(auth()->user()->hasRole('applicant'))
-                <a href="{{ route('applicant.dashboard') }}"
-                   class="text-sm font-medium text-gray-600 hover:text-blue-600 transition px-3 py-2 rounded-lg hover:bg-gray-100">
-                    {{ __('menus.dashboard') }}
-                </a>
-                <form method="POST" action="{{ route('applicant.logout') }}" class="inline">
-                    @csrf
-                    <button type="submit"
-                            class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
-                        {{ __('menus.logout') }}
-                    </button>
-                </form>
-            @endif
+            @php
+                $dashboardRoute = auth()->user()->canAccessAdminArea()
+                    ? route('admin.dashboard')
+                    : route('applicant.dashboard');
+            @endphp
+            <a href="{{ $dashboardRoute }}"
+               class="text-sm font-medium text-gray-600 hover:text-blue-600 transition px-3 py-2 rounded-lg hover:bg-gray-100">
+                {{ __('menus.dashboard') }}
+            </a>
+            <form method="POST" action="{{ route('logout') }}" class="inline">
+                @csrf
+                <button type="submit"
+                        class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
+                    {{ __('menus.logout') }}
+                </button>
+            </form>
         @else
             <a href="{{ route('applicant.register') }}"
                class="text-sm font-medium text-gray-600 hover:text-gray-900 transition px-3 py-2">
                 {{ __('menus.register') }}
             </a>
-            <a href="{{ route('applicant.login') }}"
+            <a href="{{ route('login') }}"
                class="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition shadow-sm">
                 {{ __('menus.login') }}
             </a>
@@ -203,25 +206,28 @@
         @endif
         {{-- Auth --}}
         @auth
-            @if(auth()->user()->hasRole('applicant'))
-            <a href="{{ route('applicant.dashboard') }}" @click="drawerOpen = false"
+            @php
+                $dashboardRoute = auth()->user()->canAccessAdminArea()
+                    ? route('admin.dashboard')
+                    : route('applicant.dashboard');
+            @endphp
+            <a href="{{ $dashboardRoute }}" @click="drawerOpen = false"
                class="block w-full rounded-xl bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700 transition">
                 {{ __('menus.dashboard') }}
             </a>
-            <form method="POST" action="{{ route('applicant.logout') }}">
+            <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
                         class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition">
                     {{ __('menus.logout') }}
                 </button>
             </form>
-            @endif
         @else
             <a href="{{ route('applicant.register') }}" @click="drawerOpen = false"
                class="block w-full rounded-xl bg-blue-600 px-4 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-700 transition">
                 {{ __('menus.register') }}
             </a>
-            <a href="{{ route('applicant.login') }}" @click="drawerOpen = false"
+            <a href="{{ route('login') }}" @click="drawerOpen = false"
                class="block w-full rounded-xl border border-gray-200 px-4 py-2.5 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
                 {{ __('menus.login') }}
             </a>
@@ -342,15 +348,20 @@
                 <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-300 mb-4">{{ __('public.footer_applicant') }}</h3>
                 <ul class="space-y-2 text-sm">
                     @auth
-                        @if(auth()->user()->hasRole('applicant'))
+                        @php
+                            $dashboardRoute = auth()->user()->canAccessAdminArea()
+                                ? route('admin.dashboard')
+                                : route('applicant.dashboard');
+                        @endphp
                         <li>
-                            <a href="{{ route('applicant.dashboard') }}" class="inline-flex items-center gap-2 hover:text-white transition">
+                            <a href="{{ $dashboardRoute }}" class="inline-flex items-center gap-2 hover:text-white transition">
                                 <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 13h6V4H4v9zm10 7h6v-9h-6v9zM4 20h6v-5H4v5zm10-11h6V4h-6v5z"/>
                                 </svg>
                                 <span>{{ __('menus.dashboard') }}</span>
                             </a>
                         </li>
+                        @if(auth()->user()->hasRole('applicant'))
                         <li>
                             <a href="{{ route('applicant.applications.index') }}" class="inline-flex items-center gap-2 hover:text-white transition">
                                 <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -370,7 +381,7 @@
                         @endif
                     @else
                         <li>
-                            <a href="{{ route('applicant.login') }}" class="inline-flex items-center gap-2 hover:text-white transition">
+                            <a href="{{ route('login') }}" class="inline-flex items-center gap-2 hover:text-white transition">
                                 <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/>
                                 </svg>

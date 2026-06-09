@@ -6,11 +6,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Security\PasswordPolicyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class AdminProfileController extends Controller
@@ -45,7 +45,7 @@ class AdminProfileController extends Controller
             'national_id' => ['nullable', 'digits:16', 'unique:users,national_id,'.$user->id],
             'gender' => ['nullable', 'string', 'in:male,female,other'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
-            'new_password' => ['nullable', 'confirmed', Password::min(8)->mixedCase()->numbers()],
+            'new_password' => ['nullable', 'confirmed', ...app(PasswordPolicyService::class)->adminRules()],
         ]);
 
         $updates = [

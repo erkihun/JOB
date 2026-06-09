@@ -19,7 +19,10 @@ use App\Policies\InstitutionPolicy;
 use App\Policies\SettingPolicy;
 use App\Policies\UserPolicy;
 use App\Policies\VacancyPolicy;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Throwable;
 
@@ -30,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->applySystemSettings();
+        $this->configureRateLimiting();
 
         User::deleting(function (User $user): bool {
             if (! $user->isSuperAdmin()) {
@@ -100,5 +104,21 @@ class AppServiceProvider extends ServiceProvider
         } catch (Throwable) {
             // Settings table may not exist during install, migrations, or early bootstrap.
         }
+    }
+
+    private function configureRateLimiting(): void
+    {
+        RateLimiter::for('login', function (Request $request): Limit {
+            try {
+                $attempts = (int) Setting::get('security.login_attempts', 5);
+            } catch (Throwable) {
+                $attempts = 5;
+            }
+
+            $attempts = min(max($attempts, 3), 20);
+            $email = strtolower((string) $request->input('email'));
+
+            return Limit::perMinute($attempts)->by($email.'|'.$request->ip());
+        });
     }
 }

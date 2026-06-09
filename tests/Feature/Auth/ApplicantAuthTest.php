@@ -3,22 +3,25 @@
 use App\Models\Applicant;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->seed(RolesAndPermissionsSeeder::class);
+    Storage::fake('local');
 });
 
 test('applicant can register with valid data', function () {
     $response = $this->post('/applicant/register', [
         'first_name' => 'Test',
-        'middle_name' => '',
+        'middle_name' => 'Middle',
         'last_name' => 'Applicant',
         'email' => 'applicant@test.com',
         'phone' => '+251911111111',
         'gender' => 'male',
         'date_of_birth' => '1995-01-01',
         'nationality' => 'Ethiopian',
-        'national_id' => 'ETH-AUTH-001',
+        'national_id' => '1111222233334444',
         'disability_status' => '0',
         'university_name' => 'Addis Ababa University',
         'field_of_study' => 'Computer Science',
@@ -32,7 +35,7 @@ test('applicant can register with valid data', function () {
         'password' => 'Password@123',
         'password_confirmation' => 'Password@123',
         'preferred_locale' => 'en',
-        'terms' => '1',
+        'documents' => UploadedFile::fake()->create('documents.pdf', 500, 'application/pdf'),
     ]);
 
     $response->assertRedirect(route('applicant.verify-email'));
@@ -71,19 +74,19 @@ test('applicant registration fails with duplicate email', function () {
     $response->assertSessionHasErrors(['email']);
 });
 
-test('admin user cannot log in through applicant login', function () {
+test('admin user can log in through unified login and is sent to admin dashboard', function () {
     $admin = User::factory()->admin()->create([
         'email' => 'admin@test.com',
         'password' => bcrypt('Password@123'),
     ]);
 
-    $response = $this->post('/applicant/login', [
+    $response = $this->post('/login', [
         'email' => 'admin@test.com',
         'password' => 'Password@123',
     ]);
 
-    $response->assertSessionHasErrors(['email']);
-    $this->assertGuest();
+    $response->assertRedirect(route('admin.dashboard'));
+    $this->assertAuthenticatedAs($admin);
 });
 
 test('applicant can login with valid credentials', function () {
@@ -95,12 +98,13 @@ test('applicant can login with valid credentials', function () {
 
     Applicant::factory()->create(['user_id' => $user->id]);
 
-    $response = $this->post('/applicant/login', [
+    $response = $this->post('/login', [
         'email' => 'login@test.com',
         'password' => 'Password@123',
     ]);
 
-    $this->assertAuthenticated();
+    $response->assertRedirect(route('applicant.dashboard'));
+    $this->assertAuthenticatedAs($user);
 });
 
 test('inactive applicant cannot login', function () {
@@ -109,7 +113,7 @@ test('inactive applicant cannot login', function () {
         'password' => bcrypt('Password@123'),
     ]);
 
-    $response = $this->post('/applicant/login', [
+    $response = $this->post('/login', [
         'email' => 'inactive@test.com',
         'password' => 'Password@123',
     ]);

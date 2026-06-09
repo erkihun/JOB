@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Models\Setting;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -19,19 +20,19 @@ class PasswordResetOtpNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $name    = property_exists($notifiable, 'name') ? (string) $notifiable->name : '';
-        $orgName = \App\Models\Setting::get('org.name', config('app.name'));
+        $name = property_exists($notifiable, 'name') ? (string) $notifiable->name : '';
+        $orgName = Setting::get('org.name', config('app.name'));
 
         return (new MailMessage)
             ->subject(__('auth.otp_subject', ['org' => $orgName]))
             ->view('emails.password-reset-otp', [
-                'otp'      => $this->otp,
-                'orgName'  => $orgName,
+                'otp' => $this->otp,
+                'orgName' => $orgName,
                 'greeting' => __('auth.otp_greeting', ['name' => $name]),
-                'line1'    => __('auth.otp_line1'),
-                'expires'  => __('auth.otp_expires'),
-                'ignore'   => __('auth.otp_ignore'),
-                'year'     => date('Y'),
+                'line1' => __('auth.otp_line1'),
+                'expires' => __('auth.otp_expires'),
+                'ignore' => __('auth.otp_ignore'),
+                'year' => date('Y'),
             ]);
     }
 }

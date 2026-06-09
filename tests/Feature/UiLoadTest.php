@@ -34,8 +34,12 @@ it('vacancy listing page loads', function (): void {
     $this->get('/vacancies')->assertOk();
 });
 
-it('applicant login page loads', function (): void {
-    $this->get('/applicant/login')->assertOk();
+it('unified login page loads', function (): void {
+    $this->get('/login')->assertOk();
+});
+
+it('legacy applicant login page redirects to unified login', function (): void {
+    $this->get('/applicant/login')->assertRedirect(route('login'));
 });
 
 it('applicant register page loads', function (): void {
@@ -46,6 +50,24 @@ it('applicant dashboard loads when logged in', function (): void {
     $user = User::factory()->asApplicant()->create();
 
     $this->actingAs($user)->get('/applicant/dashboard')->assertOk();
+});
+
+it('public layout sends authenticated admins back to the admin dashboard', function (): void {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->get('/')
+        ->assertOk()
+        ->assertSee(route('admin.dashboard'), false);
+});
+
+it('public layout keeps applicant dashboard links for applicant users', function (): void {
+    $user = User::factory()->asApplicant()->create();
+
+    $this->actingAs($user)
+        ->get('/')
+        ->assertOk()
+        ->assertSee(route('applicant.dashboard'), false);
 });
 
 it('my applications page loads when logged in', function (): void {

@@ -369,32 +369,223 @@
         </div>
 
         {{-- Security --}}
-        <div x-show="tab === 'security'" class="space-y-4 rounded-xl border border-gray-100 bg-white p-6 shadow-sm" style="display:none">
+        <div x-show="tab === 'security'" class="space-y-5 rounded-xl border border-gray-100 bg-white p-6 shadow-sm" style="display:none">
             <div class="flex items-center gap-2">
                 <div class="h-4 w-0.5 rounded bg-accent"></div>
                 <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('messages.security') }}</h2>
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Session Timeout (min)</label>
+                    <label class="block text-sm font-medium text-gray-700">{{ __('settings.session_timeout') }}</label>
                     <input type="number" name="security[session_timeout]" min="5" value="{{ old('security.session_timeout', $settings['security.session_timeout']) }}"
                            class="form-input mt-1">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Max Login Attempts</label>
+                    <label class="block text-sm font-medium text-gray-700">{{ __('settings.login_attempts') }}</label>
                     <input type="number" name="security[login_attempts]" min="3" value="{{ old('security.login_attempts', $settings['security.login_attempts']) }}"
                            class="form-input mt-1">
                 </div>
             </div>
+
+            @php
+                $mfaMethods = (array) old('security.mfa_methods_allowed', $settings['security.mfa_methods_allowed'] ?: ['totp']);
+            @endphp
+            <div class="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <div class="flex items-start gap-3">
+                    <div class="mt-1 h-4 w-0.5 rounded bg-navy"></div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900">{{ __('settings.mfa_management') }}</h3>
+                        <p class="mt-1 text-xs text-gray-500">{{ __('settings.mfa_management_hint') }}</p>
+                    </div>
+                </div>
+
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach([
+                        'mfa_enabled' => __('settings.mfa_enabled'),
+                        'mfa_required_for_admins' => __('settings.mfa_required_for_admins'),
+                        'mfa_required_for_applicants' => __('settings.mfa_required_for_applicants'),
+                    ] as $key => $label)
+                        <label for="security_{{ $key }}" class="flex items-start gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                            <input type="hidden" name="security[{{ $key }}]" value="0">
+                            <input type="checkbox"
+                                   id="security_{{ $key }}"
+                                   name="security[{{ $key }}]"
+                                   value="1"
+                                   {{ old("security.{$key}", $settings["security.{$key}"]) ? 'checked' : '' }}
+                                   class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand">
+                            <span>
+                                <span class="block text-sm font-medium text-gray-700">{{ $label }}</span>
+                                <span class="block text-xs text-gray-400">{{ __("settings.{$key}_hint") }}</span>
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+
+                {{-- Per-role MFA enforcement --}}
+                @php
+                    $mfaRequiredRoles = (array) old('security.mfa_required_roles', $settings['security.mfa_required_roles'] ?: []);
+                @endphp
+                <div class="rounded-lg border border-gray-200 bg-white p-4">
+                    <label class="block text-sm font-medium text-gray-700">{{ __('settings.mfa_required_roles') }}</label>
+                    <p class="mt-1 text-xs text-gray-400">{{ __('settings.mfa_required_roles_hint') }}</p>
+                    {{-- Submit an empty value so unchecking every role persists an empty list. --}}
+                    <input type="hidden" name="security[mfa_required_roles][]" value="">
+                    <div class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        @foreach($assignableRoles as $roleName)
+                            <label class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                                <input type="checkbox"
+                                       name="security[mfa_required_roles][]"
+                                       value="{{ $roleName }}"
+                                       {{ in_array($roleName, $mfaRequiredRoles, true) ? 'checked' : '' }}
+                                       class="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand">
+                                <span>{{ \Illuminate\Support\Str::headline($roleName) }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">{{ __('settings.mfa_methods_allowed') }}</label>
+                        <label class="mt-2 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700">
+                            <input type="checkbox" name="security[mfa_methods_allowed][]" value="totp"
+                                   {{ in_array('totp', $mfaMethods, true) ? 'checked' : '' }}
+                                   class="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand">
+                            <span>{{ __('settings.mfa_method_totp') }}</span>
+                        </label>
+                        <p class="mt-1 text-xs text-gray-400">{{ __('settings.mfa_methods_allowed_hint') }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">{{ __('settings.mfa_remember_device_days') }}</label>
+                        <input type="number"
+                               name="security[mfa_remember_device_days]"
+                               min="0"
+                               max="365"
+                               value="{{ old('security.mfa_remember_device_days', $settings['security.mfa_remember_device_days']) }}"
+                               class="form-input mt-1">
+                        <p class="mt-1 text-xs text-gray-400">{{ __('settings.mfa_remember_device_days_hint') }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">{{ __('settings.mfa_issuer_name') }}</label>
+                        <input type="text"
+                               name="security[mfa_issuer_name]"
+                               value="{{ old('security.mfa_issuer_name', $settings['security.mfa_issuer_name']) }}"
+                               class="form-input mt-1">
+                        <p class="mt-1 text-xs text-gray-400">{{ __('settings.mfa_issuer_name_hint') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            @foreach([
+                'admin' => [
+                    'title' => __('settings.admin_password_policy'),
+                    'description' => __('settings.admin_password_policy_hint'),
+                    'accent' => 'bg-brand',
+                ],
+                'applicant' => [
+                    'title' => __('settings.applicant_password_policy'),
+                    'description' => __('settings.applicant_password_policy_hint'),
+                    'accent' => 'bg-accent',
+                ],
+            ] as $scope => $policyCard)
+                @php
+                    $prefix = "{$scope}_password";
+                    $toggles = [
+                        'require_uppercase' => __('settings.require_uppercase'),
+                        'require_lowercase' => __('settings.require_lowercase'),
+                        'require_number' => __('settings.require_number'),
+                        'require_symbol' => __('settings.require_symbol'),
+                        'prevent_common_passwords' => __('settings.prevent_common_passwords'),
+                    ];
+                @endphp
+                <div class="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <div class="flex items-start gap-3">
+                        <div class="mt-1 h-4 w-0.5 rounded {{ $policyCard['accent'] }}"></div>
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-900">{{ $policyCard['title'] }}</h3>
+                            <p class="mt-1 text-xs text-gray-500">{{ $policyCard['description'] }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">{{ __('settings.minimum_password_length') }}</label>
+                            <input type="number"
+                                   name="security[{{ $prefix }}_min_length]"
+                                   min="8"
+                                   max="128"
+                                   value="{{ old("security.{$prefix}_min_length", $settings["security.{$prefix}_min_length"]) }}"
+                                   class="form-input mt-1">
+                            <p class="mt-1 text-xs text-gray-400">{{ __('settings.minimum_password_length_hint') }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">{{ __('settings.password_expiry_days') }}</label>
+                            <input type="number"
+                                   name="security[{{ $prefix }}_expiry_days]"
+                                   min="1"
+                                   max="3650"
+                                   value="{{ old("security.{$prefix}_expiry_days", $settings["security.{$prefix}_expiry_days"]) }}"
+                                   placeholder="{{ __('settings.optional') }}"
+                                   class="form-input mt-1">
+                            <p class="mt-1 text-xs text-gray-400">{{ __('settings.password_expiry_days_hint') }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">{{ __('settings.password_history_count') }}</label>
+                            <input type="number"
+                                   name="security[{{ $prefix }}_history_count]"
+                                   min="1"
+                                   max="24"
+                                   value="{{ old("security.{$prefix}_history_count", $settings["security.{$prefix}_history_count"]) }}"
+                                   placeholder="{{ __('settings.optional') }}"
+                                   class="form-input mt-1">
+                            <p class="mt-1 text-xs text-gray-400">{{ __('settings.password_history_count_hint') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        @foreach($toggles as $key => $label)
+                            @php
+                                $settingKey = "security.{$prefix}_{$key}";
+                                $inputId = "security_{$prefix}_{$key}";
+                            @endphp
+                            <label for="{{ $inputId }}" class="flex items-start gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2">
+                                <input type="hidden" name="security[{{ $prefix }}_{{ $key }}]" value="0">
+                                <input type="checkbox"
+                                       id="{{ $inputId }}"
+                                       name="security[{{ $prefix }}_{{ $key }}]"
+                                       value="1"
+                                       {{ old("security.{$prefix}_{$key}", $settings[$settingKey]) ? 'checked' : '' }}
+                                       class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand">
+                                <span>
+                                    <span class="block text-sm font-medium text-gray-700">{{ $label }}</span>
+                                    <span class="block text-xs text-gray-400">{{ __("settings.{$key}_hint") }}</span>
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            @endforeach
         </div>
 
         {{-- Appearance --}}
+        @php
+            $safeAppearanceColor = static function (mixed $value, string $fallback): string {
+                $value = (string) $value;
+
+                return preg_match('/^#[0-9A-Fa-f]{6}$/', $value) === 1 ? strtoupper($value) : $fallback;
+            };
+
+            $appearancePrimary = $safeAppearanceColor(old('appearance.primary_color', $settings['appearance.primary_color'] ?? '#1A56DB'), '#1A56DB');
+            $appearanceSidebar = $safeAppearanceColor(old('appearance.sidebar_color', $settings['appearance.sidebar_color'] ?? '#1E3A8A'), '#1E3A8A');
+            $appearanceAccent = $safeAppearanceColor(old('appearance.accent_color', $settings['appearance.accent_color'] ?? '#FF6B2B'), '#FF6B2B');
+            $appearanceLogoSize = min(max((int) old('appearance.logo_size', $settings['appearance.logo_size'] ?: 36), 24), 72);
+        @endphp
         <div x-show="tab === 'appearance'" class="space-y-6" style="display:none"
              x-data="{
-                 primary: '{{ old('appearance.primary_color', $settings['appearance.primary_color'] ?? '#1A56DB') }}',
-                 sidebar: '{{ old('appearance.sidebar_color', $settings['appearance.sidebar_color'] ?? '#1E3A8A') }}',
-                 accent:  '{{ old('appearance.accent_color',  $settings['appearance.accent_color']  ?? '#FF6B2B') }}',
-                 logoSize: {{ (int) old('appearance.logo_size', $settings['appearance.logo_size'] ?: 36) }},
+                 primary: {{ Js::from($appearancePrimary) }},
+                 sidebar: {{ Js::from($appearanceSidebar) }},
+                 accent:  {{ Js::from($appearanceAccent) }},
+                 logoSize: {{ $appearanceLogoSize }},
                  presets: [
                      { name: 'Blue',    primary: '#1A56DB', sidebar: '#1E3A8A', accent: '#FF6B2B' },
                      { name: 'Emerald', primary: '#059669', sidebar: '#065F46', accent: '#F59E0B' },
@@ -404,6 +595,7 @@
                      { name: 'Slate',   primary: '#475569', sidebar: '#1E293B', accent: '#06B6D4' },
                  ],
                  applyPreset(p) { this.primary = p.primary; this.sidebar = p.sidebar; this.accent = p.accent; },
+                 resetDefault() { this.primary = '#1A56DB'; this.sidebar = '#1E3A8A'; this.accent = '#FF6B2B'; this.logoSize = 36; this.preview(); },
                  preview() {
                      document.documentElement.style.setProperty('--color-brand', this.primary);
                      document.documentElement.style.setProperty('--color-navy', this.sidebar);
@@ -417,7 +609,14 @@
                     <div class="h-4 w-0.5 rounded bg-accent"></div>
                     <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('settings.appearance_presets') }}</h2>
                 </div>
-                <p class="text-sm text-gray-500">{{ __('settings.appearance_hint') }}</p>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <p class="text-sm text-gray-500">{{ __('settings.appearance_hint') }}</p>
+                    <button type="button"
+                            @click="resetDefault()"
+                            class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 transition hover:bg-gray-50">
+                        {{ __('settings.appearance_reset_defaults') }}
+                    </button>
+                </div>
                 <div class="flex flex-wrap gap-3">
                     <template x-for="p in presets" :key="p.name">
                         <button type="button"
@@ -452,7 +651,7 @@
                                    maxlength="7" placeholder="#1A56DB"
                                    class="form-input font-mono uppercase w-28">
                         </div>
-                        <p class="mt-1 text-xs text-gray-400">Buttons, links, active states</p>
+                        <p class="mt-1 text-xs text-gray-400">{{ __('settings.appearance_primary_color_hint') }}</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('settings.appearance_sidebar_color') }}</label>
@@ -464,7 +663,7 @@
                                    maxlength="7" placeholder="#1E3A8A"
                                    class="form-input font-mono uppercase w-28">
                         </div>
-                        <p class="mt-1 text-xs text-gray-400">Navigation sidebar background</p>
+                        <p class="mt-1 text-xs text-gray-400">{{ __('settings.appearance_sidebar_color_hint') }}</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('settings.appearance_accent_color') }}</label>
@@ -476,7 +675,7 @@
                                    maxlength="7" placeholder="#FF6B2B"
                                    class="form-input font-mono uppercase w-28">
                         </div>
-                        <p class="mt-1 text-xs text-gray-400">Badges, highlights, accent elements</p>
+                        <p class="mt-1 text-xs text-gray-400">{{ __('settings.appearance_accent_color_hint') }}</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('settings.logo_size') }}</label>
@@ -497,9 +696,9 @@
                         <div class="h-2 w-24 rounded-full opacity-60 bg-white"></div>
                     </div>
                     <div class="flex items-center gap-3 bg-white px-4 py-3">
-                        <span class="rounded-lg px-3 py-1.5 text-sm font-medium text-white" :style="'background:'+primary">Primary</span>
-                        <span class="rounded-lg px-3 py-1.5 text-sm font-medium text-white" :style="'background:'+accent">Accent</span>
-                        <span class="text-sm" :style="'color:'+primary">Link color</span>
+                        <span class="rounded-lg px-3 py-1.5 text-sm font-medium text-white" :style="'background:'+primary">{{ __('settings.preview_primary_button') }}</span>
+                        <span class="rounded-lg px-3 py-1.5 text-sm font-medium text-white" :style="'background:'+accent">{{ __('settings.preview_accent_badge') }}</span>
+                        <span class="text-sm" :style="'color:'+primary">{{ __('settings.preview_link_color') }}</span>
                     </div>
                 </div>
             </div>

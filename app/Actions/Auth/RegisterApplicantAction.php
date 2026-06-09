@@ -33,15 +33,6 @@ class RegisterApplicantAction
 
             $user->assignRole('applicant');
 
-            // Store profile photo privately
-            $photoPath = null;
-            if (isset($data['profile_photo']) && $data['profile_photo'] instanceof UploadedFile) {
-                $photoPath = $this->storeFile(
-                    $data['profile_photo'],
-                    'applicants/photos/'.$user->id,
-                );
-            }
-
             $applicant = Applicant::create([
                 'user_id' => $user->id,
                 'first_name' => $data['first_name'],
@@ -74,7 +65,7 @@ class RegisterApplicantAction
                 'woreda' => $data['woreda'] ?? null,
                 'address' => $data['address'] ?? null,
                 'preferred_locale' => $data['preferred_locale'],
-                'profile_photo_path' => $photoPath,
+                'profile_photo_path' => null,
             ]);
 
             $this->storeProfileDocuments($applicant, $data);
@@ -91,15 +82,6 @@ class RegisterApplicantAction
             $data['middle_name'] ?? null,
             $data['last_name'],
         ])));
-    }
-
-    /** Store a file privately, returning its path. */
-    private function storeFile(UploadedFile $file, string $directory): string
-    {
-        $uuid = (string) Str::orderedUuid();
-        $ext = $file->getClientOriginalExtension();
-
-        return $file->storeAs($directory, "$uuid.$ext", 'local');
     }
 
     /** Store the combined documents PDF if uploaded. */

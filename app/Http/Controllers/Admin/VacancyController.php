@@ -37,8 +37,8 @@ class VacancyController extends Controller
         }
 
         return view('admin.vacancies.index', [
-            'vacancies'    => $query->paginate(20)->withQueryString(),
-            'statuses'     => VacancyStatus::cases(),
+            'vacancies' => $query->paginate(20)->withQueryString(),
+            'statuses' => VacancyStatus::cases(),
             'institutions' => Institution::orderBy('name')->get(['id', 'name', 'short_name']),
         ]);
     }
@@ -48,13 +48,13 @@ class VacancyController extends Controller
         $autoCode = $this->codes->vacancyAutoGenerate();
 
         return view('admin.vacancies.create', [
-            'vacancy'        => new Vacancy,
-            'statuses'       => VacancyStatus::cases(),
+            'vacancy' => new Vacancy,
+            'statuses' => VacancyStatus::cases(),
             'educationLevels' => EducationLevel::cases(),
             'employmentTypes' => EmploymentType::cases(),
-            'institutions'   => Institution::where('status', 'active')->orderBy('name')->get(['id', 'name', 'short_name']),
-            'autoCode'       => $autoCode,
-            'codePreview'    => $autoCode ? $this->codes->forVacancy() : null,
+            'institutions' => Institution::where('status', 'active')->orderBy('name')->get(['id', 'name', 'short_name']),
+            'autoCode' => $autoCode,
+            'codePreview' => $autoCode ? $this->codes->forVacancy() : null,
         ]);
     }
 
@@ -86,13 +86,13 @@ class VacancyController extends Controller
         $autoCode = $this->codes->vacancyAutoGenerate();
 
         return view('admin.vacancies.edit', [
-            'vacancy'        => $vacancy,
-            'statuses'       => VacancyStatus::cases(),
+            'vacancy' => $vacancy,
+            'statuses' => VacancyStatus::cases(),
             'educationLevels' => EducationLevel::cases(),
             'employmentTypes' => EmploymentType::cases(),
-            'institutions'   => Institution::where('status', 'active')->orderBy('name')->get(['id', 'name', 'short_name']),
-            'autoCode'       => $autoCode,
-            'codePreview'    => null,
+            'institutions' => Institution::where('status', 'active')->orderBy('name')->get(['id', 'name', 'short_name']),
+            'autoCode' => $autoCode,
+            'codePreview' => null,
         ]);
     }
 

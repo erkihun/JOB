@@ -68,7 +68,7 @@
             </form>
 
             <p class="mt-6 text-center text-sm text-gray-500">
-                <a href="{{ route('applicant.login') }}" class="font-medium text-blue-600 hover:text-blue-500">
+                <a href="{{ route('login') }}" class="font-medium text-blue-600 hover:text-blue-500">
                     ← {{ __('auth.back_to_login') }}
                 </a>
             </p>

@@ -53,8 +53,8 @@ return [
 
     // Institution / organization
     'institution' => 'Institution',
-    'posted_by'   => 'Posted By',
+    'posted_by' => 'Posted By',
     'recruiting_institution' => 'Recruiting Institution',
-    'filter_by_institution'  => 'Filter by Institution',
-    'all_institutions'       => 'All Institutions',
+    'filter_by_institution' => 'Filter by Institution',
+    'all_institutions' => 'All Institutions',
 ];

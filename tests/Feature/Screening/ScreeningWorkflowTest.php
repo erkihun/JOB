@@ -348,3 +348,32 @@ test('admin can unassign reviewer from application', function () {
     $application->refresh();
     expect($application->assigned_reviewer_id)->toBeNull();
 });
+
+// ── submitReview enforces the screen policy at the HTTP layer ─────────────────
+
+test('screening officer cannot submit a decision for an application assigned to another officer', function () {
+    $officer1 = User::factory()->screeningOfficer()->create();
+    $officer2 = User::factory()->screeningOfficer()->create();
+    $application = makeApplication($officer1); // assigned to officer1
+
+    $this->actingAs($officer2)
+        ->post("/admin/screening/{$application->id}", [
+            'decision' => ScreeningDecision::Passed->value,
+        ])
+        ->assertForbidden();
+
+    expect($application->fresh()->status)->toBe(ApplicationStatus::Submitted);
+});
+
+test('screening officer can submit a decision for their own assigned application', function () {
+    $officer = User::factory()->screeningOfficer()->create();
+    $application = makeApplication($officer);
+
+    $this->actingAs($officer)
+        ->post("/admin/screening/{$application->id}", [
+            'decision' => ScreeningDecision::Passed->value,
+        ])
+        ->assertRedirect(route('admin.screening.index'));
+
+    expect($application->fresh()->status)->toBe(ApplicationStatus::PassedScreening);
+});

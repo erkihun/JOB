@@ -52,6 +52,7 @@ return [
     'user_created' => 'User created successfully.',
     'user_updated' => 'User updated successfully.',
     'user_deleted' => 'User deleted successfully.',
+    'cannot_delete_last_super_admin' => 'You cannot delete the last active Super Admin.',
     'schedule_created' => 'Schedule created successfully.',
     'schedule_updated' => 'Schedule updated successfully.',
     'schedule_deleted' => 'Schedule deleted successfully.',

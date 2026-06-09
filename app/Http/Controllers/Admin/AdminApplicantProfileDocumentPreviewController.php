@@ -42,11 +42,11 @@ class AdminApplicantProfileDocumentPreviewController extends Controller
             },
             200,
             [
-                'Content-Type'        => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . addslashes($asciiName) . '"',
-                'Content-Length'      => $size,
-                'X-Frame-Options'     => 'SAMEORIGIN',
-                'Cache-Control'       => 'private, max-age=300',
+                'Content-Type' => $mimeType,
+                'Content-Disposition' => 'inline; filename="'.addslashes($asciiName).'"',
+                'Content-Length' => $size,
+                'X-Frame-Options' => 'SAMEORIGIN',
+                'Cache-Control' => 'private, max-age=300',
                 'X-Content-Type-Options' => 'nosniff',
             ]
         );

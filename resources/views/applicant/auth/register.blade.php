@@ -17,14 +17,19 @@
         <p class="mt-1 text-sm text-gray-500">{{ __('applicant.register_subheading') }}</p>
         <p class="mt-1 text-sm text-gray-500">
             {{ __('applicant.already_have_account') }}
-            <a href="{{ route('applicant.login') }}" class="font-medium text-blue-600 hover:text-blue-500">
+            <a href="{{ route('login') }}" class="font-medium text-blue-600 hover:text-blue-500">
                 {{ __('applicant.sign_in_link') }}
             </a>
         </p>
     </div>
 
     {{-- Progress bar --}}
-    <div class="mb-8">
+    <div class="mb-8"
+         role="progressbar"
+         aria-valuemin="1"
+         aria-valuemax="6"
+         :aria-valuenow="step"
+         :aria-label="'{{ __('applicant.step_progress_label') }}'">
         <div class="flex items-center justify-between mb-2">
             @php
                 $steps = [
@@ -39,6 +44,7 @@
             @foreach($steps as $i => $label)
             <div class="flex flex-col items-center flex-1">
                 <div class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all"
+                     :aria-current="step === {{ $i + 1 }} ? 'step' : false"
                      :class="step > {{ $i + 1 }}
                         ? 'bg-green-500 text-white'
                         : step === {{ $i + 1 }}
@@ -75,10 +81,8 @@
         if ($errors->any()) {
             if ($errors->hasAny(['phone','email','password','password_confirmation','preferred_locale'])) {
                 $errorStep = 4;
-            } elseif ($errors->hasAny(['documents'])) {
+            } elseif ($errors->hasAny(['documents','profile_photo'])) {
                 $errorStep = 5;
-            } elseif ($errors->hasAny(['terms'])) {
-                $errorStep = 6;
             } elseif ($errors->hasAny(['work_experience_years','work_experience_months','current_employer','current_position','work_experience_summary'])) {
                 $errorStep = 3;
             } elseif ($errors->hasAny(['university_name','field_of_study','graduation_year','gpa','education_level'])) {
@@ -89,8 +93,12 @@
 
     {{-- Validation errors (server-side) --}}
     @if($errors->any())
-    <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-        <p class="font-semibold mb-1">{{ app()->getLocale() === 'am' ? 'እባክዎ ስህተቶቹን ያስተካክሉ:' : 'Please fix the following errors:' }}</p>
+    <div id="reg-error-summary"
+         role="alert"
+         tabindex="-1"
+         x-init="$el.focus()"
+         class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <p class="font-semibold mb-1">{{ __('applicant.fix_errors_heading') }}</p>
         <ul class="list-disc list-inside space-y-0.5">
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -112,38 +120,17 @@
             </div>
             <div class="p-6 space-y-5">
 
-                {{-- Profile photo --}}
-                <div class="flex items-start gap-5">
-                    <div class="shrink-0">
-                        <div class="relative h-24 w-24 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100 flex items-center justify-center">
-                            <template x-if="photoPreview">
-                                <img :src="photoPreview" class="h-full w-full object-cover">
-                            </template>
-                            <template x-if="!photoPreview">
-                                <svg class="h-10 w-10 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
-                                </svg>
-                            </template>
-                        </div>
-                        <label class="mt-2 block text-center text-xs text-blue-600 hover:text-blue-800 cursor-pointer">
-                            {{ __('fields.profile_photo') }}
-                            <input type="file" name="profile_photo" accept=".jpg,.jpeg,.png"
-                                   @change="previewPhoto($event)"
-                                   class="sr-only">
-                        </label>
-                        <p class="mt-0.5 text-center text-xs text-gray-400">JPG/PNG ≤ 2 MB</p>
-                        @error('profile_photo')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
+                <div class="space-y-4">
+                    <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                        {{ __('applicant.profile_photo_notice') }}
                     </div>
-                    <div class="flex-1 space-y-4">
-                        <div class="grid gap-4 sm:grid-cols-3">
-                            <x-reg-field name="first_name" :label="__('fields.first_name')" required/>
-                            <x-reg-field name="middle_name" :label="__('fields.middle_name')"/>
-                            <x-reg-field name="last_name" :label="__('fields.last_name')" required/>
-                        </div>
-                        <input type="hidden" name="full_name" :value="fullName || '{{ old('full_name') }}'">
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        <x-reg-field name="first_name" :label="__('fields.first_name')" required/>
+                        <x-reg-field name="middle_name" :label="__('fields.middle_name')" required/>
+                        <x-reg-field name="last_name" :label="__('fields.last_name')" required/>
                     </div>
+                    <input type="hidden" name="full_name" :value="fullName || '{{ old('full_name') }}'">
                 </div>
-
                 <div class="grid gap-4 sm:grid-cols-2">
                     {{-- Gender --}}
                     <div>
@@ -152,7 +139,7 @@
                                 @change="validateField('gender', $event.target.value)"
                                 :class="(touched['gender'] ? !!fieldErrors['gender'] : {{ $errors->has('gender') ? 'true' : 'false' }}) ? 'border-red-400' : 'border-gray-300'"
                                 class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="">— {{ __('fields.gender') }} —</option>
+                            <option value="">-- {{ __('fields.gender') }} --</option>
                             <option value="male"   {{ old('gender') === 'male'   ? 'selected' : '' }}>{{ __('statuses.gender.male') }}</option>
                             <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>{{ __('statuses.gender.female') }}</option>
                         </select>
@@ -161,19 +148,37 @@
                         @endif
                         <p x-show="touched['gender'] && !!fieldErrors['gender']" x-text="fieldErrors['gender'] || ''" class="mt-1 text-xs text-red-600"></p>
                     </div>
-
-                    {{-- Date of birth --}}
-                    @if(app()->getLocale() === 'am')
-                        <x-ethiopian-datepicker name="date_of_birth" :label="__('fields.date_of_birth')" :value="old('date_of_birth')" :max="now()->toDateString()"/>
-                    @else
-                        <x-reg-field name="date_of_birth" :label="__('fields.date_of_birth')" type="date"/>
-                    @endif
-
-                    {{-- Nationality --}}
+                    <div>
+                        @if(app()->getLocale() === 'am')
+                            {{-- Amharic: Ethiopian calendar picker (submits a hidden Gregorian YYYY-MM-DD) --}}
+                            <x-ethiopian-datepicker
+                                name="date_of_birth"
+                                :label="__('fields.date_of_birth')"
+                                required
+                            />
+                        @else
+                            {{-- English: native Gregorian date input --}}
+                            <x-reg-field
+                                name="date_of_birth"
+                                :label="__('fields.date_of_birth')"
+                                type="date"
+                                required
+                            />
+                        @endif
+                        <p x-show="touched['date_of_birth'] && !!fieldErrors['date_of_birth']"
+                           x-text="fieldErrors['date_of_birth'] || ''"
+                           class="mt-1 text-xs text-red-600"></p>
+                    </div>
                     <x-reg-field name="nationality" :label="__('fields.nationality')"/>
-
-                    {{-- National ID --}}
-                    <x-reg-field name="national_id" :label="__('fields.national_id')" required/>
+                    <x-reg-field
+                        name="national_id"
+                        :label="__('fields.national_id')"
+                        required
+                        inputmode="numeric"
+                        maxlength="19"
+                        placeholder="1234 5678 9012 3456"
+                        @input="formatNationalId($event.target)"
+                    />
                 </div>
 
                 {{-- Disability status --}}
@@ -346,8 +351,25 @@
                 <input type="hidden" name="preferred_locale" value="{{ old('preferred_locale', app()->getLocale()) }}">
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <x-reg-field name="phone"             :label="__('fields.phone')"             required type="tel"/>
-                    <x-reg-field name="alternative_phone" :label="__('fields.alternative_phone')" type="tel"/>
+                    <x-reg-field
+                        name="phone"
+                        :label="__('fields.phone')"
+                        required
+                        type="tel"
+                        inputmode="tel"
+                        maxlength="17"
+                        placeholder="0911 234 567"
+                        @input="formatPhone($event.target)"
+                    />
+                    <x-reg-field
+                        name="alternative_phone"
+                        :label="__('fields.alternative_phone')"
+                        type="tel"
+                        inputmode="tel"
+                        maxlength="17"
+                        placeholder="0911 234 567"
+                        @input="formatPhone($event.target)"
+                    />
                     <x-reg-field name="email"             :label="__('fields.email')"             required type="email"/>
                 </div>
 
@@ -404,14 +426,12 @@
                         </svg>
                         <div class="flex-1">
                             <label class="block text-sm font-medium text-gray-700">
-                                {{ __('documents.type_documents') }}
-                                <span class="ml-1 text-xs font-normal text-gray-400">{{ __('applicant.doc_optional') }}</span>
+                                {{ __('documents.type_documents') }} <span class="text-red-500">*</span>
                             </label>
                             <p class="mt-0.5 text-xs text-gray-500">{{ __('applicant.doc_combined_hint') }}</p>
-                            <input type="file" name="documents" accept=".pdf"
+                            <input type="file" name="documents" accept=".pdf,.jpg,.jpeg,.png" required
                                    @change="onDocumentChange($event)"
                                    class="mt-2 block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100">
-                            {{-- Preserved filename badge (from temp storage or new selection) --}}
                             <div x-show="docFileName"
                                  class="mt-2 flex items-center gap-1.5 rounded-md bg-green-50 border border-green-200 px-3 py-1.5 text-xs text-green-700">
                                 <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -425,44 +445,46 @@
                             <p x-show="touched['documents'] && !!fieldErrors['documents']" x-text="fieldErrors['documents'] || ''" class="mt-1 text-xs text-red-600"></p>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-400">PDF only &middot; max 2 MB</p>
+                    <p class="text-xs text-gray-400">PDF, JPG, or PNG &middot; max 2 MB</p>
                 </div>
             </div>
             @include('applicant.auth._reg_nav', ['step' => 5])
         </div>
-
-        {{-- ─────────────────────────────────────────────────────────────────
-             STEP 6 · Review & Submit
-        ───────────────────────────────────────────────────────────────────── --}}
         <div x-show="step === 6" class="rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div class="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-green-50 px-6 py-4 rounded-t-2xl">
                 <h2 class="font-semibold text-gray-800">{{ __('applicant.step_6_heading') }}</h2>
                 <p class="text-xs text-gray-500 mt-0.5">{{ __('applicant.register_subheading') }}</p>
             </div>
             <div class="p-6 space-y-4">
-
                 <div class="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">
-                    <p>{{ app()->getLocale() === 'am'
-                        ? 'ሁሉም ክፍሎች ተሟልተዋል። ከዚህ በታች ውሎቹን ተቀብለው ያስገቡ።'
-                        : 'All steps completed. Accept the terms below and submit your registration.' }}</p>
+                    <p>{{ __('applicant.review_intro') }}</p>
                 </div>
-
-                {{-- Terms --}}
-                <div class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                    <input type="hidden" name="terms" value="0">
-                    <input type="checkbox" name="terms" id="terms" value="1"
-                           {{ old('terms') ? 'checked' : '' }}
-                           @change="touched['terms'] = true; fieldErrors['terms'] = $event.target.checked ? '' : 'You must accept the terms to register.'"
-                           class="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    <label for="terms" class="text-sm text-gray-700">
-                        {{ __('applicant.terms_label') }}
-                    </label>
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('fields.full_name') }}</p>
+                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="fullName || '-'"></p>
+                    </div>
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('fields.date_of_birth') }}</p>
+                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="formatDobForReview(dateOfBirth) || '-'"></p>
+                    </div>
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('fields.national_id') }}</p>
+                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="nationalId || '-'"></p>
+                    </div>
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('fields.phone') }}</p>
+                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="phone || '-'"></p>
+                    </div>
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('fields.email') }}</p>
+                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="email || '-'"></p>
+                    </div>
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('documents.type_documents') }}</p>
+                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="docFileName || 'Required document selected on step 5'"></p>
+                    </div>
                 </div>
-                @if($errors->has('terms'))
-                <p x-show="!touched['terms']" class="text-xs text-red-600">{{ $errors->first('terms') }}</p>
-                @endif
-                <p x-show="touched['terms'] && !!fieldErrors['terms']" x-text="fieldErrors['terms'] || ''" class="text-xs text-red-600"></p>
-
             </div>
             <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
                 <button type="button" @click="prevStep()"
@@ -497,7 +519,10 @@ function registrationForm() {
         firstName: '{{ addslashes(old('first_name', '')) }}',
         middleName: '{{ addslashes(old('middle_name', '')) }}',
         lastName: '{{ addslashes(old('last_name', '')) }}',
-        photoPreview: @if($errors->any() && session('reg_temp_photo'))'{{ route('applicant.temp-photo') }}?v={{ time() }}'@else null @endif,
+        dateOfBirth: '{{ old('date_of_birth', '') }}',
+        nationalId: '{{ addslashes(old('national_id', '')) }}',
+        phone: '{{ addslashes(old('phone', '')) }}',
+        email: '{{ addslashes(old('email', '')) }}',
         docFileName: @if($errors->any() && session('reg_temp_docs_name'))'{{ addslashes(session('reg_temp_docs_name')) }}'@else null @endif,
         fieldErrors: {},
         touched: {},
@@ -508,15 +533,6 @@ function registrationForm() {
                 .map(s => s.trim()).filter(Boolean).join(' ');
         },
 
-        previewPhoto(event) {
-            const file = event.target.files[0];
-            if (!file) { this.photoPreview = null; return; }
-            this.validateFile('profile_photo', file);
-            const reader = new FileReader();
-            reader.onload = e => { this.photoPreview = e.target.result; };
-            reader.readAsDataURL(file);
-        },
-
         onDocumentChange(event) {
             const file = event.target.files[0];
             if (!file) { this.docFileName = null; return; }
@@ -524,15 +540,67 @@ function registrationForm() {
             this.docFileName = file.name;
         },
 
+        syncReviewFields() {
+            this.firstName   = document.querySelector('[name="first_name"]')?.value  ?? this.firstName;
+            this.middleName  = document.querySelector('[name="middle_name"]')?.value ?? this.middleName;
+            this.lastName    = document.querySelector('[name="last_name"]')?.value   ?? this.lastName;
+            this.dateOfBirth = document.querySelector('[name="date_of_birth"]')?.value ?? '';
+            this.nationalId  = document.querySelector('[name="national_id"]')?.value.replace(/\s/g, '') ?? '';
+            this.phone       = document.querySelector('[name="phone"]')?.value ?? '';
+            this.email       = document.querySelector('[name="email"]')?.value ?? '';
+        },
+
+        // ── DOB display ──────────────────────────────────────────────────────
+        // Gregorian YYYY-MM-DD → locale-aware display string.
+        // For 'am': convert to Ethiopian using the same JDN algorithm as the datepicker.
+        formatDobForReview(gcStr) {
+            if (!gcStr) return '';
+            const locale = '{{ app()->getLocale() }}';
+            if (locale !== 'am') return gcStr;
+            const p = gcStr.split('-');
+            if (p.length !== 3) return gcStr;
+            const et = this._jdnToEt(this._gToJdn(+p[0], +p[1], +p[2]));
+            const months = ['መስከረም','ጥቅምት','ህዳር','ታህሳስ','ጥር','የካቲት','መጋቢት','ሚያዚያ','ግንቦት','ሰኔ','ሐምሌ','ነሐሴ','ጳጉሜ'];
+            return `${et.day} ${months[et.month - 1]} ${et.year}`;
+        },
+        _gToJdn(y, m, d) {
+            return Math.floor((1461*(y+4800+Math.floor((m-14)/12)))/4)
+                 + Math.floor((367*(m-2-12*Math.floor((m-14)/12)))/12)
+                 - Math.floor((3*Math.floor((y+4900+Math.floor((m-14)/12))/100))/4)
+                 + d - 32075;
+        },
+        _jdnToEt(j) {
+            const r = j - 1724221;
+            const year = Math.floor((4*r+1463)/1461);
+            const doy  = r - (365*(year-1) + Math.floor(year/4));
+            return { year, month: Math.floor(doy/30)+1, day: (doy%30)+1 };
+        },
+
+        formatNationalId(input) {
+            const digits = input.value.replace(/\D/g, '').slice(0, 16);
+            input.value = digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
+            if (this.touched['national_id']) this.validateField('national_id', input.value);
+        },
+
+        formatPhone(input) {
+            const raw = input.value.trim();
+            if (raw.startsWith('+')) {
+                input.value = '+' + raw.slice(1).replace(/\D/g, '').slice(0, 12);
+                if (this.touched[input.name]) this.validateField(input.name, input.value);
+                return;
+            }
+
+            const digits = raw.replace(/\D/g, '').slice(0, 10);
+            input.value = digits.replace(/^(\d{4})(\d{0,3})(\d{0,3}).*/, (_, a, b, c) => [a, b, c].filter(Boolean).join(' '));
+            if (this.touched[input.name]) this.validateField(input.name, input.value);
+        },
+
         validateFile(field, file) {
             this.touched[field] = true;
             const mb2 = 2 * 1024 * 1024;
             let err = '';
-            if (field === 'profile_photo') {
-                if (!['image/jpeg','image/jpg','image/png'].includes(file.type)) err = 'Only JPG or PNG images are allowed.';
-                else if (file.size > mb2) err = 'Photo must be under 2 MB.';
-            } else if (field === 'documents') {
-                if (file.type !== 'application/pdf') err = 'Only PDF files are accepted.';
+            if (field === 'documents') {
+                if (!['application/pdf','image/jpeg','image/jpg','image/png'].includes(file.type)) err = 'Only PDF, JPG, or PNG files are accepted.';
                 else if (file.size > mb2) err = 'Document must be under 2 MB.';
             }
             this.fieldErrors[field] = err;
@@ -550,11 +618,13 @@ function registrationForm() {
                     else if (v.length > 100) err = 'Max 100 characters.';
                     break;
                 case 'middle_name':
-                    if (v.length > 100) err = 'Max 100 characters.';
+                    if (!v) err = 'This field is required.';
+                    else if (v.length > 100) err = 'Max 100 characters.';
                     break;
                 case 'national_id':
+                    const nationalDigits = v.replace(/\D/g, '');
                     if (!v) err = 'National ID is required.';
-                    else if (v.length > 50) err = 'Max 50 characters.';
+                    else if (nationalDigits.length !== 16) err = 'National ID must be exactly 16 digits.';
                     break;
                 case 'gender':
                     if (!v) err = 'Please select your gender.';
@@ -562,9 +632,6 @@ function registrationForm() {
                 case 'disability_type':
                     if (this.disabilityStatus === '1' && !v) err = 'Please describe your disability type.';
                     else if (v.length > 255) err = 'Max 255 characters.';
-                    break;
-                case 'date_of_birth':
-                    if (v && new Date(v) >= new Date()) err = 'Date of birth must be in the past.';
                     break;
                 case 'nationality':
                 case 'university_name':
@@ -589,11 +656,12 @@ function registrationForm() {
                     if (v !== '' && (isNaN(+v) || +v < 0 || +v > 11)) err = 'Must be between 0 and 11.';
                     break;
                 case 'phone':
+                    const phoneDigits = v.replace(/\D/g, '');
                     if (!v) err = 'Phone number is required.';
-                    else if (v.length > 20) err = 'Max 20 characters.';
+                    else if (!/^(09\d{8}|2519\d{8}|\+2519\d{8}|9\d{8})$/.test(v.replace(/\s+/g, ''))) err = 'Use a valid Ethiopian mobile number.';
                     break;
                 case 'alternative_phone':
-                    if (v.length > 20) err = 'Max 20 characters.';
+                    if (v && !/^(09\d{8}|2519\d{8}|\+2519\d{8}|9\d{8})$/.test(v.replace(/\s+/g, ''))) err = 'Use a valid Ethiopian mobile number.';
                     break;
                 case 'email':
                     if (!v) err = 'Email address is required.';
@@ -640,8 +708,9 @@ function registrationForm() {
 
         validateStep(n) {
             const required = {
-                1: ['first_name', 'last_name', 'national_id', 'gender'],
+                1: ['first_name', 'middle_name', 'last_name', 'national_id', 'gender'],
                 4: ['phone', 'email', 'password', 'password_confirmation'],
+                5: ['documents'],
             };
             const optional = {
                 2: ['gpa', 'graduation_year'],
@@ -660,16 +729,33 @@ function registrationForm() {
                 if (el?.value) { this.validateField(f, el.value); if (this.fieldErrors[f]) ok = false; }
             }
 
-            if (n === 1 && this.disabilityStatus === '1') {
-                const el = document.querySelector('[name="disability_type"]');
-                this.validateField('disability_type', el?.value ?? '');
-                if (this.fieldErrors['disability_type']) ok = false;
+            if (n === 1) {
+                // DOB is a Gregorian YYYY-MM-DD value — either the native date input
+                // (en) or the Ethiopian picker's hidden field (am). Validate it the
+                // same way for both locales.
+                const dob = document.querySelector('[name="date_of_birth"]')?.value ?? '';
+                if (!dob) {
+                    this.fieldErrors['date_of_birth'] = 'Date of birth is required.';
+                    this.touched['date_of_birth'] = true;
+                    ok = false;
+                } else {
+                    this.fieldErrors['date_of_birth'] = '';
+                }
+
+                if (this.disabilityStatus === '1') {
+                    const el = document.querySelector('[name="disability_type"]');
+                    this.validateField('disability_type', el?.value ?? '');
+                    if (this.fieldErrors['disability_type']) ok = false;
+                }
             }
 
-            if (n === 6) {
-                const el = document.querySelector('[name="terms"][type="checkbox"]');
-                if (!el?.checked) { this.fieldErrors['terms'] = 'You must accept the terms to register.'; this.touched['terms'] = true; ok = false; }
-                else this.fieldErrors['terms'] = '';
+            if (n === 5) {
+                const el = document.querySelector('[name="documents"]');
+                if (!el?.files?.length && !this.docFileName) {
+                    this.fieldErrors['documents'] = 'Required document is missing.';
+                    this.touched['documents'] = true;
+                    ok = false;
+                }
             }
 
             return ok;
@@ -678,11 +764,19 @@ function registrationForm() {
         nextStep() {
             if (!this.validateStep(this.step)) {
                 this.$nextTick(() => {
-                    document.querySelector('.text-red-600:not([x-show])')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const firstError = [...document.querySelectorAll('[x-show]')]
+                        .find(el => el.textContent && el.offsetParent !== null && el.classList.contains('text-red-600'));
+                    const target = firstError ?? document.querySelector('.text-red-600:not([x-show])');
+                    target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Focus the first invalid input so keyboard/screen-reader users land on it.
+                    document.querySelector('.border-red-400, [aria-invalid="true"]')?.focus?.();
                 });
                 return;
             }
-            if (this.step < this.totalSteps) this.step++;
+            if (this.step < this.totalSteps) {
+                this.step++;
+                if (this.step === 6) this.$nextTick(() => this.syncReviewFields());
+            }
             window.scrollTo(0, 0);
         },
         prevStep() { if (this.step > 1) this.step--; window.scrollTo(0, 0); },

@@ -93,11 +93,9 @@ class Application extends Model
 
     public function isEditable(): bool
     {
+        // An application may be edited any time before the vacancy closing date.
+        // (An explicit admin lock via `locked_at` still hard-blocks editing.)
         if ($this->locked_at !== null) {
-            return false;
-        }
-
-        if ($this->hasFinalScreeningDecision()) {
             return false;
         }
 
@@ -107,16 +105,7 @@ class Application extends Model
     public function isLocked(): bool
     {
         return $this->locked_at !== null
-            || $this->hasFinalScreeningDecision()
             || $this->vacancy->isPastDeadline();
-    }
-
-    public function hasFinalScreeningDecision(): bool
-    {
-        return in_array($this->status, [
-            ApplicationStatus::PassedScreening,
-            ApplicationStatus::FailedScreening,
-        ], true);
     }
 
     protected static function booted(): void

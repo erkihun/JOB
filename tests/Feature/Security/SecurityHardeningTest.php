@@ -161,8 +161,8 @@ test('local admin seeder remains available and super admin has all permissions',
 
 test('production hardening docs and env example contain required controls', function (): void {
     $env = file_get_contents(base_path('.env.example'));
-    $deployment = file_get_contents(base_path('DEPLOYMENT.md'));
-    $security = file_get_contents(base_path('SECURITY.md'));
+    $deployment = file_get_contents(base_path('docs/DEPLOYMENT.md'));
+    $security = file_get_contents(base_path('docs/SECURITY.md'));
 
     expect($env)
         ->toContain('APP_ENV=production')

@@ -73,7 +73,9 @@ test('manually locked application is not editable even before deadline', functio
     expect($application->isLocked())->toBeTrue();
 });
 
-test('application is locked after passed or failed screening decision', function (ApplicationStatus $status) {
+test('application remains editable after a screening decision while the vacancy is open', function (ApplicationStatus $status) {
+    // Business rule: applications are editable until the closing date, regardless
+    // of screening status. A pass/fail decision does NOT lock editing on its own.
     $vacancy = Vacancy::factory()->open()->create([
         'closing_date' => now()->addDays(30),
     ]);
@@ -90,9 +92,8 @@ test('application is locked after passed or failed screening decision', function
         'submitted_at' => now(),
     ]);
 
-    expect($application->hasFinalScreeningDecision())->toBeTrue();
-    expect($application->isEditable())->toBeFalse();
-    expect($application->isLocked())->toBeTrue();
+    expect($application->isEditable())->toBeTrue();
+    expect($application->isLocked())->toBeFalse();
 })->with([
     'passed screening' => [ApplicationStatus::PassedScreening],
     'failed screening' => [ApplicationStatus::FailedScreening],
@@ -139,7 +140,8 @@ test('policy allows applicant update before deadline', function () {
     expect($policy->update($user, $application))->toBeTrue();
 });
 
-test('policy denies applicant update after passed or failed screening decision', function (ApplicationStatus $status) {
+test('policy allows applicant update after a screening decision while the vacancy is open', function (ApplicationStatus $status) {
+    // Editing stays open until the closing date even after a screening decision.
     $vacancy = Vacancy::factory()->open()->create([
         'closing_date' => now()->addDays(30),
     ]);
@@ -159,7 +161,7 @@ test('policy denies applicant update after passed or failed screening decision',
     $policy = new ApplicationPolicy;
     $user = $applicant->user;
 
-    expect($policy->update($user, $application))->toBeFalse();
+    expect($policy->update($user, $application))->toBeTrue();
 })->with([
     'passed screening' => [ApplicationStatus::PassedScreening],
     'failed screening' => [ApplicationStatus::FailedScreening],

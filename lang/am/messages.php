@@ -52,6 +52,7 @@ return [
     'user_created' => 'ተጠቃሚ በተሳካ ሁኔታ ተፈጥሯል።',
     'user_updated' => 'ተጠቃሚ በተሳካ ሁኔታ ተዘምኗል።',
     'user_deleted' => 'ተጠቃሚ በተሳካ ሁኔታ ተሰርዟል።',
+    'cannot_delete_last_super_admin' => 'የመጨረሻውን ንቁ ሱፐር አስተዳዳሪ መሰረዝ አይችሉም።',
     'schedule_created' => 'መርሃ ግብር በተሳካ ሁኔታ ተፈጥሯል።',
     'schedule_updated' => 'መርሃ ግብር በተሳካ ሁኔታ ተዘምኗል።',
     'schedule_deleted' => 'መርሃ ግብር በተሳካ ሁኔታ ተሰርዟል።',

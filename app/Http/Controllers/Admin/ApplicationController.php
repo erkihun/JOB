@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\ApplicationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Models\Institution;
 use App\Models\Vacancy;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -30,15 +31,19 @@ class ApplicationController extends Controller
         if ($vacancyId = $request->get('vacancy_id')) {
             $query->where('vacancy_id', $vacancyId);
         }
+        if ($institutionId = $request->get('institution_id')) {
+            $query->whereHas('vacancy', fn ($q) => $q->where('institution_id', $institutionId));
+        }
         if ($status = $request->get('status')) {
             $query->where('status', $status);
         }
 
         $applications = $query->paginate(20)->withQueryString();
         $vacancies = Vacancy::orderBy('title->en')->get(['id', 'title', 'code']);
+        $institutions = Institution::orderBy('name')->get(['id', 'name', 'short_name']);
         $statuses = ApplicationStatus::cases();
 
-        return view('admin.applications.index', compact('applications', 'vacancies', 'statuses', 'canViewSensitive'));
+        return view('admin.applications.index', compact('applications', 'vacancies', 'institutions', 'statuses', 'canViewSensitive'));
     }
 
     public function show(Application $application): View

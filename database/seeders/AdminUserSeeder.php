@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Contracts\Validation\Rule as ValidationRule;
+use App\Services\Security\PasswordPolicyService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules\Password;
 use RuntimeException;
 
 class AdminUserSeeder extends Seeder
@@ -36,7 +35,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'email', 'max:255'],
-                'password' => ['required', 'string', $this->strongPasswordRule()],
+                'password' => ['required', 'string', ...app(PasswordPolicyService::class)->adminRules()],
             ],
         );
 
@@ -111,10 +110,5 @@ class AdminUserSeeder extends Seeder
         );
 
         $screeningOfficer->assignRole('screening_officer');
-    }
-
-    private function strongPasswordRule(): ValidationRule
-    {
-        return Password::min(12)->mixedCase()->numbers()->symbols();
     }
 }

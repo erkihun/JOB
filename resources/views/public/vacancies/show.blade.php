@@ -275,7 +275,7 @@
                                 </a>
                                 @endif
                             @else
-                            <a href="{{ route('applicant.login') }}?redirect={{ urlencode(request()->url()) }}"
+                            <a href="{{ route('login') }}?redirect={{ urlencode(request()->url()) }}"
                                class="block w-full text-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow hover:bg-blue-700 transition">
                                 {{ __('vacancies.apply_now') }}
                             </a>

@@ -8,6 +8,12 @@
     <form method="GET" class="flex flex-wrap gap-2">
         <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('messages.search') }}..."
                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand sm:w-56">
+        <select name="institution_id" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
+            <option value="">{{ __('applications.filter_by_institution') }}</option>
+            @foreach($institutions as $inst)
+            <option value="{{ $inst->id }}" {{ request('institution_id') === $inst->id ? 'selected' : '' }}>{{ $inst->name }}</option>
+            @endforeach
+        </select>
         <select name="vacancy_id" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
             <option value="">{{ __('messages.all_vacancies') }}</option>
             @foreach($vacancies as $v)
@@ -21,7 +27,7 @@
             @endforeach
         </select>
         <button type="submit" class="btn btn-navy">{{ __('messages.filter') }}</button>
-        @if(request()->hasAny(['search','vacancy_id','status']))
+        @if(request()->hasAny(['search','vacancy_id','institution_id','status']))
         <a href="{{ route('admin.applications.index') }}" class="btn btn-secondary">{{ __('messages.reset') }}</a>
         @endif
     </form>

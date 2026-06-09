@@ -98,7 +98,7 @@
             <div class="rounded-lg bg-orange-50 border border-orange-200 p-4">
                 <p class="text-sm font-medium text-orange-800 mb-1">{{ __('applications.correction_required_note') }}</p>
                 <p class="text-sm text-orange-700">{{ $application->screening_remark }}</p>
-                <a href="{{ route('applicant.login') }}"
+                <a href="{{ route('login') }}"
                    class="mt-2 inline-block text-sm font-medium text-orange-800 underline hover:text-orange-900">
                     {{ __('applications.login_to_update') }}
                 </a>

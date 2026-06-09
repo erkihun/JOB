@@ -4,25 +4,26 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 return new class extends Migration
 {
     public function up(): void
     {
         // Ensure a default institution exists for existing vacancies
-        $defaultId = \Illuminate\Support\Str::orderedUuid()->toString();
+        $defaultId = Str::orderedUuid()->toString();
 
         DB::table('institutions')->insert([
-            'id'         => $defaultId,
-            'name'       => config('app.name', 'Default Institution'),
+            'id' => $defaultId,
+            'name' => config('app.name', 'Default Institution'),
             'short_name' => null,
-            'code'       => 'DEFAULT',
-            'status'     => 'active',
+            'code' => 'DEFAULT',
+            'status' => 'active',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        Schema::table('vacancies', function (Blueprint $table) use ($defaultId) {
+        Schema::table('vacancies', function (Blueprint $table) {
             $table->uuid('institution_id')->nullable()->after('id');
             $table->foreign('institution_id')->references('id')->on('institutions')->nullOnDelete();
             $table->index('institution_id');

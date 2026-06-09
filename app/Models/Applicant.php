@@ -105,6 +105,30 @@ class Applicant extends Model
     }
 
     /**
+     * Academic values for an application that can be derived from the profile,
+     * so the apply form does not re-ask for data already provided at registration.
+     *
+     * `graduation_date` falls back to the first day of `graduation_year` when an
+     * explicit date was never captured (registration only collects the year).
+     *
+     * @return array{field_of_study: ?string, graduation_date: ?string, cgpa: ?string}
+     */
+    public function applicationDefaults(): array
+    {
+        $graduationDate = $this->graduation_date?->toDateString();
+
+        if ($graduationDate === null && ! empty($this->graduation_year)) {
+            $graduationDate = sprintf('%04d-01-01', (int) $this->graduation_year);
+        }
+
+        return [
+            'field_of_study' => $this->field_of_study ?: null,
+            'graduation_date' => $graduationDate,
+            'cgpa' => $this->gpa !== null ? (string) $this->gpa : null,
+        ];
+    }
+
+    /**
      * Percentage (0-100) of how complete the profile is.
      * Based on 10 equally-weighted key fields.
      */

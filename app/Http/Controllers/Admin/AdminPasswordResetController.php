@@ -8,11 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Models\PasswordResetOtp;
 use App\Models\User;
 use App\Notifications\PasswordResetOtpNotification;
+use App\Services\Security\PasswordPolicyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 class AdminPasswordResetController extends Controller
@@ -103,7 +103,7 @@ class AdminPasswordResetController extends Controller
     {
         $request->validate([
             'token' => ['required'],
-            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
+            'password' => ['required', 'confirmed', ...app(PasswordPolicyService::class)->adminRules()],
             'password_confirmation' => ['required'],
         ]);
 
@@ -125,7 +125,7 @@ class AdminPasswordResetController extends Controller
 
         session()->forget(['admin_password_reset_email', 'admin_password_reset_token']);
 
-        return redirect()->route('admin.login')
+        return redirect()->route('login')
             ->with('success', __('auth.password_reset_success'));
     }
 }

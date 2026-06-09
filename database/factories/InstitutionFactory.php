@@ -12,14 +12,14 @@ class InstitutionFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'       => fake()->company(),
+            'name' => fake()->company(),
             'short_name' => strtoupper(fake()->lexify('???')),
-            'code'       => strtoupper(fake()->unique()->bothify('INST-####')),
-            'type'       => fake()->randomElement(['Government', 'University', 'NGO', 'Private']),
-            'email'      => fake()->companyEmail(),
-            'phone'      => fake()->phoneNumber(),
-            'address'    => fake()->address(),
-            'status'     => 'active',
+            'code' => strtoupper(fake()->unique()->bothify('INST-####')),
+            'type' => fake()->randomElement(['Government', 'University', 'NGO', 'Private']),
+            'email' => fake()->companyEmail(),
+            'phone' => fake()->phoneNumber(),
+            'address' => fake()->address(),
+            'status' => 'active',
         ];
     }
 

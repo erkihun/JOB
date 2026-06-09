@@ -133,18 +133,18 @@ test('vacancies index renders in english', function (): void {
 // ──────────────────────────────
 
 test('login page renders in english', function (): void {
-    $response = $this->get(route('applicant.login'));
+    $response = $this->get(route('login'));
 
     $response->assertOk();
-    $response->assertSee('Sign in to your account');
+    $response->assertSee(__('auth.unified_login'));
 });
 
 test('login page renders in amharic', function (): void {
     $this->get(route('lang.switch', 'am'));
-    $response = $this->get(route('applicant.login'));
+    $response = $this->get(route('login'));
 
     $response->assertOk();
-    $response->assertSee('ወደ መለያዎ ይግቡ');
+    $response->assertSee(__('auth.unified_login'));
 });
 
 test('register page renders in english', function (): void {

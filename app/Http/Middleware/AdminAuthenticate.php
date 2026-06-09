@@ -17,13 +17,13 @@ class AdminAuthenticate
         $user = Auth::user();
 
         if (! $user) {
-            return redirect()->route('admin.login');
+            return redirect()->route('login');
         }
 
-        if ($user->hasRole('applicant') || $user->status !== UserStatus::Active || $user->roles->isEmpty()) {
+        if ($user->status !== UserStatus::Active || ! $user->canAccessAdminArea()) {
             Auth::logout();
 
-            return redirect()->route('admin.login')->withErrors(['email' => __('auth.not_authorized')]);
+            return redirect()->route('login')->withErrors(['email' => __('auth.not_authorized')]);
         }
 
         return $next($request);

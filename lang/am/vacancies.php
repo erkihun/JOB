@@ -53,8 +53,8 @@ return [
 
     // Institution / organization
     'institution' => 'ተቋም',
-    'posted_by'   => 'የለቀቀው',
+    'posted_by' => 'የለቀቀው',
     'recruiting_institution' => 'አሰሪ ተቋም',
-    'filter_by_institution'  => 'በተቋም ማጣሪያ',
-    'all_institutions'       => 'ሁሉም ተቋማት',
+    'filter_by_institution' => 'በተቋም ማጣሪያ',
+    'all_institutions' => 'ሁሉም ተቋማት',
 ];

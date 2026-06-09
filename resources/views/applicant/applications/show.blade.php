@@ -262,8 +262,7 @@
                     'rejected'  => 'bg-red-100 text-red-800 border-red-200',
                     default     => 'bg-gray-100 text-gray-700 border-gray-200',
                 };
-                $docName = $document->vacancyDocument?->getTranslation('document_name', app()->getLocale(), false)
-                           ?: $document->vacancyDocument?->document_name
+                $docName = $document->vacancyDocument?->document_name
                            ?: $document->original_name;
             @endphp
             <div class="flex items-center justify-between px-5 py-3.5 gap-4">

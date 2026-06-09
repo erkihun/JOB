@@ -11,7 +11,7 @@ class EnsureIsApplicant
     public function handle(Request $request, Closure $next): Response
     {
         if (! auth()->check()) {
-            return redirect()->route('applicant.login');
+            return redirect()->route('login');
         }
 
         if (! auth()->user()->hasRole('applicant')) {
@@ -21,7 +21,7 @@ class EnsureIsApplicant
         if (! auth()->user()->isActive()) {
             auth()->logout();
 
-            return redirect()->route('applicant.login')
+            return redirect()->route('login')
                 ->withErrors(['account' => __('auth.account_inactive')]);
         }
 

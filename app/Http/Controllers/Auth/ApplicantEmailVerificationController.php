@@ -61,8 +61,8 @@ class ApplicantEmailVerificationController extends Controller
 
         $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         PasswordResetOtp::create([
-            'email'      => $user->email,
-            'otp'        => Hash::make($otp),
+            'email' => $user->email,
+            'otp' => Hash::make($otp),
             'expires_at' => now()->addMinutes(10),
         ]);
         $user->notify(new PasswordResetOtpNotification($otp));

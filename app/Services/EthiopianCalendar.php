@@ -14,24 +14,47 @@ class EthiopianCalendar
         'ግንቦት',   'ሰኔ',   'ሐምሌ',  'ነሐሴ',  'ጳጉሜ',
     ];
 
-    /** Convert Gregorian y/m/d to Ethiopian date components. */
+    /** JDN of Ethiopian 1-1-1 (Amete Mihret era). */
+    private const ETHIOPIC_EPOCH = 1724221;
+
+    /**
+     * Convert Gregorian y/m/d to Ethiopian date components.
+     *
+     * Uses exact integer Julian Day Number conversion (no floating point, no
+     * timezone/DST dependency), so it is correct on every date including
+     * month/year boundaries and leap years.
+     *
+     * @return array{year: int, month: int, day: int}
+     */
     public static function fromGregorian(int $gy, int $gm, int $gd): array
     {
-        $prev   = $gy - 1;
-        $pLeap  = $prev % 400 === 0 || ($prev % 4 === 0 && $prev % 100 !== 0);
-        $nyDay  = $pLeap ? 12 : 11;
-        $etY    = ($gm > 9 || ($gm === 9 && $gd >= $nyDay)) ? $gy - 7 : $gy - 8;
-        $nyGcY  = $etY + 7;
-        $p2     = $nyGcY - 1;
-        $p2Leap = $p2 % 400 === 0 || ($p2 % 4 === 0 && $p2 % 100 !== 0);
-        $ny     = $p2Leap ? 12 : 11;
-        $diff   = (int) Carbon::create($nyGcY, 9, $ny)
-                              ->diffInDays(Carbon::create($gy, $gm, $gd), false);
+        return self::jdnToEthiopic(self::gregorianToJdn($gy, $gm, $gd));
+    }
+
+    /** Gregorian date → Julian Day Number (standard integer formula). */
+    private static function gregorianToJdn(int $y, int $m, int $d): int
+    {
+        return intdiv(1461 * ($y + 4800 + intdiv($m - 14, 12)), 4)
+            + intdiv(367 * ($m - 2 - 12 * intdiv($m - 14, 12)), 12)
+            - intdiv(3 * intdiv($y + 4900 + intdiv($m - 14, 12), 100), 4)
+            + $d - 32075;
+    }
+
+    /**
+     * Julian Day Number → Ethiopian date components.
+     *
+     * @return array{year: int, month: int, day: int}
+     */
+    private static function jdnToEthiopic(int $jdn): array
+    {
+        $r = $jdn - self::ETHIOPIC_EPOCH;
+        $year = intdiv(4 * $r + 1463, 1461);
+        $dayOfYear = $r - (365 * ($year - 1) + intdiv($year, 4));
 
         return [
-            'year'  => $etY,
-            'month' => intdiv($diff, 30) + 1,
-            'day'   => ($diff % 30) + 1,
+            'year' => $year,
+            'month' => intdiv($dayOfYear, 30) + 1,
+            'day' => ($dayOfYear % 30) + 1,
         ];
     }
 
@@ -47,7 +70,7 @@ class EthiopianCalendar
      */
     public static function formatGc(Carbon $date, string $gcFormat = 'd M Y'): string
     {
-        $et   = self::fromGregorian($date->year, $date->month, $date->day);
+        $et = self::fromGregorian($date->year, $date->month, $date->day);
         $name = self::$months[$et['month'] - 1];
 
         if ($gcFormat === 'Y') {
@@ -67,7 +90,7 @@ class EthiopianCalendar
 
         // Preserve the time part when the GC format includes hours/minutes
         if (str_contains($gcFormat, 'H:i')) {
-            return $base . ' ' . $date->format('H:i');
+            return $base.' '.$date->format('H:i');
         }
 
         return $base;

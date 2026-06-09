@@ -32,6 +32,7 @@ return [
     'email_taken' => 'This email address is already registered.',
     'national_id_taken' => 'This National ID is already registered.',
     'terms_required' => 'You must accept the terms and privacy policy to register.',
+    'password_policy' => 'Password does not meet the required complexity policy.',
 
     'attributes' => [
         'full_name' => 'Full Name',

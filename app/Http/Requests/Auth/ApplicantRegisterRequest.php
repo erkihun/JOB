@@ -6,17 +6,31 @@ namespace App\Http\Requests\Auth;
 
 use App\Enums\EducationLevel;
 use App\Models\Setting;
+use App\Services\Security\PasswordPolicyService;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 
 class ApplicantRegisterRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $nationalId = $this->input('national_id');
+        $phone = $this->input('phone');
+        $alternativePhone = $this->input('alternative_phone');
+
+        $this->merge([
+            'national_id' => is_string($nationalId) ? preg_replace('/\D/', '', $nationalId) : $nationalId,
+            'phone' => $this->normalizeEthiopianPhone(is_string($phone) ? $phone : null),
+            'alternative_phone' => $this->normalizeEthiopianPhone(is_string($alternativePhone) ? $alternativePhone : null),
+        ]);
     }
 
     public function rules(): array
@@ -28,12 +42,12 @@ class ApplicantRegisterRequest extends FormRequest
         return [
             // ── Personal ────────────────────────────────────────────────
             'first_name' => ['required', 'string', 'max:100'],
-            'middle_name' => ['nullable', 'string', 'max:100'],
+            'middle_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
-            'date_of_birth' => ['nullable', 'date', 'before:today'],
+            'date_of_birth' => ['required', 'date'],
             'nationality' => ['nullable', 'string', 'max:100'],
-            'national_id' => ['required', 'string', 'max:50', 'unique:applicants,national_id'],
+            'national_id' => ['required', 'digits:16', 'unique:applicants,national_id'],
 
             // ── Disability ───────────────────────────────────────────────
             'disability_status' => ['required', 'boolean'],
@@ -59,18 +73,32 @@ class ApplicantRegisterRequest extends FormRequest
 
             // ── Contact ──────────────────────────────────────────────────
             'address' => ['nullable', 'string', 'max:1000'],
-            'phone' => ['required', 'string', 'max:20', 'unique:users,phone', 'unique:applicants,phone'],
-            'alternative_phone' => ['nullable', 'string', 'max:20'],
+            'phone' => [
+                'required',
+                'string',
+                'regex:/^\+2519\d{8}$/',
+                'unique:users,phone',
+                'unique:applicants,phone',
+            ],
+            'alternative_phone' => ['nullable', 'string', 'regex:/^\+2519\d{8}$/', 'different:phone'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email', 'unique:applicants,email'],
 
             // ── Account ──────────────────────────────────────────────────
-            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
+            'password' => ['required', 'confirmed', ...app(PasswordPolicyService::class)->applicantRules()],
             'preferred_locale' => ['required', Rule::in(['en', 'am'])],
-            'terms' => ['required', 'accepted'],
 
             // ── Documents ────────────────────────────────────────────────
-            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', "max:{$maxKb}"],
-            'documents' => ['nullable', 'file', "mimes:{$documentMimes}", "max:{$maxKb}"],
+            'profile_photo' => ['prohibited'],
+            'documents' => [
+                'required',
+                'file',
+                "mimes:{$documentMimes}",
+                "max:{$maxKb}",
+                // Hard denylist of script-capable types, independent of the
+                // configurable allow-list, so SVG/HTML can never be stored even
+                // if an admin mistakenly adds them to allowed_file_types.
+                $this->rejectDangerousUpload(),
+            ],
         ];
     }
 
@@ -78,22 +106,24 @@ class ApplicantRegisterRequest extends FormRequest
     {
         return [
             'phone.unique' => __('validation.phone_taken'),
+            'phone.regex' => app()->getLocale() === 'am'
+                ? 'እባክዎ ትክክለኛ የኢትዮጵያ ሞባይል ቁጥር ያስገቡ።'
+                : 'Enter a valid Ethiopian mobile number.',
+            'alternative_phone.regex' => app()->getLocale() === 'am'
+                ? 'እባክዎ ትክክለኛ የኢትዮጵያ ሞባይል ቁጥር ያስገቡ።'
+                : 'Enter a valid Ethiopian mobile number.',
+            'middle_name.required' => __('validation.required', ['attribute' => __('fields.middle_name')]),
             'national_id.unique' => __('validation.national_id_taken'),
+            'national_id.digits' => __('validation.digits', ['attribute' => __('fields.national_id'), 'digits' => 16]),
             'email.unique' => __('validation.email_taken'),
-            'terms.accepted' => __('validation.terms_required'),
+            'documents.required' => __('validation.required', ['attribute' => __('documents.type_documents')]),
+            'profile_photo.prohibited' => __('validation.prohibited', ['attribute' => __('fields.profile_photo')]),
         ];
     }
 
     protected function failedValidation(Validator $validator): void
     {
         // Save valid uploaded files to temp storage so they survive the redirect
-        if ($this->hasFile('profile_photo') && ! $validator->errors()->has('profile_photo')) {
-            $file = $this->file('profile_photo');
-            $ext = $file->getClientOriginalExtension();
-            $path = $file->storeAs('temp/reg-photos', Str::random(32).'.'.$ext, 'local');
-            session(['reg_temp_photo' => $path]);
-        }
-
         if ($this->hasFile('documents') && ! $validator->errors()->has('documents')) {
             $file = $this->file('documents');
             $ext = $file->getClientOriginalExtension();
@@ -105,5 +135,60 @@ class ApplicantRegisterRequest extends FormRequest
         }
 
         parent::failedValidation($validator);
+    }
+
+    /**
+     * Closure rule that hard-rejects script-capable uploads (SVG, HTML, XML, JS)
+     * regardless of the configurable allow-list. Checks both the client extension
+     * and the guessed MIME type so a renamed file is still caught.
+     */
+    private function rejectDangerousUpload(): \Closure
+    {
+        return function (string $attribute, mixed $value, \Closure $fail): void {
+            if (! $value instanceof UploadedFile) {
+                return;
+            }
+
+            $blockedExtensions = ['svg', 'svgz', 'html', 'htm', 'xml', 'xhtml', 'js', 'php', 'phtml', 'phar'];
+            $blockedMimes = [
+                'image/svg+xml', 'text/html', 'application/xml', 'text/xml',
+                'application/xhtml+xml', 'application/javascript', 'text/javascript',
+                'application/x-php', 'text/x-php',
+            ];
+
+            $ext = strtolower($value->getClientOriginalExtension());
+            $mime = strtolower((string) ($value->getMimeType() ?? $value->getClientMimeType()));
+
+            if (in_array($ext, $blockedExtensions, true) || in_array($mime, $blockedMimes, true)) {
+                $allowed = implode(', ', (array) Setting::get('recruitment.allowed_file_types', ['pdf', 'jpg', 'jpeg', 'png']));
+                $fail(__('validation.mimes', [
+                    'attribute' => __('documents.type_documents'),
+                    'values' => $allowed,
+                ]));
+            }
+        };
+    }
+
+    private function normalizeEthiopianPhone(?string $value): ?string
+    {
+        if ($value === null || trim($value) === '') {
+            return $value;
+        }
+
+        $digits = preg_replace('/\D/', '', $value);
+
+        if (preg_match('/^09\d{8}$/', (string) $digits) === 1) {
+            return '+251'.substr((string) $digits, 1);
+        }
+
+        if (preg_match('/^2519\d{8}$/', (string) $digits) === 1) {
+            return '+'.$digits;
+        }
+
+        if (preg_match('/^9\d{8}$/', (string) $digits) === 1) {
+            return '+251'.$digits;
+        }
+
+        return trim($value);
     }
 }

@@ -117,18 +117,18 @@ class InstitutionController extends Controller
     private function rules(?string $ignoreId = null): array
     {
         return [
-            'name'       => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'short_name' => ['nullable', 'string', 'max:100'],
-            'code'       => ['required', 'string', 'max:50',
-                             Rule::unique('institutions', 'code')->ignore($ignoreId)->whereNull('deleted_at')],
-            'type'       => ['nullable', 'string', 'max:100'],
-            'website'    => ['nullable', 'url', 'max:255'],
-            'email'      => ['nullable', 'email', 'max:255'],
-            'phone'      => ['nullable', 'string', 'max:50'],
-            'address'    => ['nullable', 'string', 'max:1000'],
-            'latitude'   => ['nullable', 'numeric', 'between:-90,90'],
-            'longitude'  => ['nullable', 'numeric', 'between:-180,180'],
-            'status'     => ['required', Rule::in(['active', 'inactive'])],
+            'code' => ['required', 'string', 'max:50',
+                Rule::unique('institutions', 'code')->ignore($ignoreId)->whereNull('deleted_at')],
+            'type' => ['nullable', 'string', 'max:100'],
+            'website' => ['nullable', 'url', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'status' => ['required', Rule::in(['active', 'inactive'])],
         ];
     }
 }

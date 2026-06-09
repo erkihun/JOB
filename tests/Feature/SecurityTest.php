@@ -300,6 +300,7 @@ test('svg file is rejected for profile photo during registration', function (): 
         'first_name' => 'Test',
         'last_name' => 'User',
         'gender' => 'male',
+        'date_of_birth' => '1995-01-01',
         'national_id' => '1234567890123456',
         'email' => 'test@example.com',
         'phone' => '+251911234567',
@@ -307,7 +308,7 @@ test('svg file is rejected for profile photo during registration', function (): 
         'password_confirmation' => 'Password@123',
         'disability_status' => false,
         'preferred_locale' => 'en',
-        'terms' => true,
+        'documents' => UploadedFile::fake()->create('documents.pdf', 500, 'application/pdf'),
         'profile_photo' => $svgFile,
     ]);
 

@@ -23,6 +23,12 @@
                 </p>
             </div>
 
+            @if(session('warning'))
+            <div class="mb-4 rounded-lg bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">
+                {{ session('warning') }}
+            </div>
+            @endif
+
             @if($errors->any() && !$errors->has('email') && !$errors->has('password'))
             <div class="mb-4 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
                 @foreach($errors->all() as $error)
@@ -31,7 +37,7 @@
             </div>
             @endif
 
-            <form method="POST" action="{{ route('applicant.login') }}" class="space-y-5" novalidate>
+            <form method="POST" action="{{ route('login') }}" class="space-y-5" novalidate>
                 @csrf
 
                 <div>
