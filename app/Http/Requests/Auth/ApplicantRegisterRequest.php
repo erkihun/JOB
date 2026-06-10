@@ -6,10 +6,10 @@ namespace App\Http\Requests\Auth;
 
 use App\Enums\EducationLevel;
 use App\Models\Setting;
+use App\Rules\SafeUploadRule;
 use App\Services\Security\PasswordPolicyService;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -97,7 +97,7 @@ class ApplicantRegisterRequest extends FormRequest
                 // Hard denylist of script-capable types, independent of the
                 // configurable allow-list, so SVG/HTML can never be stored even
                 // if an admin mistakenly adds them to allowed_file_types.
-                $this->rejectDangerousUpload(),
+                new SafeUploadRule,
             ],
         ];
     }
@@ -135,38 +135,6 @@ class ApplicantRegisterRequest extends FormRequest
         }
 
         parent::failedValidation($validator);
-    }
-
-    /**
-     * Closure rule that hard-rejects script-capable uploads (SVG, HTML, XML, JS)
-     * regardless of the configurable allow-list. Checks both the client extension
-     * and the guessed MIME type so a renamed file is still caught.
-     */
-    private function rejectDangerousUpload(): \Closure
-    {
-        return function (string $attribute, mixed $value, \Closure $fail): void {
-            if (! $value instanceof UploadedFile) {
-                return;
-            }
-
-            $blockedExtensions = ['svg', 'svgz', 'html', 'htm', 'xml', 'xhtml', 'js', 'php', 'phtml', 'phar'];
-            $blockedMimes = [
-                'image/svg+xml', 'text/html', 'application/xml', 'text/xml',
-                'application/xhtml+xml', 'application/javascript', 'text/javascript',
-                'application/x-php', 'text/x-php',
-            ];
-
-            $ext = strtolower($value->getClientOriginalExtension());
-            $mime = strtolower((string) ($value->getMimeType() ?? $value->getClientMimeType()));
-
-            if (in_array($ext, $blockedExtensions, true) || in_array($mime, $blockedMimes, true)) {
-                $allowed = implode(', ', (array) Setting::get('recruitment.allowed_file_types', ['pdf', 'jpg', 'jpeg', 'png']));
-                $fail(__('validation.mimes', [
-                    'attribute' => __('documents.type_documents'),
-                    'values' => $allowed,
-                ]));
-            }
-        };
     }
 
     private function normalizeEthiopianPhone(?string $value): ?string

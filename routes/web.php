@@ -96,7 +96,12 @@ Route::middleware('guest')->prefix('applicant')->name('applicant.')->group(funct
 
     // Registration helpers
     Route::get('/temp-photo', [ApplicantAuthController::class, 'tempPhoto'])->name('temp-photo');
-    Route::get('/validate-field', [ApplicantAuthController::class, 'validateField'])->name('validate-field');
+    // Throttled: this endpoint confirms whether an email/phone/national_id is
+    // already registered, so an unthrottled caller could enumerate the user base
+    // and harvest PII. 20/min/IP is generous for genuine inline form validation.
+    Route::get('/validate-field', [ApplicantAuthController::class, 'validateField'])
+        ->middleware('throttle:20,1')
+        ->name('validate-field');
 
     // Password reset via OTP
     Route::get('/forgot-password', [ApplicantPasswordResetController::class, 'showForgotForm'])->name('password.request');

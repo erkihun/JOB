@@ -23,6 +23,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Throwable;
 
@@ -32,6 +33,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Force HTTPS for all generated URLs in production so assets, redirects,
+        // and signed routes use https:// behind a TLS-terminating proxy. Guarded
+        // to production only so local HTTP development is never affected.
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
         $this->applySystemSettings();
         $this->configureRateLimiting();
 

@@ -6,6 +6,7 @@ namespace App\Http\Requests\Applicant;
 
 use App\Enums\EducationLevel;
 use App\Models\Setting;
+use App\Rules\SafeUploadRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -70,10 +71,10 @@ class UpdateApplicantProfileRequest extends FormRequest
             'ethnicity' => ['nullable', 'string', 'max:100'],
 
             // Profile photo (optional update)
-            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', "max:{$maxKb}"],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', "max:{$maxKb}", new SafeUploadRule],
 
             // Combined documents PDF (optional — replaces existing when uploaded)
-            'documents' => ['nullable', 'file', "mimes:{$documentMimes}", "max:{$maxKb}"],
+            'documents' => ['nullable', 'file', "mimes:{$documentMimes}", "max:{$maxKb}", new SafeUploadRule],
         ];
     }
 }

@@ -6,6 +6,7 @@ namespace App\Http\Requests\Application;
 
 use App\Models\Setting;
 use App\Models\Vacancy;
+use App\Rules\SafeUploadRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreApplicationRequest extends FormRequest
@@ -71,6 +72,7 @@ class StoreApplicationRequest extends FormRequest
                     'file',
                     "mimes:{$mimes}",
                     "max:{$maxKb}",
+                    new SafeUploadRule,
                 ];
             }
         }

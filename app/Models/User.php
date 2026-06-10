@@ -37,8 +37,6 @@ class User extends Authenticatable implements HasLocalePreference
         'preferred_locale',
         'created_by',
         'email_verified_at',
-        'google2fa_secret',
-        'google2fa_recovery_codes',
     ];
 
     protected $hidden = [

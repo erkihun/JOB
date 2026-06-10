@@ -283,6 +283,30 @@ test('registration route is protected by csrf in the web middleware group', func
         ->and($route->methods())->toContain('POST');
 });
 
+test('field uniqueness check endpoint is rate limited against enumeration', function (): void {
+    // The validate-field endpoint confirms whether an email/phone/national_id is
+    // already registered. Without a throttle an attacker could enumerate the user
+    // base. It is capped at 20 requests/minute/IP.
+    $statuses = [];
+    for ($i = 0; $i < 22; $i++) {
+        $statuses[] = $this->get(route('applicant.validate-field', [
+            'field' => 'email',
+            'value' => "probe_{$i}@example.com",
+        ]))->getStatusCode();
+    }
+
+    expect($statuses)->toContain(429);
+});
+
+test('field uniqueness check only answers for whitelisted fields', function (): void {
+    // An attacker probing an arbitrary column gets a non-committal "valid" answer
+    // rather than a database lookup that could leak schema or data.
+    $this->get(route('applicant.validate-field', [
+        'field' => 'password',
+        'value' => 'secret',
+    ]))->assertOk()->assertJson(['valid' => true]);
+});
+
 // ── Localization ────────────────────────────────────────────────────────────────
 
 test('amharic validation message is returned when locale is am', function (): void {

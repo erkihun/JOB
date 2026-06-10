@@ -6,6 +6,7 @@ namespace App\Http\Requests\Application;
 
 use App\Models\ApplicationDocument;
 use App\Models\Setting;
+use App\Rules\SafeUploadRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ReplaceDocumentRequest extends FormRequest
@@ -28,7 +29,7 @@ class ReplaceDocumentRequest extends FormRequest
         $mimes = implode(',', $vacancyDoc?->allowed_types ?? (array) Setting::get('recruitment.allowed_file_types', ['pdf', 'jpg', 'jpeg', 'png']));
 
         return [
-            'file' => ['required', 'file', "mimes:{$mimes}", "max:{$maxKb}"],
+            'file' => ['required', 'file', "mimes:{$mimes}", "max:{$maxKb}", new SafeUploadRule],
         ];
     }
 

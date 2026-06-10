@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Applicant;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
@@ -37,6 +38,10 @@ class AdminApplicantController extends Controller
     public function show(Applicant $applicant): View
     {
         $applicant->load(['user', 'applications.vacancy', 'profileDocuments']);
+
+        // Record access to sensitive applicant PII (national ID, contact details,
+        // documents) for accountability and INSA compliance.
+        AuditLog::record('applicant_profile_viewed', 'applicants', (string) $applicant->id);
 
         return view('admin.applicants.show', compact('applicant'));
     }
