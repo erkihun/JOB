@@ -19,7 +19,7 @@
         <div class="space-y-5">
             @foreach($announcements as $ann)
             <a href="{{ route('announcements.show', $ann) }}"
-               class="group block rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-blue-300 transition scroll-animate"
+               class="group block rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md hover:border-blue-300 transition scroll-animate overflow-hidden"
                data-delay="{{ ($loop->index % 3) + 1 }}">
                 <div class="flex items-start justify-between gap-4">
                     <h2 class="text-base font-semibold text-gray-900 group-hover:text-blue-700">{{ $ann->subject }}</h2>

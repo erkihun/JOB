@@ -210,18 +210,18 @@ html.dark .form-textarea {
 .announcement-content table tr:nth-child(even) td {
     background-color: #f9fafb;
 }
-/* Scroll wrapper so tables don't overflow on mobile */
-.announcement-content table {
+/* Scroll wrapper injected around each table by announcement-tables.js */
+.announcement-table-scroll {
     display: block;
+    width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
 }
-/* But let non-table cells wrap normally */
+/* Cells keep normal wrapping; enforce a readable minimum column width */
 .announcement-content table th,
 .announcement-content table td {
     white-space: normal;
-    min-width: 100px;
+    min-width: 80px;
 }
 
 /* ── Status Badges ─────────────────────────────────────────────────── */

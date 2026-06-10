@@ -15,8 +15,20 @@
 
 <div class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
     @php $safeHtml = $announcement->renderableHtml(); @endphp
-    <div class="rounded-xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm prose prose-sm max-w-none text-gray-700 announcement-content">
+    <div id="announcement-body" class="rounded-xl border border-gray-100 bg-white p-6 sm:p-8 shadow-sm prose prose-sm max-w-none text-gray-700 announcement-content overflow-hidden">
         {!! $safeHtml !!}
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.querySelectorAll('.announcement-content table').forEach(function (table) {
+        if (table.parentNode.classList.contains('announcement-table-scroll')) return;
+        var wrapper = document.createElement('div');
+        wrapper.className = 'announcement-table-scroll';
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+    });
+</script>
+@endpush
 @endsection

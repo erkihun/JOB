@@ -227,7 +227,7 @@
             @foreach($announcements->take(3) as $ann)
             <article
                x-data="{ expanded: false }"
-               class="group flex flex-col rounded-2xl border border-amber-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-amber-200 transition-all scroll-animate"
+               class="group flex flex-col rounded-2xl border border-amber-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-amber-200 transition-all scroll-animate overflow-hidden"
                data-delay="{{ $loop->iteration }}">
                 <div class="flex items-start justify-between gap-3 mb-3">
                     <h3 class="font-semibold text-gray-900 leading-snug group-hover:text-amber-700 transition text-sm sm:text-base">
@@ -604,4 +604,15 @@
     </div>
 </section>
 
+@push('scripts')
+<script>
+    document.querySelectorAll('.announcement-content table').forEach(function (table) {
+        if (table.parentNode.classList.contains('announcement-table-scroll')) return;
+        var wrapper = document.createElement('div');
+        wrapper.className = 'announcement-table-scroll';
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+    });
+</script>
+@endpush
 @endsection
