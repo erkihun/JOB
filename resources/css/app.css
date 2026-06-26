@@ -1,5 +1,14 @@
-@import '@fontsource/noto-serif-ethiopic';
 @import 'tailwindcss';
+
+/* Abyssinica SIL — self-hosted, used for Amharic (lang="am") */
+@font-face {
+    font-family: 'Abyssinica SIL';
+    src: url('/fonts/abyssinica/AbyssinicaSIL-Regular.woff2') format('woff2'),
+         url('/fonts/abyssinica/AbyssinicaSIL-Regular.woff')  format('woff');
+    font-weight: 400;
+    font-style:  normal;
+    font-display: swap;
+}
 @plugin '@tailwindcss/typography';
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -11,7 +20,7 @@
 @theme {
     --font-sans: 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-serif-am: 'Noto Serif Ethiopic', 'Noto Serif', Georgia, serif;
+    --font-serif-am: 'Abyssinica SIL', 'Noto Serif Ethiopic', 'Noto Serif', Georgia, serif;
 
     /* ── Brand Colors ──────────────────────────────── */
     --color-brand:        #1A56DB;
