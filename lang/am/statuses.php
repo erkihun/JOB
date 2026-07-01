@@ -1,64 +1,66 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'application' => [
-        'submitted' => 'ተልኳል',
+        'submitted' => 'ቀርቧል',
         'under_review' => 'በግምገማ ላይ',
         'correction_required' => 'ማስተካከያ ያስፈልጋል',
-        'passed_screening' => 'የመጀመሪያ ማጣሪያ አልፏል',
-        'failed_screening' => 'የመጀመሪያ ማጣሪያ አላለፈም',
-        'shortlisted_exam' => 'ለፈተና ተምርጧል',
-        'exam_completed' => 'ፈተና ተጠናቅቋል',
-        'shortlisted_interview' => 'ለቃለ መጠይቅ ተምርጧል',
-        'interview_completed' => 'ቃለ መጠይቁ ተጠናቅቋል',
-        'selected' => 'ተምርጧል',
-        'waitlisted' => 'በተጠባባቂነት ተመዝግቧል',
-        'not_selected' => 'አልተምረጠም',
-        'withdrawn' => 'ተወስዷል',
+        'passed_screening' => 'የመጀመሪያ ማጣሪያን አልፏል',
+        'failed_screening' => 'የመጀመሪያ ማጣሪያን አላለፈም',
+        'shortlisted_exam' => 'ለፈተና ተመርጧል',
+        'exam_completed' => 'ፈተናው ተጠናቋል',
+        'shortlisted_interview' => 'ለቃለ መጠይቅ ተመርጧል',
+        'interview_completed' => 'ቃለ መጠይቁ ተጠናቋል',
+        'selected' => 'ተመርጧል',
+        'waitlisted' => 'በተጠባባቂ ዝርዝር ተመዝግቧል',
+        'not_selected' => 'አልተመረጠም',
+        'withdrawn' => 'ተሰርዟል',
     ],
 
     'vacancy' => [
         'draft' => 'ረቂቅ',
-        'open' => 'ክፍት',
+        'open' => 'ለማመልከቻ ክፍት',
         'closed' => 'ተዘግቷል',
-        'screening' => 'ማጣሪያ',
+        'screening' => 'በማጣሪያ ላይ',
         'exam_stage' => 'የፈተና ደረጃ',
         'interview_stage' => 'የቃለ መጠይቅ ደረጃ',
-        'finalized' => 'ተጠናቅቋል',
+        'finalized' => 'ተጠናቋል',
         'cancelled' => 'ተሰርዟል',
     ],
 
     'screening' => [
-        'pending' => 'በጥበቃ ላይ',
+        'pending' => 'በመጠባበቅ ላይ',
         'passed' => 'አልፏል',
         'failed' => 'አላለፈም',
         'correction_required' => 'ማስተካከያ ያስፈልጋል',
     ],
 
     'document_verification' => [
-        'pending' => 'በጥበቃ ላይ',
+        'pending' => 'ማረጋገጫ በመጠባበቅ ላይ',
         'verified' => 'ተረጋግጧል',
-        'rejected' => 'ውድቅ ሆኗል',
+        'rejected' => 'ውድቅ ተደርጓል',
     ],
 
     'user' => [
         'active' => 'ንቁ',
         'inactive' => 'ንቁ ያልሆነ',
-        'suspended' => 'ታግዷል',
+        'suspended' => 'የታገደ',
     ],
 
     'gender' => [
         'male' => 'ወንድ',
         'female' => 'ሴት',
-        'other' => 'ሌሎች',
+        'other' => 'ሌላ',
     ],
 
     'employment_type' => [
         'permanent' => 'ቋሚ',
-        'contract' => 'ኮንትራት',
+        'contract' => 'በውል',
         'temporary' => 'ጊዜያዊ',
         'internship' => 'ልምምድ',
-        'part_time' => 'ትርፍ ሰዓት',
+        'part_time' => 'የትርፍ ሰዓት',
     ],
 
     'exam_interview_type' => [
@@ -69,18 +71,18 @@ return [
     'notification_type' => [
         'exam_invitation' => 'የፈተና ጥሪ',
         'interview_invitation' => 'የቃለ መጠይቅ ጥሪ',
-        'screening_passed' => 'ማጣሪያ አልፏል',
-        'screening_failed' => 'ማጣሪያ አላለፈም',
-        'correction_required' => 'ማስተካከያ ያስፈልጋል',
-        'application_submitted' => 'ማመልከቻ ቀርቧል',
-        'selected' => 'ተምርጧል',
-        'waitlisted' => 'በተጠባባቂነት ተምዝግቧል',
-        'not_selected' => 'አልተምረጠም',
-        'general' => 'አጠቃላይ',
+        'screening_passed' => 'የማጣሪያ ማለፍ ማሳወቂያ',
+        'screening_failed' => 'የማጣሪያ ውጤት ማሳወቂያ',
+        'correction_required' => 'የማስተካከያ ጥያቄ',
+        'application_submitted' => 'የማመልከቻ መቅረብ ማረጋገጫ',
+        'selected' => 'የመመረጥ ማሳወቂያ',
+        'waitlisted' => 'የተጠባባቂ ዝርዝር ማሳወቂያ',
+        'not_selected' => 'የመጨረሻ ውጤት ማሳወቂያ',
+        'general' => 'አጠቃላይ ማሳወቂያ',
     ],
 
     'education_level' => [
-        'certificate' => 'ሰርተፍኬት',
+        'certificate' => 'ሰርተፊኬት',
         'diploma' => 'ዲፕሎማ',
         'degree' => 'የመጀመሪያ ዲግሪ',
         'masters' => 'ሁለተኛ ዲግሪ',

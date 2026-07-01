@@ -12,7 +12,7 @@ return [
     'unauthorized' => 'ይህን እርምጃ ለመፈጸም ፈቃድ የለዎትም።',
     'not_found' => 'የጠየቁት ሀብት አልተገኘም።',
     'no_records' => 'ምንም ግቤቶች አልተገኙም።',
-    'filter' => 'ጣር',
+    'filter' => 'አጣራ',
     'reset' => 'ዳግም አስጀምር',
     'search' => 'ፈልግ',
     'clear' => 'አጽዳ',
@@ -101,6 +101,7 @@ return [
     'all_roles' => 'ሁሉም ሚናዎች',
     'all_types' => 'ሁሉም ዓይነቶች',
 
+
     // Users
     'new_password' => 'አዲስ የይለፍ ቃል',
     'confirm_password' => 'የይለፍ ቃል አረጋግጥ',
@@ -111,7 +112,8 @@ return [
     'edit_permissions' => 'ፈቃዶች አርትዕ',
     'active' => 'ንቁ',
     'inactive' => 'ንቁ ያልሆነ',
-
+'date_from' => 'ከዚህ ቀን ጀምሮ',
+'date_until' => 'እስከዚህ ቀን',
     // Schedules
     'add_schedule' => 'መርሃ ግብር ጨምር',
     'edit_schedule' => 'መርሃ ግብር አርትዕ',

@@ -53,4 +53,6 @@ return [
     'preferred_locale' => 'ቋንቋ ምርጫ',
     'profile_photo' => 'የፕሮፋይል ፎቶ',
     'terms' => 'ውሎችና ፕሪቬሲ',
+    'registered_at' => 'የተመዘገበበት ቀን',
+    'applicant_code' => 'የአመልካች መለያ ኮድ',
 ];
