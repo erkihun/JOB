@@ -82,6 +82,19 @@ tinymce.init({
     content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }',
     branding: false,
     promotion: false,
+    // Sync editor content back to the hidden textarea before the form submits,
+    // otherwise the textarea stays empty and the required validation fails.
+    setup: function (editor) {
+        editor.on('change', function () { editor.save(); });
+        editor.on('submit', function () { editor.save(); });
+    },
+});
+
+// Catch the form's submit event and flush all TinyMCE instances first.
+document.querySelector('form').addEventListener('submit', function () {
+    if (typeof tinymce !== 'undefined') {
+        tinymce.triggerSave();
+    }
 });
 </script>
 @endpush
