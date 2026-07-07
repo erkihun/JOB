@@ -20,8 +20,9 @@ class StoreVacancyAnnouncementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'subject' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string'],
+            'subject'      => ['required', 'string', 'max:255'],
+            'content'      => ['required', 'string'],
+            'status'       => ['required', 'in:draft,published'],
             'published_at' => ['nullable', 'date'],
         ];
     }

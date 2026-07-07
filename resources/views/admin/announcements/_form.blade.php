@@ -11,6 +11,42 @@
         @error('subject')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
     </div>
 
+    {{-- Status --}}
+    @php $currentStatus = old('status', $announcement->status ?? 'draft'); @endphp
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('vacancies.status') }} <span class="text-red-500">*</span></label>
+        <div class="flex gap-3">
+
+            {{-- Draft --}}
+            <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border px-4 py-2.5 text-sm font-medium transition
+                          {{ $currentStatus === 'draft'
+                             ? 'border-yellow-400 bg-yellow-50 text-yellow-800 ring-2 ring-yellow-400'
+                             : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50' }}">
+                <input type="radio" name="status" value="draft"
+                       class="sr-only" {{ $currentStatus === 'draft' ? 'checked' : '' }}>
+                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                {{ __('messages.draft') }}
+            </label>
+
+            {{-- Published --}}
+            <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border px-4 py-2.5 text-sm font-medium transition
+                          {{ $currentStatus === 'published'
+                             ? 'border-green-400 bg-green-50 text-green-800 ring-2 ring-green-400'
+                             : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50' }}">
+                <input type="radio" name="status" value="published"
+                       class="sr-only" {{ $currentStatus === 'published' ? 'checked' : '' }}>
+                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                {{ __('messages.published') }}
+            </label>
+
+        </div>
+        @error('status')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+    </div>
+
     {{-- Published At --}}
     @php
         $pubDate = '';

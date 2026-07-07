@@ -17,6 +17,7 @@ class VacancyAnnouncement extends Model
     protected $fillable = [
         'subject',
         'content',
+        'status',
         'published_at',
         'created_by',
     ];
@@ -45,7 +46,7 @@ class VacancyAnnouncement extends Model
 
     public function isPublished(): bool
     {
-        return $this->published_at !== null && $this->published_at->isPast();
+        return $this->status === 'published';
     }
 
     public function renderableHtml(): string

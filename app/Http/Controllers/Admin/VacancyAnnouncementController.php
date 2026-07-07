@@ -35,12 +35,21 @@ class VacancyAnnouncementController extends Controller
     public function store(StoreVacancyAnnouncementRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        $status = $data['status'];
+
+        // Auto-set published_at to now when publishing for the first time
+        // and no explicit date was provided.
+        $publishedAt = $data['published_at'] ?? null;
+        if ($status === 'published' && $publishedAt === null) {
+            $publishedAt = now();
+        }
 
         VacancyAnnouncement::create([
-            'subject' => $data['subject'],
-            'content' => $data['content'],
-            'published_at' => $data['published_at'] ?? null,
-            'created_by' => auth()->id(),
+            'subject'      => $data['subject'],
+            'content'      => $data['content'],
+            'status'       => $status,
+            'published_at' => $publishedAt,
+            'created_by'   => auth()->id(),
         ]);
 
         return redirect()->route('admin.announcements.index')
@@ -60,11 +69,23 @@ class VacancyAnnouncementController extends Controller
     public function update(UpdateVacancyAnnouncementRequest $request, VacancyAnnouncement $announcement): RedirectResponse
     {
         $data = $request->validated();
+        $status = $data['status'];
+
+        // Preserve the original published_at when re-saving a published announcement
+        // without an explicit date. Set it now when publishing for the first time.
+        $publishedAt = $data['published_at'] ?? null;
+        if ($status === 'published' && $publishedAt === null) {
+            $publishedAt = $announcement->published_at ?? now();
+        }
+        if ($status === 'draft') {
+            $publishedAt = null;
+        }
 
         $announcement->update([
-            'subject' => $data['subject'],
-            'content' => $data['content'],
-            'published_at' => $data['published_at'] ?? null,
+            'subject'      => $data['subject'],
+            'content'      => $data['content'],
+            'status'       => $status,
+            'published_at' => $publishedAt,
         ]);
 
         return redirect()->route('admin.announcements.index')
