@@ -25,6 +25,7 @@ class HomeController extends Controller
             ->get();
 
         $announcements = VacancyAnnouncement::query()
+            ->where('status', 'published')
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
             ->latest('published_at')

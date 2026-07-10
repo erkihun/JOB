@@ -18,10 +18,9 @@
         <div class="flex gap-3">
 
             {{-- Draft --}}
-            <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border px-4 py-2.5 text-sm font-medium transition
-                          {{ $currentStatus === 'draft'
-                             ? 'border-yellow-400 bg-yellow-50 text-yellow-800 ring-2 ring-yellow-400'
-                             : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50' }}">
+            <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border px-4 py-2.5 text-sm font-medium text-gray-600 transition
+                          border-gray-200 bg-white hover:bg-gray-50
+                          has-checked:border-yellow-400 has-checked:bg-yellow-50 has-checked:text-yellow-800 has-checked:ring-2 has-checked:ring-yellow-400">
                 <input type="radio" name="status" value="draft"
                        class="sr-only" {{ $currentStatus === 'draft' ? 'checked' : '' }}>
                 <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,10 +30,9 @@
             </label>
 
             {{-- Published --}}
-            <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border px-4 py-2.5 text-sm font-medium transition
-                          {{ $currentStatus === 'published'
-                             ? 'border-green-400 bg-green-50 text-green-800 ring-2 ring-green-400'
-                             : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50' }}">
+            <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border px-4 py-2.5 text-sm font-medium text-gray-600 transition
+                          border-gray-200 bg-white hover:bg-gray-50
+                          has-checked:border-green-400 has-checked:bg-green-50 has-checked:text-green-800 has-checked:ring-2 has-checked:ring-green-400">
                 <input type="radio" name="status" value="published"
                        class="sr-only" {{ $currentStatus === 'published' ? 'checked' : '' }}>
                 <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

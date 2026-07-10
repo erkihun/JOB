@@ -13,6 +13,7 @@ class AnnouncementController extends Controller
     public function index(): View
     {
         $announcements = VacancyAnnouncement::query()
+            ->where('status', 'published')
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
             ->latest('published_at')
