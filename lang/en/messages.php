@@ -165,7 +165,7 @@ return [
     'announcement_updated' => 'Announcement updated successfully.',
     'announcement_deleted' => 'Announcement deleted successfully.',
     'published_at' => 'Publish Date',
-    'leave_blank_draft' => 'Leave blank to save as draft.',
+    'leave_blank_draft' => 'Defaults to the current date/time if left blank. This date is for display only — use the status above to control whether the announcement is visible.',
     'content' => 'Content',
     'published' => 'Published',
     'draft' => 'Draft',

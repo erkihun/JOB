@@ -166,7 +166,7 @@ return [
     'announcement_updated' => 'ማስታወቂያ በተሳካ ሁኔታ ተዘምኗል።',
     'announcement_deleted' => 'ማስታወቂያ በተሳካ ሁኔታ ተሰርዟል።',
     'published_at' => 'የታተመበት ቀን',
-    'leave_blank_draft' => 'ረቂቅ ለማስቀመጥ ባዶ ይተው።',
+    'leave_blank_draft' => 'ባዶ ከተተወ በራስ-ሰር የአሁኑ ቀን/ሰዓት ይመዘገባል። ይህ ቀን ለማሳያ ብቻ ነው — ማስታወቂያው እንዲታይ ወይም እንዳይታይ ከላይ ያለውን ሁኔታ (Status) ይጠቀሙ።',
     'content' => 'ይዘት',
     'published' => 'ታትሟል',
     'draft' => 'ረቂቅ',

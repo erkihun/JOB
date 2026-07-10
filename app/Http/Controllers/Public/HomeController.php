@@ -26,10 +26,7 @@ class HomeController extends Controller
 
         $announcements = VacancyAnnouncement::query()
             ->where('status', 'published')
-            ->whereNotNull('published_at')
-            ->where('published_at', '<=', now())
             ->latest('published_at')
-            ->limit(3)
             ->get();
 
         return view('public.home', compact('sliders', 'vacancies', 'announcements'));

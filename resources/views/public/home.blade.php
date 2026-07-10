@@ -224,7 +224,7 @@
         </div>
 
         <div class="grid gap-4">
-            @foreach($announcements->take(3) as $ann)
+            @foreach($announcements as $ann)
             <article
                x-data="{ expanded: false }"
                class="group flex flex-col rounded-2xl border border-amber-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-amber-200 transition-all scroll-animate"
@@ -255,15 +255,6 @@
             </article>
             @endforeach
         </div>
-
-        @if($announcements->count() > 3)
-        <div class="mt-6 text-center">
-            <a href="{{ route('announcements.index') }}"
-               class="inline-block rounded-xl border border-amber-200 bg-white px-6 py-2.5 text-sm font-semibold text-amber-700 hover:bg-amber-50 transition shadow-sm">
-                {{ __('public.view_all') }} ({{ $announcements->count() }})
-            </a>
-        </div>
-        @endif
     </div>
 </section>
 @endif
