@@ -1,10 +1,10 @@
 @extends('layouts.admin')
 @section('title', __('messages.add_user'))
 @section('content')
-<div class="space-y-4">
-    <a href="{{ route('admin.users.index') }}" class="text-sm font-medium text-brand hover:text-brand-dark">← {{ __('menus.users') }}</a>
-    <h1 class="page-title">{{ __('messages.add_user') }}</h1>
-    <form method="POST" action="{{ route('admin.users.store') }}" enctype="multipart/form-data">
+<div class="space-y-6">
+    <x-admin.page-header :title="__('messages.add_user')"
+                         :crumbs="[['label' => __('menus.access_control')], ['label' => __('menus.users'), 'url' => route('admin.users.index')], ['label' => __('messages.create')]]" />
+    <form method="POST" action="{{ route('admin.users.store') }}" enctype="multipart/form-data" class="max-w-3xl">
         @csrf
         @include('admin.users._form')
     </form>

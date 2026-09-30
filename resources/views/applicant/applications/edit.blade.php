@@ -5,7 +5,8 @@
 @section('content')
 <div class="space-y-6">
     <div>
-        <h1 class="text-xl font-bold text-gray-900">{{ __('applicant.edit_application_title') }}</h1>
+        <nav aria-label="Breadcrumb" class="mb-1.5 text-sm text-gray-600"><a href="{{ route('applicant.dashboard') }}" class="font-medium text-brand hover:underline">{{ __('applicant.nav_dashboard') }}</a> <span class="text-gray-400" aria-hidden="true">/</span> <a href="{{ route('applicant.applications.index') }}" class="font-medium text-brand hover:underline">{{ __('applicant.my_applications') }}</a> <span class="text-gray-400" aria-hidden="true">/</span> <a href="{{ route('applicant.applications.show', $application) }}" class="font-medium text-brand hover:underline">{{ $application->reference_number }}</a></nav>
+        <h1 class="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">{{ __('applicant.edit_application_title') }}</h1>
         <p class="mt-1 text-sm text-gray-500">
             {{ $application->vacancy->getTranslation('title', app()->getLocale(), false)
                ?: $application->vacancy->getTranslation('title', 'en', false) }}
@@ -26,7 +27,7 @@
         <input type="hidden" name="cgpa" value="{{ old('cgpa', $application->cgpa) }}">
 
         {{-- Change applied position --}}
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-6 space-y-4">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 space-y-4">
             <div>
                 <h2 class="text-base font-semibold text-gray-900">{{ __('applicant.applied_position') }}</h2>
                 <p class="mt-0.5 text-xs text-gray-500">{{ __('applicant.change_position_hint') }}</p>
@@ -37,7 +38,7 @@
                     {{ __('menus.vacancies') }}
                 </label>
                 <select id="vacancy_id" name="vacancy_id"
-                        class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('vacancy_id') border-red-400 @enderror">
+                        class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('vacancy_id') border-red-400 @enderror">
                     @foreach($openVacancies as $v)
                         @php
                             $vTitle = $v->getTranslation('title', app()->getLocale(), false)
@@ -79,7 +80,7 @@
                 $docName = $vacDoc?->document_name
                            ?: $document->original_name;
             @endphp
-            <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-5">
+            <div class="rounded-2xl border border-gray-200 bg-white p-5">
                 <p class="text-sm font-medium text-gray-900 mb-1">{{ $docName }}</p>
                 <p class="text-xs text-gray-400 mb-3">
                     {{ __('applicant.current_file') }}: {{ $document->original_name }}

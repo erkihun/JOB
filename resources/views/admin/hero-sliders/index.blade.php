@@ -2,78 +2,54 @@
 @section('title', __('menus.hero_slider'))
 
 @section('content')
-<div class="space-y-5">
-
-    <div class="flex items-center justify-between">
-        <h1 class="page-title">{{ __('menus.hero_slider') }}</h1>
+<div class="space-y-6">
+    <x-admin.page-header :title="__('menus.hero_slider')"
+                         :description="__('messages.slider_intro')"
+                         :crumbs="[['label' => __('menus.system')], ['label' => __('menus.hero_slider')]]">
+        <a href="{{ route('home') }}" target="_blank" rel="noopener" class="btn btn-secondary">{{ __('messages.slider_view_site') }}</a>
         <a href="{{ route('admin.hero-sliders.create') }}" class="btn btn-primary">
-            + {{ __('messages.add') }}
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+            {{ __('messages.slider_add') }}
         </a>
-    </div>
+    </x-admin.page-header>
 
-    @if(session('success'))
-        <div class="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
-            {{ session('success') }}
+    @if($sliders->isEmpty())
+        <div class="card">
+            <x-admin.empty :title="__('messages.slider_empty')" :text="__('messages.slider_empty_hint')">
+                <a href="{{ route('admin.hero-sliders.create') }}" class="btn btn-primary btn-sm">{{ __('messages.slider_add') }}</a>
+            </x-admin.empty>
         </div>
+    @else
+    <ul class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        @foreach($sliders as $slider)
+        <li class="card flex flex-col overflow-hidden">
+            <div class="relative aspect-16/7 bg-gray-100">
+                @if($slider->image_path)
+                    <img src="{{ Storage::url($slider->image_path) }}" alt="" class="h-full w-full object-cover" loading="lazy">
+                @else
+                    <div class="flex h-full items-center justify-center text-sm text-gray-500">{{ __('messages.slider_no_image') }}</div>
+                @endif
+                <span class="absolute left-3 top-3 rounded-md bg-gray-900/75 px-2 py-0.5 text-xs font-bold text-white">#{{ $slider->sort_order }}</span>
+                <span class="absolute right-3 top-3">
+                    <x-admin.status :tone="$slider->is_active ? 'success' : 'gray'" :label="$slider->is_active ? __('messages.active') : __('messages.inactive')" />
+                </span>
+            </div>
+            <div class="flex flex-1 flex-col gap-1 p-4">
+                <p class="font-semibold text-gray-900">{{ $slider->getTranslation('title', 'en', false) ?: '—' }}</p>
+                @if($slider->getTranslation('title', 'am', false))
+                <p class="text-sm text-gray-600" lang="am">{{ $slider->getTranslation('title', 'am', false) }}</p>
+                @endif
+            </div>
+            <div class="card-footer justify-between">
+                <form method="POST" action="{{ route('admin.hero-sliders.destroy', $slider) }}" onsubmit="return confirm(@js(__('messages.confirm_delete')))">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn btn-danger-soft btn-sm">{{ __('messages.delete') }}</button>
+                </form>
+                <a href="{{ route('admin.hero-sliders.edit', $slider) }}" class="btn btn-secondary btn-sm">{{ __('messages.edit') }}</a>
+            </div>
+        </li>
+        @endforeach
+    </ul>
     @endif
-
-    <div class="card overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-100">
-            <thead class="table-header">
-                <tr>
-                    <th class="table-th">{{ __('messages.title') }}</th>
-                    <th class="table-th">{{ __('messages.image') }}</th>
-                    <th class="table-th">{{ __('messages.order') }}</th>
-                    <th class="table-th">{{ __('vacancies.status') }}</th>
-                    <th class="table-th">{{ __('messages.actions') }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-                @forelse($sliders as $slider)
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-4 py-3">
-                        <p class="text-sm font-medium text-gray-900">
-                            {{ $slider->getTranslation('title', 'en', false) ?: '—' }}
-                        </p>
-                        @if($slider->getTranslation('title', 'am', false))
-                            <p class="text-xs text-gray-600">{{ $slider->getTranslation('title', 'am', false) }}</p>
-                        @endif
-                    </td>
-                    <td class="px-4 py-3">
-                        @if($slider->image_path)
-                            <img src="{{ Storage::url($slider->image_path) }}"
-                                 class="h-12 w-20 rounded-md object-cover border border-gray-200" alt="">
-                        @else
-                            <span class="text-xs text-gray-600">—</span>
-                        @endif
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">{{ $slider->sort_order }}</td>
-                    <td class="px-4 py-3">
-                        @if($slider->is_active)
-                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">{{ __('messages.active') }}</span>
-                        @else
-                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-500">{{ __('messages.inactive') }}</span>
-                        @endif
-                    </td>
-                    <td class="px-4 py-3">
-                        <div class="flex items-center gap-2">
-                            <a href="{{ route('admin.hero-sliders.edit', $slider) }}"
-                               class="link-action">{{ __('messages.edit') }}</a>
-                            <form method="POST" action="{{ route('admin.hero-sliders.destroy', $slider) }}"
-                                  onsubmit="return confirm('{{ __('messages.confirm_delete') }}')">
-                                @csrf @method('DELETE')
-                                <button class="link-danger">{{ __('messages.delete') }}</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="5" class="px-4 py-10 text-center text-sm text-gray-600">{{ __('messages.no_records') }}</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
 </div>
 @endsection

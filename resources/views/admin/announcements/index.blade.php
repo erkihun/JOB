@@ -2,84 +2,98 @@
 @section('title', __('menus.announcements'))
 
 @section('content')
-<div class="space-y-5">
+@php
+    $stateOf = fn ($ann) => $ann->isPublished() ? 'published' : ($ann->status === 'published' && $ann->published_at?->isFuture() ? 'scheduled' : 'draft');
+    $stateBadge = [
+        'published' => ['success', __('messages.published')],
+        'scheduled' => ['info', __('messages.ann_mode_schedule')],
+        'draft'     => ['gray', __('messages.draft')],
+    ];
+@endphp
+<div class="space-y-6">
 
-    <div class="flex items-center justify-between">
-        <h1 class="page-title">{{ __('menus.announcements') }}</h1>
+    <x-admin.page-header :title="__('menus.announcements')"
+                         :description="__('messages.ann_list_intro')"
+                         :crumbs="[['label' => __('menus.recruitment')], ['label' => __('menus.announcements')]]">
         <a href="{{ route('admin.announcements.create') }}" class="btn btn-primary">
-            + {{ __('messages.add_announcement') }}
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+            {{ __('messages.add_announcement') }}
         </a>
-    </div>
+    </x-admin.page-header>
 
-    @if(session('success'))
-        <div class="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
-            {{ session('success') }}
+    <x-admin.filters :reset="route('admin.announcements.index')" :active="request()->hasAny(['search', 'state'])">
+        <div class="lg:col-span-2">
+            <label for="search" class="form-label">{{ __('messages.search') }}</label>
+            <input type="search" id="search" name="search" value="{{ request('search') }}" placeholder="{{ __('messages.ann_search_placeholder') }}" class="form-input">
         </div>
-    @endif
+        <div>
+            <label for="state" class="form-label">{{ __('vacancies.status') }}</label>
+            <select id="state" name="state" class="form-select">
+                <option value="">{{ __('messages.all_statuses') }}</option>
+                @foreach($stateBadge as $value => [, $label])
+                <option value="{{ $value }}" @selected(request('state') === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+    </x-admin.filters>
 
-    {{-- Search --}}
-    <form method="GET" class="filter-bar">
-        <input type="text" name="search" value="{{ request('search') }}"
-               placeholder="{{ __('messages.search') }}..."
-               class="form-input max-w-xs">
-        <button class="btn btn-secondary">{{ __('messages.search') }}</button>
-        @if(request('search'))
-            <a href="{{ route('admin.announcements.index') }}" class="btn btn-secondary">{{ __('messages.reset') }}</a>
-        @endif
-    </form>
-
-    <div class="card overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-100">
+    <x-admin.table-card :meta="trans_choice('messages.records_count', $announcements->total(), ['count' => number_format($announcements->total())])">
+        <table class="min-w-full divide-y divide-gray-100 text-sm">
             <thead class="table-header">
                 <tr>
-                    <th class="table-th">#</th>
-                    <th class="table-th">{{ __('messages.subject') }}</th>
+                    <th class="table-th">{{ __('messages.ann_title') }}</th>
+                    <th class="table-th hidden md:table-cell">{{ __('messages.ann_period') }}</th>
+                    <th class="table-th-right hidden sm:table-cell">{{ __('menus.vacancies') }}</th>
                     <th class="table-th">{{ __('vacancies.status') }}</th>
-                    <th class="table-th">{{ __('messages.published_at') }}</th>
-                    <th class="table-th">{{ __('messages.performed_by') }}</th>
-                    <th class="table-th">{{ __('messages.actions') }}</th>
+                    <th class="table-th-right"><span class="sr-only">{{ __('messages.actions') }}</span></th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-50">
-                @forelse($announcements as $i => $ann)
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-4 py-3 text-sm text-gray-600">{{ $announcements->firstItem() + $i }}</td>
-                    <td class="px-4 py-3">
-                        <a href="{{ route('admin.announcements.show', $ann) }}"
-                           class="text-sm font-medium text-gray-900 hover:text-brand">{{ $ann->subject }}</a>
+            <tbody class="divide-y divide-gray-100">
+                @forelse($announcements as $ann)
+                @php [$tone, $label] = $stateBadge[$stateOf($ann)]; @endphp
+                <tr class="table-row">
+                    <td class="table-td">
+                        <a href="{{ route('admin.announcements.show', $ann) }}" class="font-semibold text-gray-900 hover:text-brand">{{ $ann->subject }}</a>
+                        <p class="text-xs text-gray-600"><span class="font-mono">{{ $ann->code }}</span> · {{ $ann->author?->name ?? '—' }}</p>
                     </td>
-                    <td class="px-4 py-3">
-                        @if($ann->isPublished())
-                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">{{ __('messages.published') }}</span>
-                        @else
-                            <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">{{ __('messages.draft') }}</span>
-                        @endif
+                    <td class="table-td table-td-muted hidden md:table-cell">
+                        @if($ann->opening_date && $ann->closing_date){{ et_date($ann->opening_date, 'M d') }} – {{ et_date($ann->closing_date, 'M d, Y') }}@else — @endif
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">
-                        {{ et_date($ann->published_at) }}
+                    <td class="table-td hidden text-right tabular-nums sm:table-cell">{{ $ann->vacancies_count }}</td>
+                    <td class="table-td">
+                        <x-admin.status :tone="$tone" :label="$label" />
+                        @if($stateOf($ann) === 'scheduled')<p class="mt-0.5 text-xs text-gray-600">{{ et_date($ann->published_at) }}</p>@endif
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">{{ $ann->author?->name ?? '—' }}</td>
-                    <td class="px-4 py-3">
-                        <div class="flex items-center gap-2">
-                            <a href="{{ route('admin.announcements.edit', $ann) }}"
-                               class="link-action">{{ __('messages.edit') }}</a>
-                            <form method="POST" action="{{ route('admin.announcements.destroy', $ann) }}"
-                                  onsubmit="return confirm('{{ __('messages.confirm_delete') }}')">
-                                @csrf @method('DELETE')
-                                <button class="link-danger">{{ __('messages.delete') }}</button>
-                            </form>
+                    <td class="table-td">
+                        <div class="table-actions">
+                            <a href="{{ route('admin.announcements.edit', $ann) }}" class="btn btn-secondary btn-sm">{{ __('messages.edit') }}</a>
+                            <x-admin.row-menu>
+                                <a href="{{ route('admin.announcements.show', $ann) }}" class="menu-item">{{ __('messages.view') }}</a>
+                                @if($ann->isPublished())
+                                <a href="{{ route('announcements.show', $ann) }}" target="_blank" rel="noopener" class="menu-item">{{ __('messages.ann_view_public') }}</a>
+                                @endif
+                                @can('vacancies.create')
+                                <a href="{{ route('admin.vacancies.create', ['announcement_id' => $ann->id]) }}" class="menu-item">{{ __('vacancies.create_vacancy') }}</a>
+                                @endcan
+                                <div class="menu-divider"></div>
+                                <form method="POST" action="{{ route('admin.announcements.destroy', $ann) }}" onsubmit="return confirm(@js(__('messages.confirm_delete')))">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="menu-item menu-item-danger">{{ __('messages.delete') }}</button>
+                                </form>
+                            </x-admin.row-menu>
                         </div>
                     </td>
                 </tr>
                 @empty
-                <tr>
-                    <td colspan="6" class="px-4 py-10 text-center text-sm text-gray-600">{{ __('messages.no_records') }}</td>
-                </tr>
+                <tr><td colspan="5">
+                    <x-admin.empty :text="request()->hasAny(['search', 'state']) ? __('messages.empty_filtered') : __('messages.ann_empty_hint')">
+                        <a href="{{ route('admin.announcements.create') }}" class="btn btn-primary btn-sm">{{ __('messages.add_announcement') }}</a>
+                    </x-admin.empty>
+                </td></tr>
                 @endforelse
             </tbody>
         </table>
-    </div>
-
-    {{ $announcements->links() }}
+        <x-slot:footer>{{ $announcements->links() }}</x-slot:footer>
+    </x-admin.table-card>
 </div>
 @endsection

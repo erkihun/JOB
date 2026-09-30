@@ -7,22 +7,14 @@
 @endphp
 
 {{-- ── Page header ── --}}
-<div class="mb-5 flex flex-wrap items-start justify-between gap-4">
-    <div class="min-w-0">
-        <nav class="flex items-center gap-1.5 text-xs font-medium text-gray-500" aria-label="Breadcrumb">
-            <a href="{{ route('admin.vacancies.index') }}" class="hover:text-gray-800">{{ __('menus.vacancies') }}</a>
-            <svg class="h-3.5 w-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            <span class="text-gray-700">{{ $isEdit ? __('vacancies.edit_vacancy') : __('vacancies.create_vacancy') }}</span>
-        </nav>
-        <h1 class="mt-1.5 truncate text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
-            {{ $isEdit ? ($vacancy->getTranslation('title', app()->getLocale(), false) ?: $vacancy->getTranslation('title', 'en', false)) : __('vacancies.create_vacancy') }}
-        </h1>
-        <p class="mt-1 text-sm text-gray-500">{{ __('vacancies.form_intro') }}</p>
-    </div>
+<x-admin.page-header class="mb-6"
+    :title="$isEdit ? ($vacancy->getTranslation('title', app()->getLocale(), false) ?: $vacancy->getTranslation('title', 'en', false)) : __('vacancies.create_vacancy')"
+    :description="__('vacancies.form_intro')"
+    :crumbs="[['label' => __('menus.recruitment')], ['label' => __('menus.vacancies'), 'url' => route('admin.vacancies.index')], ['label' => $isEdit ? __('vacancies.edit_vacancy') : __('messages.create')]]">
     @if($isEdit && $vacancy->code)
-    <span class="rounded-lg bg-gray-100 px-3 py-1.5 font-mono text-xs font-semibold text-gray-700">{{ $vacancy->code }}</span>
+    <span class="badge badge-gray font-mono">{{ $vacancy->code }}</span>
     @endif
-</div>
+</x-admin.page-header>
 
 <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
 

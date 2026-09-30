@@ -53,4 +53,10 @@ return [
     'preferred_locale' => 'Preferred Language',
     'profile_photo' => 'Profile Photo',
     'terms' => 'Terms & Privacy',
+    // Admin UI
+    'name' => 'Name',
+    'registered_at' => 'Registered',
+    'months' => 'months',
+    'experience' => 'Experience',
+    'experience_summary' => 'Experience summary',
 ];

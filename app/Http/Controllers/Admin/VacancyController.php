@@ -89,7 +89,7 @@ class VacancyController extends Controller
 
     public function show(Vacancy $vacancy): View
     {
-        $vacancy->load(['applications.applicant', 'requirementGroups.requirements']);
+        $vacancy->load(['applications.applicant', 'requirementGroups.requirements', 'announcement', 'institution']);
 
         return view('admin.vacancies.show', compact('vacancy'));
     }

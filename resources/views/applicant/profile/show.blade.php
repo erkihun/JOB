@@ -10,10 +10,7 @@
 @endphp
 
 {{-- ── Hero ── --}}
-<div class="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 shadow-lg">
-    {{-- decorative circles --}}
-    <div class="pointer-events-none absolute -right-12 -top-12 h-56 w-56 rounded-full bg-white/5"></div>
-    <div class="pointer-events-none absolute -left-8 bottom-0 h-40 w-40 rounded-full bg-white/5"></div>
+<div class="relative mb-6 overflow-hidden rounded-2xl bg-ink">
 
     <div class="relative flex flex-col gap-5 px-6 pb-8 pt-10 sm:flex-row sm:items-end sm:gap-7 sm:px-10">
 
@@ -36,7 +33,7 @@
             <h1 class="text-2xl font-black text-white leading-tight truncate sm:text-3xl">
                 {{ $applicant->full_name ?: '—' }}
             </h1>
-            <p class="mt-1 text-sm text-blue-100">{{ $applicant->email }}</p>
+            <p class="mt-1 text-sm text-white/75">{{ $applicant->email }}</p>
 
             <div class="mt-3 flex flex-wrap items-center gap-2">
                 @if($applicant->applicant_code)
@@ -58,7 +55,7 @@
 
         {{-- Edit button --}}
         <a href="{{ route('applicant.profile.edit') }}"
-           class="shrink-0 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-50 transition">
+           class="shrink-0 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-ink transition hover:bg-gray-100">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
             </svg>
@@ -67,12 +64,6 @@
     </div>
 </div>
 
-@if(session('success'))
-<div class="mb-5 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-    <svg class="h-5 w-5 shrink-0 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-    {{ session('success') }}
-</div>
-@endif
 
 {{-- ── Info grid ── --}}
 <div class="grid gap-5 lg:grid-cols-2">

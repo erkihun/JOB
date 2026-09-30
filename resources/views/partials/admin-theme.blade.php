@@ -45,6 +45,10 @@
         return $out;
     };
 @endphp
+{{-- One typeface across admin, applicant and public pages (Amharic glyphs use Abyssinica SIL). --}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 @if(app()->getLocale() === 'am')
 {{-- Amharic pages: fetch Abyssinica SIL up front so text never flashes in a fallback font. --}}
 <link rel="preload" href="{{ asset('fonts/abyssinica/AbyssinicaSIL-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>

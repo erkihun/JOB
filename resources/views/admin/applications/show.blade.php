@@ -2,151 +2,126 @@
 @section('title', $application->reference_number)
 
 @section('content')
+@php
+    $applicant = $application->applicant;
+    $restricted = __('dashboard.restricted');
+    $personal = [
+        __('fields.gender')            => $applicant?->gender?->getLabel(),
+        __('fields.date_of_birth')     => et_date($applicant?->date_of_birth),
+        __('fields.national_id')       => $canViewSensitive ? $applicant?->national_id : $restricted,
+        __('fields.nationality')       => $applicant?->nationality,
+        __('fields.phone')             => $canViewSensitive ? $applicant?->phone : $restricted,
+        __('fields.email')             => $canViewSensitive ? $applicant?->email : $restricted,
+        __('fields.disability_status') => $applicant?->disability_status ? __('applicant.disability_yes') : __('applicant.disability_no'),
+    ];
+    $education = [
+        __('fields.education_level') => $applicant?->education_level?->getLabel(),
+        __('fields.field_of_study')  => $application->field_of_study ?: $applicant?->field_of_study,
+        __('fields.university_name') => $applicant?->university_name,
+        __('fields.graduation_year') => $applicant?->graduation_year,
+        __('fields.gpa')             => $application->cgpa ?? $applicant?->gpa,
+    ];
+    $docs = $application->documents;
+@endphp
 <div class="space-y-6">
 
-    <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-            <a href="{{ route('admin.applications.index') }}" class="text-sm font-medium text-brand hover:text-brand-dark">← {{ __('menus.applications') }}</a>
-            <h1 class="mt-1 page-title">{{ $application->reference_number }}</h1>
-        </div>
-        <a href="{{ route('admin.screening.review', $application) }}" class="btn btn-primary">
-            {{ __('messages.review_application') }} →
-        </a>
-    </div>
+    <x-admin.page-header :title="$applicant?->full_name ?? $application->reference_number"
+                         :description="$application->reference_number.' · '.$application->vacancy?->title"
+                         :crumbs="[['label' => __('menus.recruitment')], ['label' => __('menus.applications'), 'url' => route('admin.applications.index')], ['label' => $application->reference_number]]">
+        <x-admin.status :status="$application->status" />
+        @if($applicant)
+        <a href="{{ route('admin.applicants.show', $applicant) }}" class="btn btn-secondary">{{ __('messages.apps_view_applicant') }}</a>
+        @endif
+        @can('screening.view')
+        <a href="{{ route('admin.screening.review', $application) }}" class="btn btn-primary">{{ __('messages.review_application') }}</a>
+        @endcan
+    </x-admin.page-header>
 
-    <div class="grid gap-6 lg:grid-cols-3">
-
-        {{-- Applicant profile --}}
-        <div class="space-y-5 lg:col-span-2">
-            <div class="card card-body">
-                <div class="mb-4 flex items-center gap-2">
-                    <h2 class="card-title">{{ __('applicant.personal_info') }}</h2>
-                </div>
-                <div class="mb-4 flex items-center gap-4">
-                    @if($application->applicant?->profile_photo_path)
-                    <img src="{{ route('admin.applicants.photo', $application->applicant) }}" class="h-16 w-16 rounded-full border border-gray-200 object-cover">
-                    @else
-                    <div class="flex h-16 w-16 items-center justify-center rounded-full bg-brand-muted text-lg font-semibold text-brand ring-1 ring-brand/10">
-                        {{ mb_substr($application->applicant?->full_name ?? '?', 0, 2) }}
-                    </div>
-                    @endif
-                    <div>
-                        <p class="text-lg font-semibold text-gray-900">{{ $application->applicant?->full_name }}</p>
-                        <p class="text-sm text-gray-500">{{ $canViewSensitive ? ($application->applicant?->email ?? '—') : __('dashboard.restricted') }}</p>
-                    </div>
-                </div>
-                @php
-                $info = [
-                    __('fields.gender')            => $application->applicant?->gender?->getLabel(),
-                    __('fields.date_of_birth')     => et_date($application->applicant?->date_of_birth),
-                    __('fields.national_id')       => $canViewSensitive ? $application->applicant?->national_id : __('dashboard.restricted'),
-                    __('fields.nationality')       => $application->applicant?->nationality,
-                    __('fields.phone')             => $canViewSensitive ? $application->applicant?->phone : __('dashboard.restricted'),
-                    __('fields.disability_status') => $application->applicant?->disability_status ? __('applicant.disability_yes') : __('applicant.disability_no'),
-                ];
-                @endphp
-                <dl class="grid gap-3 sm:grid-cols-2">
-                    @foreach($info as $label => $value)
-                    <div>
-                        <dt class="text-xs text-gray-600">{{ $label }}</dt>
-                        <dd class="mt-0.5 text-sm font-medium text-gray-800">{{ $value ?? '—' }}</dd>
-                    </div>
-                    @endforeach
-                </dl>
-            </div>
-
-            <div class="card card-body">
-                <div class="mb-4 flex items-center gap-2">
-                    <h2 class="card-title">{{ __('applicant.education_info') }}</h2>
-                </div>
-                <dl class="grid gap-3 sm:grid-cols-2">
-                    @php
-                    $edu = [
-                        __('fields.university_name') => $application->applicant?->university_name,
-                        __('fields.field_of_study')  => $application->applicant?->field_of_study,
-                        __('fields.education_level') => $application->applicant?->education_level?->getLabel(),
-                        __('fields.graduation_year') => $application->applicant?->graduation_year,
-                        __('fields.gpa')             => $application->applicant?->gpa,
-                    ];
-                    @endphp
-                    @foreach($edu as $label => $value)
-                    <div>
-                        <dt class="text-xs text-gray-600">{{ $label }}</dt>
-                        <dd class="mt-0.5 text-sm font-medium text-gray-800">{{ $value ?? '—' }}</dd>
-                    </div>
-                    @endforeach
-                </dl>
-            </div>
-
-            {{-- Documents --}}
-            <div class="card card-body">
-                <div class="mb-4 flex items-center gap-2">
-                    <h2 class="card-title">{{ __('applicant.uploaded_documents') }}</h2>
-                </div>
-                @if($application->applicant?->profileDocuments->isEmpty())
-                <p class="text-sm text-gray-600">{{ __('applicant.no_documents') }}</p>
-                @else
-                <div class="space-y-2">
-                    @foreach($application->applicant->profileDocuments as $doc)
-                    <div class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
-                        <div>
-                            <p class="text-sm font-medium text-gray-800">{{ $doc->original_name }}</p>
-                            <p class="text-xs text-gray-600">{{ $doc->document_type }} · {{ $doc->file_size_mb }} MB</p>
-                        </div>
-                        <a href="{{ route('admin.documents.download', $doc) }}"
-                           class="link-action">{{ __('messages.download') }}</a>
-                    </div>
-                    @endforeach
-                </div>
-                @endif
-            </div>
-        </div>
-
-        {{-- Sidebar --}}
-        <div class="space-y-5">
-            <div class="card card-body">
-                <div class="mb-4 flex items-center gap-2">
-                    <h2 class="card-title">{{ __('vacancies.vacancy') }}</h2>
-                </div>
-                <p class="font-semibold text-gray-900">{{ $application->vacancy?->title }}</p>
-                <p class="mt-1 font-mono text-xs text-gray-600">{{ $application->vacancy?->code }}</p>
-                <div class="mt-3 space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">{{ __('vacancies.status') }}</span>
-                        <span class="font-medium text-gray-800">{{ $application->status->getLabel() }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">{{ __('messages.submitted') }}</span>
-                        <span class="font-medium text-gray-800">{{ et_date($application->created_at) }}</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Screening history --}}
-            @if($application->screeningReviews->isNotEmpty())
-            <div class="card card-body">
-                <div class="mb-4 flex items-center gap-2">
-                    <h2 class="card-title">{{ __('messages.screening_history') }}</h2>
-                </div>
-                <div class="space-y-3">
-                    @foreach($application->screeningReviews as $review)
-                    <div class="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-semibold {{ $review->decision->value === 'passed' ? 'text-green-600' : 'text-red-600' }}">
-                                {{ $review->decision->getLabel() }}
-                            </span>
-                            <span class="text-xs text-gray-600">{{ et_date($review->created_at) }}</span>
-                        </div>
-                        <p class="mt-1 text-xs text-gray-500">{{ $review->reviewer?->name }}</p>
-                        @if($review->remarks)
-                        <p class="mt-1 text-xs text-gray-600">{{ $review->remarks }}</p>
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+        <div class="space-y-6">
+            <section class="card">
+                <div class="card-header">
+                    <div class="flex items-center gap-3">
+                        @if($applicant?->profile_photo_path)
+                            <x-admin.avatar :name="$applicant->full_name" :photo="route('admin.applicants.photo', $applicant)" size="md" />
+                        @else
+                            <x-admin.avatar :name="$applicant?->full_name" size="md" />
                         @endif
+                        <h2 class="card-title">{{ __('applicant.personal_info') }}</h2>
                     </div>
-                    @endforeach
                 </div>
-            </div>
-            @endif
+                <dl class="dl-grid card-body">
+                    @foreach($personal as $label => $value)
+                    <div><dt>{{ $label }}</dt><dd>{{ $value ?: '—' }}</dd></div>
+                    @endforeach
+                </dl>
+            </section>
+
+            <section class="card">
+                <div class="card-header"><h2 class="card-title">{{ __('applicant.education_info') }}</h2></div>
+                <dl class="dl-grid card-body">
+                    @foreach($education as $label => $value)
+                    <div><dt>{{ $label }}</dt><dd>{{ $value ?: '—' }}</dd></div>
+                    @endforeach
+                </dl>
+            </section>
+
+            <x-admin.table-card :title="__('applicant.application_documents')" :meta="trans_choice('messages.files_count', $docs->count(), ['count' => $docs->count()])">
+                @if($docs->isEmpty())
+                    <x-admin.empty :text="__('applicant.no_documents')" />
+                @else
+                <ul class="divide-y divide-gray-100">
+                    @foreach($docs as $doc)
+                    <li class="flex items-center justify-between gap-3 px-5 py-3">
+                        <div class="min-w-0">
+                            <p class="truncate text-sm font-semibold text-gray-900">{{ $doc->vacancyDocument?->document_name ?? $doc->original_name }}</p>
+                            <p class="truncate text-xs text-gray-600">{{ $doc->original_name }} · {{ number_format(($doc->file_size ?? 0) / 1024, 0) }} KB</p>
+                        </div>
+                        <div class="flex shrink-0 gap-2">
+                            @if(str_starts_with((string) $doc->file_type, 'image/') || $doc->file_type === 'application/pdf')
+                            <a href="{{ route('admin.documents.preview', $doc) }}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">{{ __('messages.preview') }}</a>
+                            @endif
+                            <a href="{{ route('admin.documents.download', $doc) }}" class="btn btn-secondary btn-sm">{{ __('messages.download') }}</a>
+                        </div>
+                    </li>
+                    @endforeach
+                </ul>
+                @endif
+            </x-admin.table-card>
         </div>
+
+        <aside class="space-y-6 lg:sticky lg:top-24">
+            <section class="card card-body">
+                <h2 class="card-title mb-3">{{ __('vacancies.vacancy') }}</h2>
+                @if($application->vacancy)
+                <a href="{{ route('admin.vacancies.show', $application->vacancy) }}" class="font-semibold text-brand hover:underline">{{ $application->vacancy->title }}</a>
+                <p class="mt-0.5 font-mono text-xs text-gray-600">{{ $application->vacancy->code }}</p>
+                @endif
+                <dl class="mt-4 space-y-3 text-sm">
+                    <div class="flex justify-between gap-4"><dt class="text-gray-600">{{ __('messages.submitted') }}</dt><dd class="font-semibold text-gray-900">{{ et_date($application->submitted_at ?? $application->created_at) }}</dd></div>
+                    <div class="flex justify-between gap-4"><dt class="text-gray-600">{{ __('admin.institution_name') }}</dt><dd class="text-right font-semibold text-gray-900">{{ $application->vacancy?->institution?->displayName() ?? '—' }}</dd></div>
+                    @if($application->screener)
+                    <div class="flex justify-between gap-4"><dt class="text-gray-600">{{ __('messages.screened_by') }}</dt><dd class="text-right font-semibold text-gray-900">{{ $application->screener->name }}</dd></div>
+                    @endif
+                </dl>
+            </section>
+
+            <section class="card card-body">
+                <h2 class="card-title mb-3">{{ __('messages.screening_history') }}</h2>
+                @forelse($application->screeningReviews->sortByDesc('created_at') as $review)
+                <div class="border-t border-gray-100 py-3 first:border-0 first:pt-0">
+                    <div class="flex items-center justify-between gap-3">
+                        <x-admin.status :status="$review->decision" />
+                        <span class="text-xs text-gray-600">{{ et_date($review->created_at) }}</span>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-600">{{ $review->reviewer?->name }}</p>
+                    @if($review->remark)<p class="mt-1 text-sm text-gray-800">{{ $review->remark }}</p>@endif
+                </div>
+                @empty
+                <p class="text-sm text-gray-600">{{ __('messages.apps_not_screened') }}</p>
+                @endforelse
+            </section>
+        </aside>
     </div>
 </div>
 @endsection

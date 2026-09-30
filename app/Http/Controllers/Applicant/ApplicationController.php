@@ -26,7 +26,7 @@ class ApplicationController extends Controller
     {
         $applications = auth()->user()->applicant
             ->applications()
-            ->with(['vacancy'])
+            ->with(['vacancy', 'examInterviewApplicants.schedule'])
             ->latest('submitted_at')
             ->paginate(15)
             ->withQueryString();
@@ -117,9 +117,23 @@ class ApplicationController extends Controller
     {
         $this->authorize('view', $application);
 
-        $application->load(['vacancy', 'vacancy.requiredDocuments', 'documents.vacancyDocument']);
+        $application->load(['vacancy.announcement', 'vacancy.institution', 'vacancy.requiredDocuments', 'documents.vacancyDocument',
+            'examInterviewApplicants.schedule']);
 
-        return view('applicant.applications.show', compact('application'));
+        // Exams / interviews this application is invited to, soonest first.
+        $sessions = $application->examInterviewApplicants
+            ->filter(fn ($r) => $r->schedule !== null)
+            ->sortBy(fn ($r) => $r->schedule->date->format('Y-m-d').' '.$r->schedule->start_time)
+            ->values();
+
+        // Messages sent about this application.
+        $messages = $application->applicant->notifications()
+            ->where('application_id', $application->id)
+            ->latest()
+            ->limit(8)
+            ->get();
+
+        return view('applicant.applications.show', compact('application', 'sessions', 'messages'));
     }
 
     public function edit(Application $application): View|RedirectResponse

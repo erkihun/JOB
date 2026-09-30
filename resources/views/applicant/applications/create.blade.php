@@ -5,8 +5,9 @@
 @section('content')
 <div class="space-y-6">
     <div>
-        <h1 class="text-xl font-bold text-gray-900">{{ __('applicant.apply_for_position') }}</h1>
-        <p class="mt-1 text-sm text-gray-500">
+        <nav aria-label="Breadcrumb" class="mb-1.5 text-sm text-gray-600"><a href="{{ route('applicant.dashboard') }}" class="font-medium text-brand hover:underline">{{ __('applicant.nav_dashboard') }}</a> <span class="text-gray-400" aria-hidden="true">/</span> <a href="{{ route('applicant.vacancies.index') }}" class="font-medium text-brand hover:underline">{{ __('vacancies.job_vacancies') }}</a> <span class="text-gray-400" aria-hidden="true">/</span> <span class="text-gray-800">{{ __('applicant.apply_for_position') }}</span></nav>
+        <h1 class="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">{{ __('applicant.apply_for_position') }}</h1>
+        <p class="mt-1.5 text-lg font-semibold text-brand-dark">
             {{ $vacancy->getTranslation('title', app()->getLocale(), false)
                ?: $vacancy->getTranslation('title', 'en', false) }}
         </p>
@@ -90,7 +91,7 @@
         @endif
 
         @if($showAcademic)
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-6 space-y-5">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 space-y-5">
             <h2 class="text-base font-semibold text-gray-900">{{ __('applicant.academic_info') }}</h2>
 
             <div class="grid gap-5 sm:grid-cols-2">
@@ -103,7 +104,7 @@
                     </label>
                     <input type="text" id="field_of_study" name="field_of_study"
                            value="{{ old('field_of_study', $defaults['field_of_study']) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('field_of_study') border-red-400 @enderror">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('field_of_study') border-red-400 @enderror">
                     @error('field_of_study')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
                 @endunless
@@ -126,7 +127,7 @@
                         <input type="date" id="graduation_date" name="graduation_date"
                                value="{{ old('graduation_date', $defaults['graduation_date']) }}"
                                max="{{ now()->toDateString() }}"
-                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('graduation_date') border-red-400 @enderror">
+                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('graduation_date') border-red-400 @enderror">
                         @error('graduation_date')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                     </div>
                     @endif
@@ -142,7 +143,7 @@
                            value="{{ old('cgpa', $defaults['cgpa']) }}"
                            step="0.01" min="0" max="4"
                            placeholder="0.00 – 4.00"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('cgpa') border-red-400 @enderror">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('cgpa') border-red-400 @enderror">
                     @error('cgpa')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
                 @endunless
@@ -151,7 +152,7 @@
         @endif
 
         @if($requiredDocuments->isNotEmpty())
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-6 space-y-5">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 space-y-5">
             <h2 class="text-base font-semibold text-gray-900">{{ __('applicant.uploaded_documents') }}</h2>
 
             <div class="space-y-4">

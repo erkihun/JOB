@@ -5,94 +5,114 @@
 @section('content')
 <div class="space-y-6">
 
-    {{-- ── Page Header ─────────────────────────────────────────────────── --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-            <h1 class="page-title">{{ __('dashboard.title') }}</h1>
-            <p class="mt-0.5 text-sm text-gray-500">{{ now()->format('l, d F Y') }}</p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-            @if($user->hasPermissionTo('vacancies.create'))
-            <a href="{{ route('admin.vacancies.create') }}" class="btn btn-primary inline-flex items-center gap-1.5">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                {{ __('dashboard.quick_actions.create_vacancy') }}
-            </a>
-            @endif
-            @if($user->hasPermissionTo('applications.view'))
-            <a href="{{ route('admin.applications.index') }}" class="btn btn-outline inline-flex items-center gap-1.5">
-                {{ __('dashboard.quick_actions.view_applications') }}
-            </a>
-            @endif
-        </div>
-    </div>
-
-    {{-- ── 8 KPI Cards ─────────────────────────────────────────────────── --}}
     @php
-    $kpiCards = [
-        ['label' => __('dashboard.kpi.total_applicants'),   'value' => $stats['total_applicants'],   'dot' => 'bg-blue-500',    'iconBg' => 'bg-blue-100',    'iconColor' => 'text-blue-600',    'bar' => 'bg-blue-500',    'icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'],
-        ['label' => __('dashboard.kpi.total_applications'), 'value' => $stats['total_applications'], 'dot' => 'bg-violet-500',   'iconBg' => 'bg-violet-100',   'iconColor' => 'text-violet-600',   'bar' => 'bg-violet-500',   'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
-        ['label' => __('dashboard.kpi.open_vacancies'),     'value' => $stats['open_vacancies'],     'dot' => 'bg-emerald-500',  'iconBg' => 'bg-emerald-100',  'iconColor' => 'text-emerald-600',  'bar' => 'bg-emerald-500',  'icon' => 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
-        ['label' => __('dashboard.kpi.pending_screening'),  'value' => $stats['pending_screening'],  'dot' => 'bg-amber-500',    'iconBg' => 'bg-amber-100',    'iconColor' => 'text-amber-600',    'bar' => 'bg-amber-500',    'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4'],
-        ['label' => __('dashboard.kpi.passed_screening'),   'value' => $stats['passed_screening'],   'dot' => 'bg-teal-500',     'iconBg' => 'bg-teal-100',     'iconColor' => 'text-teal-600',     'bar' => 'bg-teal-500',     'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-        ['label' => __('dashboard.kpi.selected_applicants'), 'value' => $stats['selected'],            'dot' => 'bg-green-500',    'iconBg' => 'bg-green-100',    'iconColor' => 'text-green-600',    'bar' => 'bg-green-500',    'icon' => 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z'],
-        ['label' => __('dashboard.kpi.total_vacancies'),    'value' => $stats['total_vacancies'],    'dot' => 'bg-slate-500',    'iconBg' => 'bg-slate-100',    'iconColor' => 'text-slate-600',    'bar' => 'bg-slate-400',    'icon' => 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10'],
-        ['label' => __('dashboard.kpi.closed_vacancies'),   'value' => $stats['closed_vacancies'],   'dot' => 'bg-rose-500',     'iconBg' => 'bg-rose-100',     'iconColor' => 'text-rose-600',     'bar' => 'bg-rose-500',     'icon' => 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636'],
-    ];
+        $hour = (int) now()->format('G');
+        $greeting = $hour < 12 ? __('messages.dash_morning') : ($hour < 17 ? __('messages.dash_afternoon') : __('messages.dash_evening'));
+        $todo = array_values(array_filter([
+            $stats['pending_screening'] > 0 && $user->hasPermissionTo('screening.view') ? [
+                'n' => $stats['pending_screening'], 'tone' => 'bg-accent-muted text-accent-dark',
+                'title' => __('messages.dash_todo_screening'), 'hint' => __('messages.dash_todo_screening_hint'), 'url' => route('admin.screening.index'),
+            ] : null,
+            $attention['closing_soon'] > 0 ? [
+                'n' => $attention['closing_soon'], 'tone' => 'bg-accent-muted text-accent-dark',
+                'title' => __('messages.dash_todo_closing'), 'hint' => __('messages.dash_todo_closing_hint'), 'url' => route('admin.vacancies.index'),
+            ] : null,
+            $attention['sessions_this_week'] > 0 ? [
+                'n' => $attention['sessions_this_week'], 'tone' => 'bg-brand-muted text-brand-dark',
+                'title' => __('messages.dash_todo_sessions'), 'hint' => __('messages.dash_todo_sessions_hint'), 'url' => route('admin.schedules.index'),
+            ] : null,
+            $attention['draft_announcements'] > 0 ? [
+                'n' => $attention['draft_announcements'], 'tone' => 'bg-gray-100 text-gray-700',
+                'title' => __('messages.dash_todo_drafts'), 'hint' => __('messages.dash_todo_drafts_hint'), 'url' => route('admin.announcements.index', ['state' => 'draft']),
+            ] : null,
+        ]));
+        $firstName = \Illuminate\Support\Str::of($user->name)->before(' ');
     @endphp
 
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        @foreach($kpiCards as $card)
-        <div class="flex flex-col card overflow-hidden">
-            <div class="flex flex-1 items-start justify-between p-5">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="h-2.5 w-2.5 rounded-full {{ $card['dot'] }}"></span>
-                        <p class="text-xs font-medium text-gray-500">{{ $card['label'] }}</p>
-                    </div>
-                    <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
-                        {{ number_format($card['value']) }}
-                    </p>
-                </div>
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full {{ $card['iconBg'] }}">
-                    <svg class="h-5 w-5 {{ $card['iconColor'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $card['icon'] }}"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="h-1 w-full {{ $card['bar'] }}"></div>
-        </div>
-        @endforeach
-    </div>
-
-    {{-- ── Application Pipeline ─────────────────────────────────────────── --}}
-    <div class="card overflow-hidden">
-        <div class="border-b border-gray-100 px-5 py-4">
-            <h2 class="card-title">{{ __('dashboard.sections.pipeline') }}</h2>
-            <p class="mt-0.5 text-xs text-gray-500">
-                {{ __('dashboard.pipeline_summary', ['count' => number_format($pipelineStages->sum('count')), 'stages' => $pipelineStages->count()]) }}
-            </p>
-        </div>
-        @if($pipelineStages->isEmpty())
-        <p class="px-5 py-8 text-center text-sm text-gray-600">{{ __('dashboard.empty.no_pipeline_data') }}</p>
-        @else
-        <div class="p-5 space-y-2.5">
-            @foreach($pipelineStages as $stage)
-            <div class="flex items-center gap-3">
-                <span class="w-40 shrink-0 text-right text-xs text-gray-600">{{ $stage['label'] }}</span>
-                <div class="flex-1 h-5 overflow-hidden rounded-full bg-gray-100">
-                    <div class="{{ $stage['color'] }} h-full rounded-full transition-all duration-500"
-                         style="width: {{ max((float)$stage['pct'], $stage['count'] > 0 ? 0.5 : 0) }}%"></div>
-                </div>
-                <span class="w-20 shrink-0 text-xs text-gray-700">
-                    {{ number_format($stage['count']) }}
-                    <span class="text-gray-600">({{ $stage['pct'] }}%)</span>
-                </span>
-            </div>
-            @endforeach
-        </div>
+    <x-admin.page-header :title="$greeting.', '.$firstName"
+                         :description="et_date(now(), 'l, d F Y').' · '.trans_choice('messages.dash_open_vacancies', $stats['open_vacancies'], ['count' => $stats['open_vacancies']])">
+        @if($user->hasPermissionTo('applications.view'))
+        <a href="{{ route('admin.applications.index') }}" class="btn btn-secondary">{{ __('dashboard.quick_actions.view_applications') }}</a>
         @endif
+        @if($user->hasPermissionTo('vacancies.create'))
+        <a href="{{ route('admin.announcements.create') }}" class="btn btn-secondary">{{ __('messages.add_announcement') }}</a>
+        <a href="{{ route('admin.vacancies.create') }}" class="btn btn-primary">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
+            {{ __('dashboard.quick_actions.create_vacancy') }}
+        </a>
+        @endif
+    </x-admin.page-header>
+
+    {{-- ── Key numbers ─────────────────────────────────────────────────── --}}
+    <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" aria-label="{{ __('messages.report_summary') }}">
+        <x-admin.stat :label="__('dashboard.kpi.open_vacancies')" :value="number_format($stats['open_vacancies'])"
+                      :hint="trans_choice('messages.dash_of_total_vacancies', $stats['total_vacancies'], ['count' => number_format($stats['total_vacancies'])])"
+                      :href="route('admin.vacancies.index')" />
+        <x-admin.stat :label="__('dashboard.kpi.total_applicants')" :value="number_format($stats['total_applicants'])"
+                      :hint="__('messages.dash_registered')" :href="route('admin.applicants.index')" />
+        <x-admin.stat :label="__('dashboard.kpi.total_applications')" :value="number_format($stats['total_applications'])"
+                      :hint="trans_choice('messages.dash_from_applicants', $stats['total_applicants'], ['count' => number_format($stats['total_applicants'])])"
+                      :href="route('admin.applications.index')" />
+        <x-admin.stat :label="__('dashboard.kpi.pending_screening')" :value="number_format($stats['pending_screening'])"
+                      :tone="$stats['pending_screening'] > 0 ? 'warn' : 'good'"
+                      :hint="$stats['pending_screening'] > 0 ? __('messages.dash_todo_screening_hint') : __('messages.dash_all_screened')"
+                      :href="route('admin.screening.index')" />
+        <x-admin.stat :label="__('dashboard.kpi.selected_applicants')" :value="number_format($stats['selected'])" tone="good"
+                      :hint="trans_choice('messages.dash_passed_screening', $stats['passed_screening'], ['count' => number_format($stats['passed_screening'])])"
+                      :href="route('admin.final-results.index')" />
+    </section>
+
+    {{-- ── Attention + pipeline ─────────────────────────────────────────── --}}
+    <div class="grid gap-6 lg:grid-cols-5">
+        <section class="card overflow-hidden lg:col-span-2" aria-labelledby="todo-heading">
+            <div class="card-header"><h2 id="todo-heading" class="card-title">{{ __('messages.dash_attention') }}</h2></div>
+            @forelse($todo as $item)
+            <a href="{{ $item['url'] }}" class="flex items-center gap-3 border-b border-gray-100 px-5 py-3.5 last:border-0 hover:bg-gray-50">
+                <span class="flex h-8 min-w-10 items-center justify-center rounded-lg px-2 text-sm font-bold tabular-nums {{ $item['tone'] }}">{{ number_format($item['n']) }}</span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-sm font-semibold text-gray-900">{{ $item['title'] }}</span>
+                    <span class="block truncate text-[13px] text-gray-600">{{ $item['hint'] }}</span>
+                </span>
+                <svg class="h-4 w-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </a>
+            @empty
+            <div class="flex items-center gap-3 px-5 py-8 text-sm text-gray-700">
+                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-green-50 text-green-700" aria-hidden="true">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </span>
+                {{ __('messages.dash_all_clear') }}
+            </div>
+            @endforelse
+        </section>
+
+        <section class="card overflow-hidden lg:col-span-3" aria-labelledby="pipeline-heading">
+            <div class="card-header">
+                <div>
+                    <h2 id="pipeline-heading" class="card-title">{{ __('dashboard.sections.pipeline') }}</h2>
+                    <p class="card-description">{{ __('dashboard.pipeline_summary', ['count' => number_format($pipelineStages->sum('count')), 'stages' => $pipelineStages->count()]) }}</p>
+                </div>
+                @if($user->hasPermissionTo('reports.view'))
+                <a href="{{ route('admin.reports.index') }}" class="link-action">{{ __('menus.reports') }} →</a>
+                @endif
+            </div>
+            @if($pipelineStages->isEmpty())
+            <x-admin.empty :text="__('dashboard.empty.no_pipeline_data')" />
+            @else
+            <div class="space-y-2.5 p-5">
+                @foreach($pipelineStages as $stage)
+                <div>
+                    <div class="mb-1 flex items-center justify-between gap-3 text-sm">
+                        <span class="text-gray-800">{{ $stage['label'] }}</span>
+                        <span class="tabular-nums text-gray-600"><span class="font-semibold text-gray-900">{{ number_format($stage['count']) }}</span> · {{ $stage['pct'] }}%</span>
+                    </div>
+                    <div class="h-2 overflow-hidden rounded-full bg-gray-100">
+                        <div class="{{ $stage['color'] }} h-full rounded-full" style="width: {{ max((float) $stage['pct'], $stage['count'] > 0 ? 1 : 0) }}%"></div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @endif
+        </section>
     </div>
 
     {{-- ── Demographics Row ─────────────────────────────────────────────── --}}

@@ -1,175 +1,200 @@
 @extends('layouts.applicant')
 
-@section('title', __('menus.dashboard'))
+@section('title', __('applicant.nav_dashboard'))
 
 @section('content')
+@php
+    $locale = app()->getLocale();
+    $title = fn ($vacancy) => $vacancy ? ($vacancy->getTranslation('title', $locale, false) ?: $vacancy->getTranslation('title', 'en', false)) : '—';
+    $firstName = $applicant?->first_name ?: \Illuminate\Support\Str::of(auth()->user()->name)->before(' ');
+    $tone = [
+        'success' => 'bg-green-50 text-green-800',
+        'danger'  => 'bg-red-50 text-red-800',
+        'warning' => 'bg-accent-muted text-accent-dark',
+        'info'    => 'bg-brand-muted text-brand-dark',
+    ];
+
+    // Most recent application that is still in progress (not closed).
+    $latestActive = $applications->first(fn ($a) => ! in_array($a->status->value, ['failed_screening', 'not_selected', 'withdrawn'], true));
+
+    // The single most useful next action, in priority order.
+    $next = match (true) {
+        $needsCorrection !== null => [
+            'eyebrow' => __('applicant.next_action_needed'),
+            'title'   => __('applicant.next_correct_title', ['vacancy' => $title($needsCorrection->vacancy)]),
+            'text'    => __('applicant.next_correct_text'),
+            'url'     => $needsCorrection->isEditable() ? route('applicant.applications.edit', $needsCorrection) : route('applicant.applications.show', $needsCorrection),
+            'cta'     => __('applicant.next_correct_cta'),
+            'date'    => null,
+        ],
+        $upcoming !== null => [
+            'eyebrow' => __('applicant.next_step'),
+            'title'   => $upcoming->schedule->type->getLabel().' — '.$title($upcoming->schedule->vacancy),
+            'text'    => collect([et_date($upcoming->schedule->date, 'l'), $upcoming->schedule->start_time, $upcoming->schedule->venue])->filter()->implode(' · '),
+            'url'     => route('applicant.applications.show', $upcoming->application),
+            'cta'     => __('applicant.view_details'),
+            'date'    => $upcoming->schedule->date,
+        ],
+        $latestActive !== null => [
+            'eyebrow' => __('applicant.next_update'),
+            'title'   => $latestActive->status->label().' — '.$title($latestActive->vacancy),
+            'text'    => \App\Support\ApplicationProgress::nextText($latestActive),
+            'url'     => route('applicant.applications.show', $latestActive),
+            'cta'     => __('applicant.view_details'),
+            'date'    => null,
+        ],
+        $applicant && $completionPct < 100 => [
+            'eyebrow' => __('applicant.next_step'),
+            'title'   => __('applicant.next_profile_title'),
+            'text'    => __('applicant.next_profile_text', ['percent' => $completionPct]),
+            'url'     => route('applicant.profile.edit'),
+            'cta'     => __('applicant.complete_profile'),
+            'date'    => null,
+        ],
+        $applicationStats['total'] === 0 => [
+            'eyebrow' => __('applicant.next_step'),
+            'title'   => __('applicant.next_apply_title'),
+            'text'    => __('applicant.next_apply_text'),
+            'url'     => route('applicant.vacancies.index'),
+            'cta'     => __('applicant.browse_jobs'),
+            'date'    => null,
+        ],
+        default => null,
+    };
+@endphp
 <div class="space-y-6">
 
     {{-- Welcome --}}
-    <div>
-        <h1 class="text-2xl font-bold text-gray-900">
-            {{ __('applicant.welcome', ['name' => $applicant?->full_name ?? auth()->user()->name]) }}
-        </h1>
-        <p class="mt-1 text-sm text-gray-500">{{ __('applicant.what_today') }}</p>
-    </div>
+    <x-applicant.page-header :title="__('applicant.welcome', ['name' => $firstName])"
+                             :description="collect([
+                                 $applicant?->applicant_code ? __('applicant.applicant_id').' '.$applicant->applicant_code : null,
+                                 trans_choice('applicant.active_count', $applicationStats['active'] + $applicationStats['positive'], ['count' => $applicationStats['active'] + $applicationStats['positive']]),
+                             ])->filter()->implode(' · ')">
+        <a href="{{ route('applicant.vacancies.index') }}" class="inline-flex h-11 items-center gap-2 rounded-xl bg-accent-dark px-5 text-[15px] font-extrabold text-white transition hover:bg-accent">
+            {{ __('public.find_jobs') }}
+        </a>
+    </x-applicant.page-header>
 
-    {{-- ── Profile Completion Widget ──────────────────────────────────────── --}}
-    @if($applicant && $completionPct < 100)
-    <div class="rounded-xl border border-amber-200 bg-amber-50 shadow-sm p-5">
-        <div class="flex items-start justify-between gap-4">
-            <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-2">
-                    <svg class="h-5 w-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <p class="text-sm font-semibold text-amber-800">{{ __('applicant.profile_incomplete') }}</p>
-                </div>
+    {{-- Next step --}}
+    @if($next)
+    <section class="flex flex-col gap-5 rounded-2xl bg-ink p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-7" aria-labelledby="next-heading">
+        <div class="flex items-center gap-4">
+            @if($next['date'])
+            <span class="flex w-16 shrink-0 flex-col items-center rounded-xl bg-white py-2 text-ink">
+                <span class="text-2xl font-extrabold leading-none">{{ et_date($next['date'], 'd') }}</span>
+                <span class="mt-0.5 text-xs font-extrabold uppercase">{{ et_date($next['date'], 'M') }}</span>
+            </span>
+            @endif
+            <div class="min-w-0">
+                <p class="text-[13px] font-extrabold uppercase tracking-wider text-brand-muted">{{ $next['eyebrow'] }}</p>
+                <h2 id="next-heading" class="mt-1 text-xl font-extrabold leading-snug">{{ $next['title'] }}</h2>
+                <p class="mt-1 text-[15px] text-white/75">{{ $next['text'] }}</p>
+            </div>
+        </div>
+        <a href="{{ $next['url'] }}" class="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-white px-5 text-[15px] font-extrabold text-ink transition hover:bg-gray-100">{{ $next['cta'] }}</a>
+    </section>
+    @endif
 
-                {{-- Progress bar --}}
-                <div class="mb-3">
-                    <div class="flex items-center justify-between text-xs text-amber-700 mb-1">
-                        <span>{{ __('applicant.profile_completion') }}</span>
-                        <span class="font-semibold">{{ $completionPct }}%</span>
-                    </div>
-                    <div class="h-2 w-full rounded-full bg-amber-200">
-                        <div class="h-2 rounded-full bg-amber-500 transition-all"
-                             style="width: {{ $completionPct }}%"></div>
-                    </div>
-                </div>
+    <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start">
 
-                @if($completionMissing)
-                <p class="text-xs text-amber-700 font-medium mb-1">{{ __('applicant.missing_fields') }}</p>
-                <div class="flex flex-wrap gap-1.5">
-                    @foreach($completionMissing as $field)
-                    <span class="inline-block rounded-full border border-amber-300 bg-white px-2.5 py-0.5 text-xs text-amber-700">
-                        {{ $field }}
-                    </span>
-                    @endforeach
-                </div>
+        {{-- My applications --}}
+        <section class="rounded-2xl border border-gray-200 bg-white" aria-labelledby="apps-heading">
+            <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+                <h2 id="apps-heading" class="text-lg font-extrabold text-gray-900">{{ __('applicant.my_applications') }}</h2>
+                @if($applicationStats['total'] > 0)
+                <a href="{{ route('applicant.applications.index') }}" class="text-sm font-bold text-brand hover:underline">{{ __('public.view_all') }}</a>
                 @endif
             </div>
-            <a href="{{ route('applicant.profile.edit') }}"
-               class="shrink-0 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white hover:bg-amber-600 transition">
-                {{ __('applicant.complete_profile') }}
-            </a>
-        </div>
-    </div>
-    @elseif($applicant && $completionPct === 100)
-    <div class="rounded-xl border border-green-200 bg-green-50 px-5 py-3 flex items-center gap-2">
-        <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-        </svg>
-        <p class="text-sm font-medium text-green-800">{{ __('applicant.profile_complete') }}</p>
-    </div>
-    @endif
-
-    {{-- Stats --}}
-    @if($applicant && $applicationStats['total'] > 0)
-    @php
-        $total = $applicationStats['total'];
-        $active = $applicationStats['active'];
-        $positive = $applicationStats['positive'];
-        $rejected = $applicationStats['rejected'];
-    @endphp
-    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div class="rounded-xl border bg-white p-5 text-center shadow-sm">
-            <p class="text-3xl font-bold text-gray-900">{{ $total }}</p>
-            <p class="text-xs text-gray-500 mt-1 font-medium uppercase tracking-wide">{{ __('applicant.total_applications') }}</p>
-        </div>
-        <div class="rounded-xl border bg-white p-5 text-center shadow-sm">
-            <p class="text-3xl font-bold text-blue-600">{{ $active }}</p>
-            <p class="text-xs text-gray-500 mt-1 font-medium uppercase tracking-wide">{{ __('applicant.active_applications') }}</p>
-        </div>
-        <div class="rounded-xl border bg-white p-5 text-center shadow-sm">
-            <p class="text-3xl font-bold text-green-600">{{ $positive }}</p>
-            <p class="text-xs text-gray-500 mt-1 font-medium uppercase tracking-wide">{{ __('applicant.passed_applications') }}</p>
-        </div>
-        <div class="rounded-xl border bg-white p-5 text-center shadow-sm">
-            <p class="text-3xl font-bold text-red-500">{{ $rejected }}</p>
-            <p class="text-xs text-gray-500 mt-1 font-medium uppercase tracking-wide">{{ __('applicant.rejected_applications') }}</p>
-        </div>
-    </div>
-    @endif
-
-    {{-- Quick actions --}}
-    <div>
-        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">{{ __('applicant.quick_actions') }}</h2>
-        <div class="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
-            <a href="{{ route('applicant.vacancies.index') }}"
-               class="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 rounded-xl bg-blue-600 px-2 py-3 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-white hover:bg-blue-700 transition shadow-sm text-center">
-                <svg class="h-5 w-5 sm:h-4 sm:w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                </svg>
-                <span class="leading-tight">{{ __('applicant.browse_jobs') }}</span>
-            </a>
-            <a href="{{ route('applicant.applications.index') }}"
-               class="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 rounded-xl border border-gray-300 bg-white px-2 py-3 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition text-center">
-                <svg class="h-5 w-5 sm:h-4 sm:w-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <span class="leading-tight">{{ __('menus.my_applications') }}</span>
-            </a>
-            <a href="{{ route('applicant.profile.edit') }}"
-               class="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 rounded-xl border border-gray-300 bg-white px-2 py-3 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 transition text-center">
-                <svg class="h-5 w-5 sm:h-4 sm:w-4 shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
-                <span class="leading-tight">{{ __('menus.profile') }}</span>
-            </a>
-        </div>
-    </div>
-
-    {{-- Recent applications --}}
-    <div>
-        <h2 class="text-base font-semibold text-gray-900 mb-3">{{ __('applicant.recent_applications') }}</h2>
-
-        @if($applications->isNotEmpty())
-        <div class="divide-y divide-gray-100 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-            @foreach($applications->take(5) as $application)
-            <a href="{{ route('applicant.applications.show', $application) }}"
-               class="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition">
-                <div class="min-w-0">
-                    <p class="font-medium text-gray-900 text-sm truncate">
-                        {{ $application->vacancy->getTranslation('title', app()->getLocale(), false)
-                           ?: $application->vacancy->getTranslation('title', 'en', false) }}
-                    </p>
-                    <p class="text-xs text-gray-400 mt-0.5 font-mono">{{ $application->reference_number }}</p>
+            @forelse($applications as $application)
+            <a href="{{ route('applicant.applications.show', $application) }}" class="block border-b border-gray-100 px-5 py-4 transition last:border-0 hover:bg-gray-50">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="truncate text-base font-bold text-gray-900">{{ $title($application->vacancy) }}</p>
+                        <p class="mt-0.5 text-[13px] text-gray-600"><span class="font-mono">{{ $application->reference_number }}</span>@if($application->submitted_at) · {{ __('applicant.applied_on', ['date' => et_date($application->submitted_at, 'M d, Y')]) }}@endif</p>
+                    </div>
+                    <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-bold {{ $tone[\App\Support\ApplicationProgress::tone($application->status)] }}">{{ $application->status->label() }}</span>
                 </div>
-                @php
-                    $color = match($application->status->getColor()) {
-                        'success' => 'bg-green-100 text-green-800',
-                        'danger'  => 'bg-red-100 text-red-800',
-                        'warning' => 'bg-amber-100 text-amber-800',
-                        default   => 'bg-blue-100 text-blue-800',
-                    };
-                @endphp
-                <span class="ml-4 shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium {{ $color }}">
-                    {{ $application->status->label() }}
+                <x-applicant.tracker :application="$application" class="mt-3.5" />
+            </a>
+            @empty
+            <div class="px-5 py-10 text-center">
+                <p class="font-bold text-gray-900">{{ __('applicant.no_applications_yet') }}</p>
+                <p class="mt-1 text-sm text-gray-600">{{ __('applicant.start_applying') }}</p>
+                <a href="{{ route('applicant.vacancies.index') }}" class="mt-4 inline-flex h-11 items-center rounded-xl bg-brand px-5 text-sm font-bold text-white hover:bg-brand-dark">{{ __('applicant.browse_jobs') }}</a>
+            </div>
+            @endforelse
+        </section>
+
+        <aside class="space-y-6">
+            {{-- Profile strength --}}
+            @if($applicant)
+            <section class="rounded-2xl border border-gray-200 bg-white p-5" aria-labelledby="profile-heading">
+                <div class="flex items-center gap-4">
+                    <div class="relative h-16 w-16 shrink-0 rounded-full" style="background: conic-gradient(var(--color-brand) {{ $completionPct * 3.6 }}deg, #E3EAEC 0deg);" role="img" aria-label="{{ $completionPct }}%">
+                        <span class="absolute inset-1.5 flex items-center justify-center rounded-full bg-white text-sm font-extrabold text-gray-900">{{ $completionPct }}%</span>
+                    </div>
+                    <div>
+                        <h2 id="profile-heading" class="font-extrabold text-gray-900">{{ $completionPct === 100 ? __('applicant.profile_complete') : __('applicant.profile_percent', ['percent' => $completionPct]) }}</h2>
+                        <p class="mt-0.5 text-[13px] text-gray-600">{{ __('applicant.profile_strength_hint') }}</p>
+                    </div>
+                </div>
+                @if($completionMissing)
+                <ul class="mt-4 space-y-1.5 text-sm">
+                    @foreach(array_slice($completionMissing, 0, 4) as $field)
+                    <li class="flex items-center gap-2 font-medium text-accent-dark"><span class="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true"></span>{{ $field }}</li>
+                    @endforeach
+                </ul>
+                @endif
+                <a href="{{ route($completionPct === 100 ? 'applicant.profile.show' : 'applicant.profile.edit') }}"
+                   class="mt-4 flex h-11 items-center justify-center rounded-xl border border-gray-300 text-sm font-bold text-gray-900 transition hover:bg-gray-50">
+                    {{ $completionPct === 100 ? __('applicant.view_profile') : __('applicant.complete_profile') }}
+                </a>
+            </section>
+            @endif
+
+            {{-- Messages --}}
+            <section class="rounded-2xl border border-gray-200 bg-white" aria-labelledby="msg-heading">
+                <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
+                    <h2 id="msg-heading" class="font-extrabold text-gray-900">{{ __('menus.notifications') }}</h2>
+                    @if($unreadMessages > 0)
+                    <span class="rounded-full bg-accent-dark px-2 py-0.5 text-xs font-bold text-white">{{ trans_choice('applicant.new_count', $unreadMessages, ['count' => $unreadMessages]) }}</span>
+                    @endif
+                </div>
+                @forelse($messages as $message)
+                <a href="{{ route('applicant.notifications.index') }}" class="flex gap-3 border-b border-gray-100 px-5 py-3 last:border-0 hover:bg-gray-50">
+                    <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full {{ $message->read_at ? 'bg-gray-300' : 'bg-accent' }}" aria-hidden="true"></span>
+                    <span class="min-w-0">
+                        <span class="block truncate text-sm font-semibold text-gray-900">{{ $message->subject }}</span>
+                        <span class="text-xs text-gray-600">{{ et_diff_for_humans($message->created_at) }}</span>
+                    </span>
+                </a>
+                @empty
+                <p class="px-5 py-5 text-sm text-gray-600">{{ __('applicant.no_notifications') }}</p>
+                @endforelse
+            </section>
+        </aside>
+    </div>
+
+    {{-- Suggested vacancies --}}
+    @if($suggested->isNotEmpty())
+    <section aria-labelledby="jobs-heading">
+        <div class="mb-3 flex items-end justify-between gap-3">
+            <h2 id="jobs-heading" class="text-xl font-extrabold text-gray-900">{{ __('applicant.suggested_jobs') }}</h2>
+            <a href="{{ route('applicant.vacancies.index') }}" class="text-sm font-bold text-brand hover:underline">{{ __('applicant.browse_all') }}</a>
+        </div>
+        <div class="grid gap-4 md:grid-cols-3">
+            @foreach($suggested as $vacancy)
+            @php $days = (int) today()->diffInDays($vacancy->announcement->closing_date, false); @endphp
+            <a href="{{ route('applicant.vacancies.show', $vacancy) }}" class="flex flex-col gap-1.5 rounded-2xl border border-gray-200 bg-white p-5 transition hover:border-brand/50 hover:shadow-card-hover">
+                <span class="text-base font-bold text-brand-dark">{{ $title($vacancy) }}</span>
+                <span class="text-sm text-gray-600">{{ collect([$vacancy->department, trans_choice('public.positions_count', (int) $vacancy->number_of_positions, ['count' => (int) $vacancy->number_of_positions])])->filter()->implode(' · ') }}</span>
+                <span class="mt-2 self-start rounded-full px-2.5 py-0.5 text-xs font-bold {{ $days <= 6 ? 'bg-accent-muted text-accent-dark' : 'bg-brand-muted text-brand-dark' }}">
+                    {{ trans_choice('public.days_left_count', max($days, 0), ['count' => max($days, 0)]) }}
                 </span>
             </a>
             @endforeach
         </div>
-        @if($applicationStats['total'] > 5)
-        <div class="mt-3 text-right">
-            <a href="{{ route('applicant.applications.index') }}" class="text-sm text-blue-600 hover:text-blue-800">
-                {{ __('public.view_all') }}
-            </a>
-        </div>
-        @endif
-        @else
-        <div class="rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-500">
-            <svg class="mx-auto h-10 w-10 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            <p class="text-sm">{{ __('applicant.no_applications_yet') }}</p>
-            <a href="{{ route('vacancies.index') }}"
-               class="mt-3 inline-block text-sm font-medium text-blue-600 hover:text-blue-800">
-                {{ __('vacancies.job_vacancies') }} →
-            </a>
-        </div>
-        @endif
-    </div>
-
+    </section>
+    @endif
 </div>
 @endsection

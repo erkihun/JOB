@@ -1,16 +1,13 @@
 @extends('layouts.admin')
-@section('title', __('messages.edit') . ': ' . $heroSlider->getTranslation('title', 'en', false))
+@section('title', __('messages.slider_edit'))
 
 @section('content')
-<div class="space-y-4">
-    <a href="{{ route('admin.hero-sliders.index') }}" class="text-sm font-medium text-brand hover:text-brand-dark">
-        ← {{ __('menus.hero_slider') }}
-    </a>
-    <h1 class="page-title">
-        {{ __('messages.edit') }}: {{ $heroSlider->getTranslation('title', 'en', false) }}
-    </h1>
+<div class="space-y-6">
+    <x-admin.page-header :title="__('messages.slider_edit')"
+                         :description="__('messages.slider_form_intro')"
+                         :crumbs="[['label' => __('menus.system')], ['label' => __('menus.hero_slider'), 'url' => route('admin.hero-sliders.index')], ['label' => $heroSlider->getTranslation('title', 'en', false) ?: __('messages.edit')]]" />
 
-    <form method="POST" action="{{ route('admin.hero-sliders.update', $heroSlider) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('admin.hero-sliders.update', $heroSlider) }}" enctype="multipart/form-data" class="max-w-3xl">
         @csrf @method('PUT')
         @include('admin.hero-sliders._form')
     </form>

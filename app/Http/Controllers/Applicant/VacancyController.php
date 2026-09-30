@@ -52,22 +52,29 @@ class VacancyController extends Controller
             $query->whereHas('announcement', fn ($q) => $q->whereDate('closing_date', '<=', $closingDate));
         }
 
-        $vacancies = $query->with('institution')->latest('published_at')->paginate(12)->withQueryString();
+        $vacancies = $query->with(['institution', 'announcement'])->latest('published_at')->paginate(12)->withQueryString();
+        $appliedIds = $request->user()->applicant?->applications()->pluck('vacancy_id')->all() ?? [];
 
         $departments = Vacancy::acceptingApplications()
+            ->whereNotNull('department')->where('department', '!=', '')
             ->distinct()->pluck('department')->sort()->values();
 
         $employmentTypes = collect(EmploymentType::cases())->mapWithKeys(
             fn (EmploymentType $e) => [$e->value => $e->label()]
         );
 
-        return view('applicant.vacancies.index', compact('vacancies', 'departments', 'employmentTypes'));
+        return view('applicant.vacancies.index', compact('vacancies', 'departments', 'employmentTypes', 'appliedIds'));
     }
 
     public function show(Vacancy $vacancy): View
     {
         abort_unless($vacancy->status === VacancyStatus::Open && $vacancy->announcement?->isPublished(), 404);
 
+        $vacancy->load([
+            'institution',
+            'requiredDocuments',
+            'requirementGroups' => fn ($q) => $q->where('is_active', true)->with('requirements'),
+        ]);
         $canApply = $vacancy->canAcceptApplications();
         $alreadyApplied = auth()->user()->applicant?->hasAppliedTo($vacancy) ?? false;
 

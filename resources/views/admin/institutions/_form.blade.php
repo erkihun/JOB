@@ -2,42 +2,42 @@
 <div class="space-y-6">
 
     {{-- Basic Info --}}
-    <div class="card card-body" style="box-shadow: var(--shadow-card)">
+    <div class="card card-body">
         <h2 class="card-title mb-4">{{ __('admin.institution_basic_info') }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
 
             <div class="sm:col-span-2">
-                <label class="form-label" for="name">{{ __('admin.institution_name') }} <span class="text-red-500">*</span></label>
+                <label class="form-label" for="name">{{ __('admin.institution_name') }} <span class="form-required">*</span></label>
                 <input type="text" id="name" name="name" value="{{ old('name', $institution->name) }}"
-                       class="form-input @error('name') border-red-400 @enderror" required>
+                       class="form-input @error('name') form-input-error @enderror" required>
                 @error('name')<p class="form-error">{{ $message }}</p>@enderror
             </div>
 
             <div>
                 <label class="form-label" for="short_name">{{ __('admin.institution_short_name') }}</label>
                 <input type="text" id="short_name" name="short_name" value="{{ old('short_name', $institution->short_name) }}"
-                       class="form-input @error('short_name') border-red-400 @enderror">
+                       class="form-input @error('short_name') form-input-error @enderror">
                 @error('short_name')<p class="form-error">{{ $message }}</p>@enderror
             </div>
 
             <div>
-                <label class="form-label" for="code">{{ __('admin.institution_code') }} <span class="text-red-500">*</span></label>
+                <label class="form-label" for="code">{{ __('admin.institution_code') }} <span class="form-required">*</span></label>
                 <input type="text" id="code" name="code" value="{{ old('code', $institution->code) }}"
-                       class="form-input font-mono uppercase @error('code') border-red-400 @enderror" required>
+                       class="form-input font-mono uppercase @error('code') form-input-error @enderror" required>
                 @error('code')<p class="form-error">{{ $message }}</p>@enderror
             </div>
 
             <div>
                 <label class="form-label" for="type">{{ __('admin.institution_type') }}</label>
                 <input type="text" id="type" name="type" value="{{ old('type', $institution->type) }}"
-                       class="form-input @error('type') border-red-400 @enderror"
+                       class="form-input @error('type') form-input-error @enderror"
                        placeholder="{{ __('admin.institution_type_placeholder') }}">
                 @error('type')<p class="form-error">{{ $message }}</p>@enderror
             </div>
 
             <div>
-                <label class="form-label" for="status">{{ __('admin.column.status') }} <span class="text-red-500">*</span></label>
-                <select id="status" name="status" class="form-select @error('status') border-red-400 @enderror" required>
+                <label class="form-label" for="status">{{ __('admin.column.status') }} <span class="form-required">*</span></label>
+                <select id="status" name="status" class="form-select @error('status') form-input-error @enderror" required>
                     <option value="active" {{ old('status', $institution->status ?? 'active') === 'active' ? 'selected' : '' }}>
                         {{ __('admin.status_active') }}
                     </option>
@@ -52,28 +52,28 @@
     </div>
 
     {{-- Contact Info --}}
-    <div class="card card-body" style="box-shadow: var(--shadow-card)">
+    <div class="card card-body">
         <h2 class="card-title mb-4">{{ __('admin.institution_contact_info') }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
 
             <div>
                 <label class="form-label" for="email">{{ __('admin.column.email') }}</label>
                 <input type="email" id="email" name="email" value="{{ old('email', $institution->email) }}"
-                       class="form-input @error('email') border-red-400 @enderror">
+                       class="form-input @error('email') form-input-error @enderror">
                 @error('email')<p class="form-error">{{ $message }}</p>@enderror
             </div>
 
             <div>
                 <label class="form-label" for="phone">{{ __('admin.column.phone') }}</label>
                 <input type="text" id="phone" name="phone" value="{{ old('phone', $institution->phone) }}"
-                       class="form-input @error('phone') border-red-400 @enderror">
+                       class="form-input @error('phone') form-input-error @enderror">
                 @error('phone')<p class="form-error">{{ $message }}</p>@enderror
             </div>
 
             <div>
                 <label class="form-label" for="website">{{ __('admin.institution_website') }}</label>
                 <input type="url" id="website" name="website" value="{{ old('website', $institution->website) }}"
-                       class="form-input @error('website') border-red-400 @enderror"
+                       class="form-input @error('website') form-input-error @enderror"
                        placeholder="https://...">
                 @error('website')<p class="form-error">{{ $message }}</p>@enderror
             </div>
@@ -81,7 +81,7 @@
             <div class="sm:col-span-2">
                 <label class="form-label" for="address">{{ __('admin.institution_address') }}</label>
                 <textarea id="address" name="address" rows="3"
-                          class="form-input @error('address') border-red-400 @enderror">{{ old('address', $institution->address) }}</textarea>
+                          class="form-input @error('address') form-input-error @enderror">{{ old('address', $institution->address) }}</textarea>
                 @error('address')<p class="form-error">{{ $message }}</p>@enderror
             </div>
 
@@ -89,7 +89,7 @@
     </div>
 
     {{-- Location / Google Map --}}
-    <div class="card card-body" style="box-shadow: var(--shadow-card)"
+    <div class="card card-body"
          x-data="mapPicker({{ old('latitude', $institution->latitude ?? 9.0054) }}, {{ old('longitude', $institution->longitude ?? 38.7636) }}, {{ ($institution->latitude && $institution->longitude) ? 'true' : 'false' }})">
 
         <h2 class="card-title mb-1">{{ __('admin.institution_location') }}</h2>
@@ -127,7 +127,7 @@
                 <input type="number" id="latitude" name="latitude" step="0.0000001"
                        min="-90" max="90"
                        x-model="lat"
-                       class="form-input font-mono @error('latitude') border-red-400 @enderror"
+                       class="form-input font-mono @error('latitude') form-input-error @enderror"
                        placeholder="9.0054">
                 @error('latitude')<p class="form-error">{{ $message }}</p>@enderror
             </div>
@@ -136,7 +136,7 @@
                 <input type="number" id="longitude" name="longitude" step="0.0000001"
                        min="-180" max="180"
                        x-model="lng"
-                       class="form-input font-mono @error('longitude') border-red-400 @enderror"
+                       class="form-input font-mono @error('longitude') form-input-error @enderror"
                        placeholder="38.7636">
                 @error('longitude')<p class="form-error">{{ $message }}</p>@enderror
             </div>

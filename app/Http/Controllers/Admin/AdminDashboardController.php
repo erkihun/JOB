@@ -14,6 +14,7 @@ use App\Models\AuditLog;
 use App\Models\ExamInterviewApplicant;
 use App\Models\ExamInterviewSchedule;
 use App\Models\FinalResult;
+use App\Models\RecruitmentAnnouncement;
 use App\Models\Vacancy;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
@@ -163,6 +164,15 @@ class AdminDashboardController extends Controller
             ? $this->remember('dashboard.recent_activity', fn () => AuditLog::with('user')->latest()->limit(6)->get())
             : collect();
 
+        // "Needs your attention": short, actionable counts for the top of the dashboard.
+        $attention = $this->remember('dashboard.attention', fn (): array => [
+            'closing_soon' => Vacancy::acceptingApplications()
+                ->whereHas('announcement', fn ($q) => $q->whereDate('closing_date', '<=', today()->addDays(7)))
+                ->count(),
+            'draft_announcements' => RecruitmentAnnouncement::where('status', 'draft')->count(),
+            'sessions_this_week' => ExamInterviewSchedule::whereBetween('date', [today()->toDateString(), today()->addDays(7)->toDateString()])->count(),
+        ]);
+
         return view('admin.dashboard.index', compact(
             'stats', 'pipelineStages', 'total',
             'genderDist', 'genderTotal', 'genderPassed', 'genderSelected',
@@ -172,7 +182,7 @@ class AdminDashboardController extends Controller
             'finalResultStats',
             'vacancyLoad',
             'upcomingSchedules', 'recentApplications', 'recentActivity',
-            'canViewSensitive', 'canViewAudit', 'user',
+            'canViewSensitive', 'canViewAudit', 'user', 'attention',
         ));
     }
 

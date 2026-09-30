@@ -4,22 +4,19 @@
 @section('content')
 <div class="space-y-6" x-data="{ previewOpen: false, previewUrl: '', previewName: '' }">
 
-    <div class="flex flex-wrap items-end justify-between gap-3">
-        <div>
-            <a href="{{ route('admin.screening.index', array_filter(['vacancy_id' => $queueVacancyId ?? null])) }}" class="text-sm font-medium text-brand hover:text-brand-dark">← {{ __('menus.screening') }}</a>
-            <h1 class="mt-1 page-title">{{ __('messages.review_application') }}: {{ $application->reference_number }}</h1>
-        </div>
-        <div class="flex items-center gap-2">
-            <span class="badge badge-gray">{{ trans_choice('messages.queue_remaining', $queueRemaining ?? 0, ['count' => $queueRemaining ?? 0]) }}</span>
-            @if($nextApplication ?? null)
-                <a href="{{ route('admin.screening.review', array_filter(['application' => $nextApplication->id, 'vacancy_id' => $queueVacancyId ?? null])) }}"
-                   class="btn btn-secondary btn-sm">
-                    {{ __('messages.skip_to_next') }}
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                </a>
-            @endif
-        </div>
-    </div>
+    <x-admin.page-header :title="$application->applicant?->full_name ?? $application->reference_number"
+                         :description="__('messages.review_application').' · '.$application->reference_number.' · '.$application->vacancy?->title"
+                         :crumbs="[['label' => __('menus.screening'), 'url' => route('admin.screening.index', array_filter(['vacancy_id' => $queueVacancyId ?? null]))], ['label' => $application->reference_number]]">
+        <x-admin.status :status="$application->status" />
+        <span class="badge badge-gray">{{ trans_choice('messages.queue_remaining', $queueRemaining ?? 0, ['count' => $queueRemaining ?? 0]) }}</span>
+        @if($nextApplication ?? null)
+            <a href="{{ route('admin.screening.review', array_filter(['application' => $nextApplication->id, 'vacancy_id' => $queueVacancyId ?? null])) }}"
+               class="btn btn-secondary">
+                {{ __('messages.skip_to_next') }}
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </a>
+        @endif
+    </x-admin.page-header>
 
     <div class="grid gap-6 lg:grid-cols-3">
 

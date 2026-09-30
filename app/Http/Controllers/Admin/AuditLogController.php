@@ -21,6 +21,15 @@ class AuditLogController extends Controller
         if ($action = $request->get('action')) {
             $query->where('action', $action);
         }
+        if ($search = $request->get('search')) {
+            $query->whereHas('user', fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+        }
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $request->get('date_from')) === 1) {
+            $query->whereDate('created_at', '>=', $request->get('date_from'));
+        }
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $request->get('date_until')) === 1) {
+            $query->whereDate('created_at', '<=', $request->get('date_until'));
+        }
 
         $logs = $query->paginate(30)->withQueryString();
         $modules = AuditLog::distinct()->orderBy('module')->pluck('module');

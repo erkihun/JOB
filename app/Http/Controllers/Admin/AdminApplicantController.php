@@ -30,15 +30,17 @@ class AdminApplicantController extends Controller
         }
 
         $applicants = $query->paginate(20)->withQueryString();
+        $canViewSensitive = $request->user()?->hasPermissionTo('applications.view-sensitive') ?? false;
 
-        return view('admin.applicants.index', compact('applicants', 'search'));
+        return view('admin.applicants.index', compact('applicants', 'search', 'canViewSensitive'));
     }
 
     public function show(Applicant $applicant): View
     {
-        $applicant->load(['user', 'applications.vacancy', 'profileDocuments']);
+        $applicant->load(['user', 'applications' => fn ($q) => $q->latest(), 'applications.vacancy', 'profileDocuments']);
+        $canViewSensitive = auth()->user()?->hasPermissionTo('applications.view-sensitive') ?? false;
 
-        return view('admin.applicants.show', compact('applicant'));
+        return view('admin.applicants.show', compact('applicant', 'canViewSensitive'));
     }
 
     public function photo(Applicant $applicant): Response

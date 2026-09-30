@@ -1,6 +1,8 @@
 @props([
     'vacancy',
     'headingTag' => 'h3',
+    'href' => null,      // override the link (e.g. the applicant portal's vacancy page)
+    'applied' => false,  // show an "Applied" badge instead of the apply button
 ])
 
 @php
@@ -15,7 +17,7 @@
     $isUrgent    = ! $isPast && $daysLeft <= 6;
     $institution = $vacancy->institution;
     $hasMap      = $institution && $institution->latitude && $institution->longitude;
-    $url         = route('vacancies.show', $vacancy);
+    $url         = $href ?? route('vacancies.show', $vacancy);
 @endphp
 
 {{-- Search-result card: what / where / key facts on the left, deadline + action on the right. --}}
@@ -76,10 +78,17 @@
             <p class="mt-1.5 text-[13px] text-gray-500">{{ __('public.closes') }} {{ et_date($closing, 'M d, Y') }}</p>
             <p class="sr-only">{{ __('vacancies.opening_date') }} {{ et_date($vacancy->announcement->opening_date, 'M d, Y') }}</p>
         </div>
+        @if($applied)
+        <span class="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl bg-green-50 px-4 text-[15px] font-bold text-green-800">
+            <x-public.icon name="check-circle" class="h-4 w-4" />
+            {{ __('applicant.applied') }}
+        </span>
+        @else
         <span class="relative inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl bg-brand px-4 text-[15px] font-bold text-white transition group-hover:bg-brand-dark" aria-hidden="true">
             {{ __('public.view_and_apply') }}
             <x-public.icon name="arrow-right" class="h-4 w-4" />
         </span>
+        @endif
     </div>
 
     {{-- Map modal (teleported so card positioning never clips it) --}}

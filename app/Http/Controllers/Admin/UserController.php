@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\UserStatus;
 use App\Http\Controllers\Controller;
+use App\Support\EthiopianPhone;
 use App\Models\AuditLog;
 use App\Models\User;
 use App\Services\Security\PasswordPolicyService;
@@ -84,15 +85,14 @@ class UserController extends Controller
         }
 
         if ($request->filled('phone')) {
-            $digits = preg_replace('/\D/', '', $request->phone);
-            $request->merge(['phone' => '+251'.substr($digits, -10)]);
+            $request->merge(['phone' => EthiopianPhone::normalize($request->phone)]);
         }
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => ['nullable', 'string', 'max:50', 'unique:users,username'],
             'email' => ['required', 'email', 'unique:users,email'],
-            'phone' => ['nullable', 'regex:/^\+251\d{10}$/', 'unique:users,phone'],
+            'phone' => ['nullable', 'regex:'.EthiopianPhone::PATTERN, 'unique:users,phone'],
             'national_id' => ['nullable', 'digits:16', 'unique:users,national_id'],
             'gender' => ['nullable', 'string', 'in:male,female,other'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
@@ -149,15 +149,14 @@ class UserController extends Controller
         }
 
         if ($request->filled('phone')) {
-            $digits = preg_replace('/\D/', '', $request->phone);
-            $request->merge(['phone' => '+251'.substr($digits, -10)]);
+            $request->merge(['phone' => EthiopianPhone::normalize($request->phone)]);
         }
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => ['nullable', 'string', 'max:50', 'unique:users,username,'.$user->id],
             'email' => ['required', 'email', 'unique:users,email,'.$user->id],
-            'phone' => ['nullable', 'regex:/^\+251\d{10}$/', 'unique:users,phone,'.$user->id],
+            'phone' => ['nullable', 'regex:'.EthiopianPhone::PATTERN, 'unique:users,phone,'.$user->id],
             'national_id' => ['nullable', 'digits:16', 'unique:users,national_id,'.$user->id],
             'gender' => ['nullable', 'string', 'in:male,female,other'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],

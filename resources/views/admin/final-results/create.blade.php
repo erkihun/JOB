@@ -3,7 +3,7 @@
 @section('title', $result ? __('messages.edit_result') : __('messages.add_result'))
 
 @section('content')
-<div class="space-y-5" x-data="{
+<div class="space-y-6" x-data="{
     examScore: '{{ old('exam_score', $result?->exam_score ?? $recordedExamScore ?? '') }}',
     interviewScore: '{{ old('interview_score', $result?->interview_score ?? $recordedInterviewScore ?? '') }}',
     practicalScore: '{{ old('practical_score', $result?->practical_score ?? $recordedPracticalScore ?? '') }}',
@@ -25,19 +25,9 @@
         return used === 0 ? '—' : (total * (100 / used)).toFixed(2);
     }
 }">
-    <div class="flex items-center gap-3">
-        <a href="{{ route('admin.final-results.index') }}" class="text-gray-400 hover:text-gray-600">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        </a>
-        <div>
-            <h1 class="page-title">
-                {{ $result ? __('messages.edit_result') : __('messages.add_result') }}
-            </h1>
-            <p class="mt-0.5 text-sm text-gray-500">
-                {{ $application->applicant?->full_name }} &middot; {{ $application->reference_number }}
-            </p>
-        </div>
-    </div>
+    <x-admin.page-header :title="$result ? __('messages.edit_result') : __('messages.add_result')"
+                         :description="($application->applicant?->full_name ?? '').' · '.$application->reference_number"
+                         :crumbs="[['label' => __('menus.exams_interviews')], ['label' => __('menus.final_results'), 'url' => route('admin.final-results.index')], ['label' => $application->reference_number]]" />
 
     <form method="POST"
           action="{{ $result
@@ -128,27 +118,27 @@
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">{{ __('messages.decision') }}</label>
-                            <select name="decision" class="form-select mt-1 @error('decision') border-red-500 @enderror">
+                            <select name="decision" class="form-select mt-1 @error('decision') form-input-error @enderror">
                                 <option value="">— {{ __('messages.select') }} —</option>
                                 <option value="selected"     @selected(old('decision', $result?->decision) === 'selected')>{{ __('messages.selected') }}</option>
                                 <option value="waitlisted"   @selected(old('decision', $result?->decision) === 'waitlisted')>{{ __('messages.waitlisted') }}</option>
                                 <option value="not_selected" @selected(old('decision', $result?->decision) === 'not_selected')>{{ __('messages.not_selected') }}</option>
                             </select>
-                            @error('decision')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                            @error('decision')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">{{ __('messages.remarks') }}</label>
                             <textarea name="remarks" rows="2"
-                                      class="form-textarea mt-1 @error('remarks') border-red-500 @enderror"
+                                      class="form-textarea mt-1 @error('remarks') form-input-error @enderror"
                                       placeholder="{{ __('messages.remarks_placeholder') }}">{{ old('remarks', $result?->remarks) }}</textarea>
-                            @error('remarks')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                            @error('remarks')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
                     </div>
                 </div>
 
-                <div class="flex gap-3">
+                <div class="card flex flex-wrap items-center justify-end gap-2 px-5 py-4">
+                    <a href="{{ route('admin.final-results.index') }}" class="btn btn-secondary">{{ __('messages.cancel') }}</a>
                     <button type="submit" class="btn btn-primary">{{ __('messages.save_changes') }}</button>
-                    <a href="{{ route('admin.final-results.index') }}" class="btn btn-outline">{{ __('messages.cancel') }}</a>
                 </div>
             </div>
         </div>

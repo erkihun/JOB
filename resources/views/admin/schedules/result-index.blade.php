@@ -3,54 +3,42 @@
 @section('title', __('menus.exam_interview_scores'))
 
 @section('content')
-<div class="space-y-5">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-            <h1 class="page-title">{{ __('menus.exam_interview_scores') }}</h1>
-            <p class="mt-1 text-sm text-gray-500">{{ __('messages.select_schedule_to_record_results') }}</p>
-        </div>
-    </div>
+@php $typeTone = ['exam' => 'info', 'practical' => 'warning', 'interview' => 'success']; @endphp
+<div class="space-y-6">
+    <x-admin.page-header :title="__('menus.exam_interview_scores')"
+                         :description="__('messages.select_schedule_to_record_results')"
+                         :crumbs="[['label' => __('menus.exams_interviews')], ['label' => __('menus.exam_interview_scores')]]">
+        <a href="{{ route('admin.schedules.index') }}" class="btn btn-secondary">{{ __('menus.schedules') }}</a>
+    </x-admin.page-header>
 
-    <div class="card overflow-hidden">
+    <x-admin.table-card :meta="trans_choice('messages.records_count', $schedules->total(), ['count' => number_format($schedules->total())])">
         <table class="min-w-full divide-y divide-gray-100 text-sm">
             <thead class="table-header">
                 <tr>
                     <th class="table-th">{{ __('messages.title') }}</th>
                     <th class="table-th">{{ __('dashboard.table.type') }}</th>
-                    <th class="table-th hidden sm:table-cell">{{ __('menus.vacancies') }}</th>
+                    <th class="table-th hidden md:table-cell">{{ __('menus.vacancies') }}</th>
                     <th class="table-th">{{ __('dashboard.table.date') }}</th>
-                    <th class="table-th">{{ __('dashboard.assigned') }}</th>
-                    <th class="table-th-right">{{ __('messages.actions') }}</th>
+                    <th class="table-th-right">{{ __('dashboard.assigned') }}</th>
+                    <th class="table-th-right"><span class="sr-only">{{ __('messages.actions') }}</span></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse($schedules as $schedule)
-                @php
-                    $typeBadge = $schedule->type->value === 'exam' ? 'badge-blue' : 'badge-amber';
-                @endphp
                 <tr class="table-row">
-                    <td class="table-td font-medium text-gray-900">{{ $schedule->title }}</td>
-                    <td class="table-td"><span class="{{ $typeBadge }}">{{ $schedule->type->getLabel() }}</span></td>
-                    <td class="table-td hidden text-gray-600 sm:table-cell">{{ $schedule->vacancy?->title }}</td>
-                    <td class="table-td text-gray-700">{{ et_date($schedule->date) }} {{ $schedule->start_time }}</td>
-                    <td class="table-td text-gray-700">{{ $schedule->assigned_applicants_count }}</td>
-                    <td class="table-td text-right">
-                        <a href="{{ route('admin.schedules.results', $schedule) }}" class="btn btn-primary">
-                            {{ __('messages.record_results') }}
-                        </a>
-                    </td>
+                    <td class="table-td font-semibold text-gray-900">{{ $schedule->title }}</td>
+                    <td class="table-td"><x-admin.status :tone="$typeTone[$schedule->type->value] ?? 'gray'" :label="$schedule->type->getLabel()" /></td>
+                    <td class="table-td table-td-muted hidden md:table-cell">{{ $schedule->vacancy?->title }}</td>
+                    <td class="table-td tabular-nums text-gray-800">{{ et_date($schedule->date) }} <span class="text-gray-600">· {{ $schedule->start_time }}</span></td>
+                    <td class="table-td text-right tabular-nums">{{ $schedule->assigned_applicants_count }}</td>
+                    <td class="table-td"><div class="table-actions"><a href="{{ route('admin.schedules.results', $schedule) }}" class="btn btn-primary btn-sm">{{ __('messages.record_results') }}</a></div></td>
                 </tr>
                 @empty
-                <tr>
-                    <td colspan="6" class="px-4 py-10 text-center text-gray-600">{{ __('messages.no_records') }}</td>
-                </tr>
+                <tr><td colspan="6"><x-admin.empty :text="__('messages.results_empty_hint')" /></td></tr>
                 @endforelse
             </tbody>
         </table>
-
-        @if($schedules->hasPages())
-        <div class="border-t border-gray-100 px-4 py-3">{{ $schedules->links() }}</div>
-        @endif
-    </div>
+        <x-slot:footer>{{ $schedules->links() }}</x-slot:footer>
+    </x-admin.table-card>
 </div>
 @endsection

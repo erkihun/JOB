@@ -2,26 +2,18 @@
 @section('title', __('admin.institution_create'))
 
 @section('content')
-<div class="space-y-4">
-
-    <div class="flex items-center gap-3">
-        <a href="{{ route('admin.institutions.index') }}" class="text-sm text-gray-400 hover:text-gray-600 transition">
-            {{ __('admin.resource.institutions') }}
-        </a>
-        <svg class="h-4 w-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-        <h1 class="page-title">{{ __('admin.institution_create') }}</h1>
-    </div>
+<div class="space-y-6">
+    <x-admin.page-header :title="__('admin.institution_create')"
+                         :crumbs="[['label' => __('menus.recruitment')], ['label' => __('admin.resource.institutions'), 'url' => route('admin.institutions.index')], ['label' => __('messages.create')]]" />
 
     <form method="POST" action="{{ route('admin.institutions.store') }}" class="space-y-6">
         @csrf
 
         @include('admin.institutions._form')
 
-        <div class="flex items-center gap-3">
-            <button type="submit" class="btn-primary btn">{{ __('messages.save') }}</button>
-            <a href="{{ route('admin.institutions.index') }}" class="btn-secondary btn">{{ __('messages.cancel') }}</a>
+        <div class="card flex flex-wrap items-center justify-end gap-2 px-5 py-4">
+            <a href="{{ route('admin.institutions.index') }}" class="btn btn-secondary">{{ __('messages.cancel') }}</a>
+            <button type="submit" class="btn btn-primary">{{ __('messages.save') }}</button>
         </div>
     </form>
 </div>

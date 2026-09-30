@@ -19,11 +19,18 @@ class VacancyAnnouncementController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = RecruitmentAnnouncement::with('author')->latest();
+        $query = RecruitmentAnnouncement::with('author')->withCount('vacancies')->latest();
 
         if ($search = $request->query('search')) {
-            $query->where('subject', 'like', "%$search%");
+            $query->where(fn ($q) => $q->where('subject', 'like', "%$search%")->orWhere('code', 'like', "%$search%"));
         }
+
+        match ($request->query('state')) {
+            'published' => $query->where('status', 'published')->where('published_at', '<=', now()),
+            'scheduled' => $query->where('status', 'published')->where('published_at', '>', now()),
+            'draft' => $query->where('status', 'draft'),
+            default => null,
+        };
 
         $announcements = $query->paginate(20)->withQueryString();
 

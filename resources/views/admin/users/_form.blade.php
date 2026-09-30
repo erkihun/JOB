@@ -69,8 +69,8 @@
             <div class="mt-1 flex">
                 <span class="inline-flex items-center rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 select-none">+251</span>
                 <input type="tel" name="phone" value="{{ $displayPhone }}"
-                       maxlength="10" placeholder="XXXXXXXXXX"
-                       @input="this.value = this.value.replace(/\D/g,'').slice(0,10)"
+                       maxlength="10" placeholder="911 234 567" inputmode="tel"
+                       oninput="this.value = this.value.replace(/\D/g,'').slice(0,10)"
                        class="form-input rounded-l-none @error('phone') form-input-error @enderror">
             </div>
             @error('phone')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror

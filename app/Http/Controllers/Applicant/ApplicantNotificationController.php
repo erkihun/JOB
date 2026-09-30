@@ -15,7 +15,7 @@ class ApplicantNotificationController extends Controller
         $applicant = auth()->user()->applicant;
 
         $notifications = $applicant
-            ? ApplicantNotification::where('applicant_id', $applicant->id)
+            ? ApplicantNotification::with('application.vacancy')->where('applicant_id', $applicant->id)
                 ->orderByDesc('created_at')
                 ->paginate(20)
             : collect();

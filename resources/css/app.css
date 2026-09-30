@@ -24,9 +24,9 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Abyssinica SIL', 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Abyssinica SIL', 'Public Sans', 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-serif-am: 'Abyssinica SIL', 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-serif-am: 'Abyssinica SIL', 'Public Sans', 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
     --font-public: 'Abyssinica SIL', 'Public Sans', ui-sans-serif, system-ui, sans-serif;
 
     /* ── Brand Colors ──────────────────────────────── */
@@ -270,6 +270,18 @@ html.dark .form-textarea {
 .table-td-muted { @apply text-gray-600; }
 .table-footer { @apply flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-4 py-3 text-[13px] text-gray-600; }
 .table-actions { @apply flex items-center justify-end gap-2; }
+
+/* Row "More" menu (x-admin.row-menu) */
+.menu { @apply absolute right-0 z-30 mt-1 w-48 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 text-left shadow-lg; }
+.menu-item { @apply flex w-full items-center gap-2 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50; }
+.menu-item-danger { @apply text-red-700 hover:bg-red-50; }
+.menu-divider { @apply my-1 border-t border-gray-100; }
+
+/* KPI tile (x-admin.stat) */
+.stat { @apply rounded-xl border border-gray-200 bg-white p-4 shadow-[0_1px_2px_rgba(16,24,40,.04)]; }
+.stat-label { @apply text-[13px] font-semibold text-gray-600; }
+.stat-value { @apply mt-1 text-2xl font-bold tabular-nums text-gray-900; }
+.stat-hint { @apply mt-0.5 text-[13px] text-gray-600; }
 
 /* -- Alerts -------------------------------------------------------------- */
 .alert { @apply flex items-start gap-3 rounded-xl border px-4 py-3 text-sm; }

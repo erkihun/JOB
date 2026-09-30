@@ -2,125 +2,109 @@
 @section('title', __('admin.resource.institutions'))
 
 @section('content')
-<div class="space-y-4">
+<div class="space-y-6">
 
-    <div class="flex flex-wrap items-center justify-between gap-3">
-        <h1 class="page-title">{{ __('admin.resource.institutions') }}</h1>
+    <x-admin.page-header :title="__('admin.resource.institutions')"
+                         :description="__('messages.inst_intro')"
+                         :crumbs="[['label' => __('menus.recruitment')], ['label' => __('admin.resource.institutions')]]">
         @can('create', \App\Models\Institution::class)
-        <a href="{{ route('admin.institutions.create') }}" class="btn-primary btn">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
+        <a href="{{ route('admin.institutions.create') }}" class="btn btn-primary">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M12 4v16m8-8H4"/></svg>
             {{ __('admin.institution_create') }}
         </a>
         @endcan
-    </div>
+    </x-admin.page-header>
 
-    <form method="GET" class="filter-bar">
-        <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('messages.search') }}..."
-               class="form-input w-full sm:w-56">
-        <select name="status" class="form-select w-auto">
-            <option value="">{{ __('messages.all_statuses') }}</option>
-            <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>{{ __('admin.status_active') }}</option>
-            <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>{{ __('admin.status_inactive') }}</option>
-        </select>
-        <button type="submit" class="btn-navy btn">{{ __('messages.filter') }}</button>
-        @if(request()->hasAny(['search','status']))
-        <a href="{{ route('admin.institutions.index') }}" class="btn-secondary btn">{{ __('messages.reset') }}</a>
-        @endif
-    </form>
+    <x-admin.filters :reset="route('admin.institutions.index')" :active="request()->hasAny(['search', 'status'])">
+        <div class="lg:col-span-2">
+            <label for="search" class="form-label">{{ __('messages.search') }}</label>
+            <input type="search" id="search" name="search" value="{{ request('search') }}" placeholder="{{ __('messages.inst_search_placeholder') }}" class="form-input">
+        </div>
+        <div>
+            <label for="status" class="form-label">{{ __('admin.column.status') }}</label>
+            <select id="status" name="status" class="form-select">
+                <option value="">{{ __('messages.all_statuses') }}</option>
+                <option value="active" @selected(request('status') === 'active')>{{ __('admin.status_active') }}</option>
+                <option value="inactive" @selected(request('status') === 'inactive')>{{ __('admin.status_inactive') }}</option>
+            </select>
+        </div>
+    </x-admin.filters>
 
-    <div class="card overflow-hidden">
+    <x-admin.table-card :meta="trans_choice('messages.records_count', $institutions->total(), ['count' => number_format($institutions->total())])">
         <table class="min-w-full divide-y divide-gray-100 text-sm">
             <thead class="table-header">
                 <tr>
-                    <th class="table-th">{{ __('admin.institution_code') }}</th>
                     <th class="table-th">{{ __('admin.institution_name') }}</th>
-                    <th class="hidden table-th sm:table-cell">{{ __('admin.institution_type') }}</th>
-                    <th class="hidden table-th md:table-cell">{{ __('admin.institution_contact') }}</th>
+                    <th class="table-th hidden sm:table-cell">{{ __('admin.institution_type') }}</th>
+                    <th class="table-th hidden md:table-cell">{{ __('admin.institution_contact') }}</th>
                     <th class="table-th">{{ __('admin.column.status') }}</th>
-                    <th class="hidden table-th-right sm:table-cell">{{ __('vacancies.job_vacancies') }}</th>
-                    <th class="table-th-right">{{ __('messages.actions') }}</th>
+                    <th class="table-th-right hidden sm:table-cell">{{ __('vacancies.job_vacancies') }}</th>
+                    <th class="table-th-right"><span class="sr-only">{{ __('messages.actions') }}</span></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse($institutions as $institution)
                 <tr class="table-row">
-                    <td class="table-td font-mono text-xs text-gray-500">{{ $institution->code }}</td>
                     <td class="table-td">
-                        <div class="font-medium text-gray-900">{{ $institution->name }}</div>
-                        @if($institution->short_name)
-                        <div class="text-xs text-gray-600">{{ $institution->short_name }}</div>
-                        @endif
+                        <a href="{{ route('admin.institutions.show', $institution) }}" class="font-semibold text-gray-900 hover:text-brand">{{ $institution->name }}</a>
+                        <p class="text-xs text-gray-600"><span class="font-mono">{{ $institution->code }}</span>@if($institution->short_name) · {{ $institution->short_name }}@endif</p>
                     </td>
-                    <td class="hidden table-td text-gray-500 sm:table-cell">{{ $institution->type ?? '—' }}</td>
-                    <td class="hidden table-td text-gray-500 md:table-cell">
-                        @if($institution->email)<div>{{ $institution->email }}</div>@endif
+                    <td class="table-td table-td-muted hidden sm:table-cell">{{ $institution->type ?: '—' }}</td>
+                    <td class="table-td table-td-muted hidden md:table-cell">
+                        @if($institution->email)<div class="truncate">{{ $institution->email }}</div>@endif
                         @if($institution->phone)<div>{{ $institution->phone }}</div>@endif
-                        @if(!$institution->email && !$institution->phone)—@endif
+                        @if(! $institution->email && ! $institution->phone)—@endif
                     </td>
                     <td class="table-td">
-                        <span class="{{ $institution->status === 'active' ? 'badge-green' : 'badge-red' }}">
-                            {{ $institution->status === 'active' ? __('admin.status_active') : __('admin.status_inactive') }}
-                        </span>
+                        <x-admin.status :tone="$institution->status === 'active' ? 'success' : 'gray'"
+                                        :label="$institution->status === 'active' ? __('admin.status_active') : __('admin.status_inactive')" />
                     </td>
-                    <td class="hidden table-td text-right text-gray-500 sm:table-cell">{{ $institution->vacancies_count }}</td>
-                    <td class="table-td text-right">
-                        <div class="flex items-center justify-end gap-3">
+                    <td class="table-td hidden text-right tabular-nums sm:table-cell">{{ $institution->vacancies_count }}</td>
+                    <td class="table-td">
+                        <div class="table-actions">
                             @can('view', $institution)
-                            <a href="{{ route('admin.institutions.show', $institution) }}"
-                               class="link-action">{{ __('messages.view') }}</a>
+                            <a href="{{ route('admin.institutions.show', $institution) }}" class="btn btn-secondary btn-sm">{{ __('messages.view') }}</a>
                             @endcan
-                            @can('update', $institution)
-                            <a href="{{ route('admin.institutions.edit', $institution) }}"
-                               class="link-action">{{ __('messages.edit') }}</a>
-                            @endcan
-                            @if($institution->status === 'active')
-                            @can('deactivate', $institution)
-                            <form method="POST" action="{{ route('admin.institutions.deactivate', $institution) }}">
-                                @csrf
-                                <button type="submit" class="link-danger">
-                                    {{ __('admin.institution_deactivate') }}
-                                </button>
-                            </form>
-                            @endcan
-                            @else
-                            @can('activate', $institution)
-                            <form method="POST" action="{{ route('admin.institutions.activate', $institution) }}">
-                                @csrf
-                                <button type="submit" class="link-action">
-                                    {{ __('admin.institution_activate') }}
-                                </button>
-                            </form>
-                            @endcan
-                            @endif
-                            @can('delete', $institution)
-                            <form method="POST" action="{{ route('admin.institutions.destroy', $institution) }}"
-                                  onsubmit="return confirm('{{ __('messages.confirm_delete') }}')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="link-danger">
-                                    {{ __('messages.delete') }}
-                                </button>
-                            </form>
-                            @endcan
+                            <x-admin.row-menu>
+                                @can('update', $institution)
+                                <a href="{{ route('admin.institutions.edit', $institution) }}" class="menu-item">{{ __('messages.edit') }}</a>
+                                @endcan
+                                @if($institution->status === 'active')
+                                    @can('deactivate', $institution)
+                                    <form method="POST" action="{{ route('admin.institutions.deactivate', $institution) }}">@csrf
+                                        <button type="submit" class="menu-item">{{ __('admin.institution_deactivate') }}</button>
+                                    </form>
+                                    @endcan
+                                @else
+                                    @can('activate', $institution)
+                                    <form method="POST" action="{{ route('admin.institutions.activate', $institution) }}">@csrf
+                                        <button type="submit" class="menu-item">{{ __('admin.institution_activate') }}</button>
+                                    </form>
+                                    @endcan
+                                @endif
+                                @can('delete', $institution)
+                                <div class="menu-divider"></div>
+                                <form method="POST" action="{{ route('admin.institutions.destroy', $institution) }}" onsubmit="return confirm(@js(__('messages.confirm_delete')))">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="menu-item menu-item-danger">{{ __('messages.delete') }}</button>
+                                </form>
+                                @endcan
+                            </x-admin.row-menu>
                         </div>
                     </td>
                 </tr>
                 @empty
-                <tr>
-                    <td colspan="7" class="px-4 py-12 text-center">
-                        <p class="text-sm text-gray-600">{{ __('messages.no_records') }}</p>
-                    </td>
-                </tr>
+                <tr><td colspan="6">
+                    <x-admin.empty :text="request()->hasAny(['search', 'status']) ? __('messages.empty_filtered') : __('messages.inst_empty_hint')">
+                        @can('create', \App\Models\Institution::class)
+                        <a href="{{ route('admin.institutions.create') }}" class="btn btn-primary btn-sm">{{ __('admin.institution_create') }}</a>
+                        @endcan
+                    </x-admin.empty>
+                </td></tr>
                 @endforelse
             </tbody>
         </table>
-
-        @if($institutions->hasPages())
-        <div class="border-t border-gray-100 px-4 py-3">
-            {{ $institutions->links() }}
-        </div>
-        @endif
-    </div>
+        <x-slot:footer>{{ $institutions->links() }}</x-slot:footer>
+    </x-admin.table-card>
 </div>
 @endsection

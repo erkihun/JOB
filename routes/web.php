@@ -151,6 +151,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['admin', 'session.timeout', 'require2fa'])->group(function () {
         Route::get('/profile', [AdminProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [AdminProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/password', [AdminProfileController::class, 'updatePassword'])
+            ->middleware('throttle:6,1')->name('profile.password');
+        Route::delete('/profile/photo', [AdminProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
 
         // Two-factor authentication setup / management
         Route::get('/two-factor', [MfaController::class, 'show'])->name('two-factor.show');

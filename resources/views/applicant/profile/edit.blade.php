@@ -4,7 +4,11 @@
 
 @section('content')
 <div class="space-y-6">
-    <h1 class="text-xl font-bold text-gray-900">{{ __('applicant.edit_profile') }}</h1>
+    <div>
+        <nav aria-label="Breadcrumb" class="mb-1.5 text-sm text-gray-600"><a href="{{ route('applicant.dashboard') }}" class="font-medium text-brand hover:underline">{{ __('applicant.nav_dashboard') }}</a> <span class="text-gray-400" aria-hidden="true">/</span> <a href="{{ route('applicant.profile.show') }}" class="font-medium text-brand hover:underline">{{ __('menus.profile') }}</a> <span class="text-gray-400" aria-hidden="true">/</span> <span class="text-gray-800">{{ __('applicant.edit_profile') }}</span></nav>
+        <h1 class="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">{{ __('applicant.edit_profile') }}</h1>
+        <p class="mt-1.5 text-[15px] text-gray-600">{{ __('applicant.edit_profile_intro') }}</p>
+    </div>
 
     <form method="POST" action="{{ route('applicant.profile.update') }}"
           enctype="multipart/form-data" class="space-y-5"
@@ -13,7 +17,7 @@
         @method('PUT')
 
         {{-- ── Personal Information ──────────────────────────────────────── --}}
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-6 space-y-5">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 space-y-5">
             <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">{{ __('applicant.personal_info') }}</h2>
 
             {{-- Profile photo --}}
@@ -50,7 +54,7 @@
                 <div>
                     <label for="gender" class="block text-sm font-medium text-gray-700">{{ __('fields.gender') }} <span class="text-red-500">*</span></label>
                     <select id="gender" name="gender"
-                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('gender') border-red-400 @enderror">
+                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('gender') border-red-400 @enderror">
                         <option value="male"   {{ old('gender', $applicant->gender?->value) === 'male'   ? 'selected' : '' }}>{{ __('statuses.gender.male') }}</option>
                         <option value="female" {{ old('gender', $applicant->gender?->value) === 'female' ? 'selected' : '' }}>{{ __('statuses.gender.female') }}</option>
                         <option value="other"  {{ old('gender', $applicant->gender?->value) === 'other'  ? 'selected' : '' }}>{{ __('statuses.gender.other') }}</option>
@@ -70,7 +74,7 @@
                     <input type="date" id="date_of_birth" name="date_of_birth"
                            value="{{ old('date_of_birth', $applicant->date_of_birth?->format('Y-m-d')) }}"
                            max="{{ now()->toDateString() }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                     @error('date_of_birth')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
                 @endif
@@ -79,7 +83,7 @@
                     <label for="national_id" class="block text-sm font-medium text-gray-700">{{ __('fields.national_id') }} <span class="text-red-500">*</span></label>
                     <input type="text" id="national_id" name="national_id"
                            value="{{ old('national_id', $applicant->national_id) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('national_id') border-red-400 @enderror">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('national_id') border-red-400 @enderror">
                     @error('national_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
 
@@ -87,7 +91,7 @@
                     <label for="nationality" class="block text-sm font-medium text-gray-700">{{ __('fields.nationality') }}</label>
                     <input type="text" id="nationality" name="nationality"
                            value="{{ old('nationality', $applicant->nationality) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                 </div>
             </div>
 
@@ -110,32 +114,32 @@
                     <label for="disability_type" class="block text-sm font-medium text-gray-700">{{ __('fields.disability_type') }}</label>
                     <input type="text" id="disability_type" name="disability_type"
                            value="{{ old('disability_type', $applicant->disability_type) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('disability_type') border-red-400 @enderror">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('disability_type') border-red-400 @enderror">
                     @error('disability_type')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
             </div>
         </div>
 
         {{-- ── Education ────────────────────────────────────────────────── --}}
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-6 space-y-4">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 space-y-4">
             <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">{{ __('applicant.education_info') }}</h2>
             <div class="grid gap-4 sm:grid-cols-2">
                 <div class="sm:col-span-2">
                     <label for="university_name" class="block text-sm font-medium text-gray-700">{{ __('fields.university_name') }}</label>
                     <input type="text" id="university_name" name="university_name"
                            value="{{ old('university_name', $applicant->university_name) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                 </div>
                 <div>
                     <label for="field_of_study" class="block text-sm font-medium text-gray-700">{{ __('fields.field_of_study') }}</label>
                     <input type="text" id="field_of_study" name="field_of_study"
                            value="{{ old('field_of_study', $applicant->field_of_study) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                 </div>
                 <div>
                     <label for="education_level" class="block text-sm font-medium text-gray-700">{{ __('fields.education_level') }}</label>
                     <select id="education_level" name="education_level"
-                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                         <option value="">—</option>
                         @foreach(\App\Enums\EducationLevel::cases() as $level)
                         <option value="{{ $level->value }}" {{ old('education_level', $applicant->education_level?->value) === $level->value ? 'selected' : '' }}>
@@ -147,7 +151,7 @@
                 <div>
                     <label for="graduation_year" class="block text-sm font-medium text-gray-700">{{ __('fields.graduation_year') }}</label>
                     <select id="graduation_year" name="graduation_year"
-                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('graduation_year') border-red-400 @enderror">
+                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('graduation_year') border-red-400 @enderror">
                         <option value="">—</option>
                         @for($y = now()->year + 2; $y >= 1960; $y--)
                         <option value="{{ $y }}" {{ (string) old('graduation_year', $applicant->graduation_year) === (string) $y ? 'selected' : '' }}>{{ $y }}</option>
@@ -159,14 +163,14 @@
                     <label for="gpa" class="block text-sm font-medium text-gray-700">{{ __('fields.gpa') }} <span class="text-gray-400 text-xs">(0–4)</span></label>
                     <input type="number" id="gpa" name="gpa" step="0.01" min="0" max="4"
                            value="{{ old('gpa', $applicant->gpa) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('gpa') border-red-400 @enderror">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('gpa') border-red-400 @enderror">
                     @error('gpa')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
             </div>
         </div>
 
         {{-- ── Work Experience ──────────────────────────────────────────── --}}
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-6 space-y-4">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 space-y-4">
             <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">{{ __('applicant.work_info') }}</h2>
             <div class="grid gap-4 sm:grid-cols-3">
                 <div>
@@ -174,7 +178,7 @@
                     <input type="number" id="work_experience_years" name="work_experience_years" min="0"
                            x-model.number="workYears"
                            value="{{ old('work_experience_years', $applicant->work_experience_years ?? 0) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                 </div>
             </div>
             <div x-show="workYears > 0" x-transition class="space-y-4">
@@ -183,7 +187,7 @@
                         <label for="work_experience_months" class="block text-sm font-medium text-gray-700">{{ __('fields.work_experience_months') }} <span class="text-gray-400 text-xs">(0–11)</span></label>
                         <input type="number" id="work_experience_months" name="work_experience_months" min="0" max="11"
                                value="{{ old('work_experience_months', $applicant->work_experience_months ?? 0) }}"
-                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('work_experience_months') border-red-400 @enderror">
+                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('work_experience_months') border-red-400 @enderror">
                         @error('work_experience_months')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -192,25 +196,25 @@
                         <label for="current_employer" class="block text-sm font-medium text-gray-700">{{ __('fields.current_employer') }}</label>
                         <input type="text" id="current_employer" name="current_employer"
                                value="{{ old('current_employer', $applicant->current_employer) }}"
-                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                     </div>
                     <div>
                         <label for="current_position" class="block text-sm font-medium text-gray-700">{{ __('fields.current_position') }}</label>
                         <input type="text" id="current_position" name="current_position"
                                value="{{ old('current_position', $applicant->current_position) }}"
-                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                     </div>
                 </div>
                 <div>
                     <label for="work_experience_summary" class="block text-sm font-medium text-gray-700">{{ __('fields.work_experience_summary') }}</label>
                     <textarea id="work_experience_summary" name="work_experience_summary" rows="3"
-                              class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">{{ old('work_experience_summary', $applicant->work_experience_summary) }}</textarea>
+                              class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">{{ old('work_experience_summary', $applicant->work_experience_summary) }}</textarea>
                 </div>
             </div>
         </div>
 
         {{-- ── Contact & Address ────────────────────────────────────────── --}}
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-6 space-y-4">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 space-y-4">
             <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">{{ __('applicant.contact_info') }}</h2>
             <input type="hidden" name="preferred_locale" value="{{ old('preferred_locale', $applicant->preferred_locale) }}">
             <div class="grid gap-4 sm:grid-cols-2">
@@ -218,39 +222,39 @@
                     <label for="phone" class="block text-sm font-medium text-gray-700">{{ __('fields.phone') }} <span class="text-red-500">*</span></label>
                     <input type="tel" id="phone" name="phone"
                            value="{{ old('phone', $applicant->phone) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('phone') border-red-400 @enderror">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('phone') border-red-400 @enderror">
                     @error('phone')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="alternative_phone" class="block text-sm font-medium text-gray-700">{{ __('fields.alternative_phone') }}</label>
                     <input type="tel" id="alternative_phone" name="alternative_phone"
                            value="{{ old('alternative_phone', $applicant->alternative_phone) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                 </div>
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700">{{ __('fields.email') }} <span class="text-red-500">*</span></label>
                     <input type="email" id="email" name="email"
                            value="{{ old('email', $applicant->email) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('email') border-red-400 @enderror">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('email') border-red-400 @enderror">
                     @error('email')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="ethnicity" class="block text-sm font-medium text-gray-700">{{ __('applicant.ethnicity_optional') }}</label>
                     <input type="text" id="ethnicity" name="ethnicity"
                            value="{{ old('ethnicity', $applicant->ethnicity) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                 </div>
                 <div class="sm:col-span-2">
                     <label for="address" class="block text-sm font-medium text-gray-700">{{ __('fields.address') }}</label>
                     <textarea id="address" name="address" rows="2"
-                              class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">{{ old('address', $applicant->address) }}</textarea>
+                              class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">{{ old('address', $applicant->address) }}</textarea>
                     @error('address')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
             </div>
         </div>
 
         {{-- ── Profile Documents ───────────────────────────────────────── --}}
-        <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-6 space-y-4">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 space-y-4">
             <h2 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">{{ __('applicant.uploaded_documents') }}</h2>
 
             @php $existing = $applicant->profileDocuments->firstWhere('document_type', 'documents'); @endphp

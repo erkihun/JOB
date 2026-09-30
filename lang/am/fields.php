@@ -55,4 +55,9 @@ return [
     'terms' => 'ውሎችና ፕሪቬሲ',
     'registered_at' => 'የተመዘገበበት ቀን',
     'applicant_code' => 'የአመልካች መለያ ኮድ',
+    // Admin UI
+    'name' => 'ስም',
+    'months' => 'ወራት',
+    'experience' => 'የሥራ ልምድ',
+    'experience_summary' => 'የሥራ ልምድ ማጠቃለያ',
 ];
