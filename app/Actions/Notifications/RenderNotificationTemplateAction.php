@@ -32,6 +32,24 @@ class RenderNotificationTemplateAction
         ];
     }
 
+    /**
+     * The built-in default text for a type, with {{ placeholder }} tokens instead of
+     * values — the starting point when an admin customises a template.
+     *
+     * @return array{subject: string, body: string}
+     */
+    public function defaultTemplate(NotificationType $type, string $locale): array
+    {
+        $tokens = collect($type->placeholders())
+            ->mapWithKeys(fn (string $key) => [$key => '{{ '.$key.' }}'])
+            ->all();
+
+        return [
+            'subject' => $this->defaultSubject($type, $tokens, $locale),
+            'body' => $this->defaultBody($type, $tokens, $locale),
+        ];
+    }
+
     private function replacePlaceholders(string $text, array $placeholders): string
     {
         foreach ($placeholders as $key => $value) {

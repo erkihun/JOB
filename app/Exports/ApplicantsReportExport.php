@@ -46,7 +46,9 @@ class ApplicantsReportExport implements FromCollection, WithHeadings
         $query = Application::query()
             ->with(['applicant', 'vacancy.announcement'])
             ->when(isset($this->filters['vacancy_id']), fn ($q) => $q->where('vacancy_id', $this->filters['vacancy_id']))
-            ->when(isset($this->filters['status']), fn ($q) => $q->where('status', $this->filters['status']));
+            ->when(isset($this->filters['status']), fn ($q) => $q->where('status', $this->filters['status']))
+            ->when(isset($this->filters['date_from']), fn ($q) => $q->whereDate('created_at', '>=', $this->filters['date_from']))
+            ->when(isset($this->filters['date_until']), fn ($q) => $q->whereDate('created_at', '<=', $this->filters['date_until']));
 
         $rows = [];
         foreach ($query->lazy() as $application) {

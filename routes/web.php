@@ -266,9 +266,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->name('final-results.update')
             ->middleware('role_or_permission:super_admin|admin|hr_manager|exam_officer|interview_officer');
 
-        Route::resource('notification-templates', NotificationTemplateController::class)
-            ->only(['index', 'edit', 'update'])
-            ->middleware('permission:notifications.templates.manage');
+        Route::middleware('permission:notifications.templates.manage')
+            ->prefix('notification-templates')->name('notification-templates.')
+            ->controller(NotificationTemplateController::class)
+            ->group(function (): void {
+                Route::get('/', 'index')->name('index');
+                Route::get('/{type}/{locale}', 'edit')->name('edit');
+                Route::put('/{type}/{locale}', 'update')->name('update');
+                Route::delete('/{type}/{locale}', 'destroy')->name('destroy');
+            });
 
         Route::resource('audit-logs', AuditLogController::class)
             ->only(['index'])
@@ -309,6 +315,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/reports', [ReportsController::class, 'index'])
             ->middleware('permission:reports.view')
             ->name('reports.index');
+        Route::get('/reports/export/{report}', [ReportsController::class, 'export'])
+            ->middleware(['permission:reports.export', 'throttle:20,1'])
+            ->where('report', '[a-z-]+')
+            ->name('reports.export');
         Route::get('/reports-center', [ReportsController::class, 'index'])
             ->middleware('permission:reports.view')
             ->name('reports-center.index');

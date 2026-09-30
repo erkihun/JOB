@@ -684,6 +684,21 @@ function adminShell() {
         window.Alpine?.initTree?.(element);
     };
 
+    // Scripts parsed by DOMParser are inert. Re-create the page's inline scripts so
+    // component factories they define (e.g. x-data="templateEditor(...)") exist
+    // before Alpine initialises the new frame.
+    const runScripts = (root) => {
+        root.querySelectorAll('script').forEach((inert) => {
+            if (inert.type && ! ['text/javascript', 'module', 'application/javascript'].includes(inert.type)) {
+                return;
+            }
+            const live = document.createElement('script');
+            [...inert.attributes].forEach((attr) => live.setAttribute(attr.name, attr.value));
+            live.textContent = inert.textContent;
+            inert.replaceWith(live);
+        });
+    };
+
     const swapSidebarNav = (nextDocument) => {
         const currentNav = document.querySelector('.sidebar-nav');
         const nextNav = nextDocument.querySelector('.sidebar-nav');
@@ -751,6 +766,7 @@ function adminShell() {
             swapBreadcrumb(nextDocument);
             closeMobileMenu();
             currentFrame.replaceWith(nextFrame);
+            runScripts(nextFrame);
             initTree(nextFrame);
 
             if (pushState) {

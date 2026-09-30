@@ -2,13 +2,12 @@
 @section('title', __('messages.add_announcement'))
 
 @section('content')
-<div class="space-y-4">
-    <a href="{{ route('admin.announcements.index') }}" class="text-sm font-medium text-brand hover:text-brand-dark">
-        ← {{ __('menus.announcements') }}
-    </a>
-    <h1 class="page-title">{{ __('messages.add_announcement') }}</h1>
+<div class="space-y-6">
+    <x-admin.page-header :title="__('messages.add_announcement')"
+                         :description="__('messages.ann_create_intro')"
+                         :crumbs="[['label' => __('menus.recruitment')], ['label' => __('menus.announcements'), 'url' => route('admin.announcements.index')], ['label' => __('messages.create')]]" />
 
-    <form method="POST" action="{{ route('admin.announcements.store') }}">
+    <form method="POST" action="{{ route('admin.announcements.store') }}" novalidate>
         @csrf
         @include('admin.announcements._form')
     </form>

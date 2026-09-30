@@ -26,4 +26,35 @@ enum NotificationType: string
     {
         return $this->getLabel();
     }
+
+    /**
+     * Placeholders that actually receive a value when this notification is sent
+     * (see SendApplicantNotificationAction and its callers).
+     *
+     * @return list<string>
+     */
+    public function placeholders(): array
+    {
+        $common = ['applicant_name', 'vacancy_title', 'reference_number', 'contact_information'];
+
+        return match ($this) {
+            self::ExamInvitation, self::InterviewInvitation => [...$common, 'date', 'time', 'venue', 'instructions'],
+            self::ScreeningPassed, self::ScreeningFailed, self::CorrectionRequired => [...$common, 'remark'],
+            self::Selected, self::Waitlisted, self::NotSelected => [...$common, 'message'],
+            self::General => ['applicant_name', 'message', 'contact_information'],
+            self::ApplicationSubmitted => $common,
+        };
+    }
+
+    /** Recruitment stage, used to group templates in the admin. */
+    public function stage(): string
+    {
+        return match ($this) {
+            self::ApplicationSubmitted, self::CorrectionRequired => 'application',
+            self::ScreeningPassed, self::ScreeningFailed => 'screening',
+            self::ExamInvitation, self::InterviewInvitation => 'assessment',
+            self::Selected, self::Waitlisted, self::NotSelected => 'final',
+            self::General => 'general',
+        };
+    }
 }
