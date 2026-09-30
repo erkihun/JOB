@@ -194,4 +194,6 @@ return [
 
     // ── Application list ──────────────────────────────────────────────────────
     'applications_count' => ':count ማመልከቻ',
+    // Admin UI
+    'application_documents' => 'የማመልከቻ ሰነዶች',
 ];

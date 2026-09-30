@@ -24,7 +24,7 @@ class RecordResultRequest extends FormRequest
             return false;
         }
 
-        $permission = $schedule->type === ExamInterviewType::Exam
+        $permission = $schedule->type->isExamLike()
             ? 'exams.record-results'
             : 'interviews.record-results';
 

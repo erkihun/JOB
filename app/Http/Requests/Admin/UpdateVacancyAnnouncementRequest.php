@@ -6,6 +6,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateVacancyAnnouncementRequest extends FormRequest
 {
@@ -20,9 +21,14 @@ class UpdateVacancyAnnouncementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'subject'      => ['required', 'string', 'max:255'],
-            'content'      => ['required', 'string'],
-            'status'       => ['required', 'in:draft,published'],
+            'opening_date' => ['required', 'date'],
+            'closing_date' => ['required', 'date', 'after:opening_date'],
+            'code' => ['required', 'string', 'max:100', Rule::unique('recruitment_announcements', 'code')->ignore($this->route('announcement')?->id)],
+            'institution_ids' => ['nullable', 'array'],
+            'institution_ids.*' => ['uuid', 'distinct', Rule::exists('institutions', 'id')->whereNull('deleted_at')],
+            'subject' => ['required', 'string', 'max:255'],
+            'content' => ['nullable', 'string'],
+            'status' => ['required', 'in:draft,published'],
             'published_at' => ['nullable', 'date'],
         ];
     }

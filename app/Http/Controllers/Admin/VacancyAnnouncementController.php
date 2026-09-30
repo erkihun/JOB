@@ -4,19 +4,22 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Announcements\SaveRecruitmentAnnouncementAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreVacancyAnnouncementRequest;
 use App\Http\Requests\Admin\UpdateVacancyAnnouncementRequest;
-use App\Models\VacancyAnnouncement;
+use App\Models\Institution;
+use App\Models\RecruitmentAnnouncement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class VacancyAnnouncementController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = VacancyAnnouncement::with('author')->latest();
+        $query = RecruitmentAnnouncement::with('author')->latest();
 
         if ($search = $request->query('search')) {
             $query->where('subject', 'like', "%$search%");
@@ -29,71 +32,47 @@ class VacancyAnnouncementController extends Controller
 
     public function create(): View
     {
-        return view('admin.announcements.create');
+        return view('admin.announcements.create', ['institutions' => Institution::where('status', 'active')->orderBy('name')->get()]);
     }
 
-    public function store(StoreVacancyAnnouncementRequest $request): RedirectResponse
+    public function store(StoreVacancyAnnouncementRequest $request, SaveRecruitmentAnnouncementAction $action): RedirectResponse
     {
-        $data = $request->validated();
-        $status = $data['status'];
-
-        // Auto-set published_at to now when publishing for the first time
-        // and no explicit date was provided.
-        $publishedAt = $data['published_at'] ?? null;
-        if ($status === 'published' && $publishedAt === null) {
-            $publishedAt = now();
-        }
-
-        VacancyAnnouncement::create([
-            'subject'      => $data['subject'],
-            'content'      => $data['content'],
-            'status'       => $status,
-            'published_at' => $publishedAt,
-            'created_by'   => auth()->id(),
-        ]);
+        $action->handle(new RecruitmentAnnouncement, $request->validated(), $request->user()->id);
 
         return redirect()->route('admin.announcements.index')
             ->with('success', __('messages.announcement_created'));
     }
 
-    public function show(VacancyAnnouncement $announcement): View
+    public function show(RecruitmentAnnouncement $announcement): View
     {
+        $announcement->load(['institutions', 'vacancies.institution']);
+
         return view('admin.announcements.show', compact('announcement'));
     }
 
-    public function edit(VacancyAnnouncement $announcement): View
+    public function edit(RecruitmentAnnouncement $announcement): View
     {
-        return view('admin.announcements.edit', compact('announcement'));
+        $announcement->load(['institutions', 'vacancies.institution']);
+
+        return view('admin.announcements.edit', [
+            'announcement' => $announcement,
+            'institutions' => Institution::where('status', 'active')->orWhereIn('id', $announcement->institutions->modelKeys())->orderBy('name')->get(),
+        ]);
     }
 
-    public function update(UpdateVacancyAnnouncementRequest $request, VacancyAnnouncement $announcement): RedirectResponse
+    public function update(UpdateVacancyAnnouncementRequest $request, RecruitmentAnnouncement $announcement, SaveRecruitmentAnnouncementAction $action): RedirectResponse
     {
-        $data = $request->validated();
-        $status = $data['status'];
-
-        // Preserve the original published_at when re-saving a published announcement
-        // without an explicit date. Set it now when publishing for the first time.
-        $publishedAt = $data['published_at'] ?? null;
-        if ($status === 'published' && $publishedAt === null) {
-            $publishedAt = $announcement->published_at ?? now();
-        }
-        if ($status === 'draft') {
-            $publishedAt = null;
-        }
-
-        $announcement->update([
-            'subject'      => $data['subject'],
-            'content'      => $data['content'],
-            'status'       => $status,
-            'published_at' => $publishedAt,
-        ]);
+        $action->handle($announcement, $request->validated(), $request->user()->id);
 
         return redirect()->route('admin.announcements.index')
             ->with('success', __('messages.announcement_updated'));
     }
 
-    public function destroy(VacancyAnnouncement $announcement): RedirectResponse
+    public function destroy(RecruitmentAnnouncement $announcement): RedirectResponse
     {
+        if ($announcement->vacancies()->withTrashed()->exists()) {
+            throw ValidationException::withMessages(['announcement' => __('vacancies.announcement_has_vacancies')]);
+        }
         $announcement->delete();
 
         return redirect()->route('admin.announcements.index')

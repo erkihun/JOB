@@ -25,7 +25,7 @@
                 <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
-                <span>{{ __('vacancies.closing_date') }}: <span class="font-medium">{{ et_date($vacancy->closing_date, 'd M Y') }}</span></span>
+                <span>{{ __('vacancies.closing_date') }}: <span class="font-medium">{{ et_date($vacancy->announcement->closing_date, 'd M Y') }}</span></span>
             </span>
         </div>
 
@@ -40,6 +40,17 @@
         $hasCgpa          = ! empty($defaults['cgpa']);
         $showAcademic     = ! ($hasFieldOfStudy && $hasGraduation);
     @endphp
+
+    {{-- Eligibility against the vacancy's requirement options --}}
+    @error('eligibility')
+        <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+            @foreach(explode("\n", $message) as $line)
+                <p class="{{ $loop->first ? 'font-semibold' : 'mt-1' }}">{{ $line }}</p>
+            @endforeach
+        </div>
+    @else
+        <x-eligibility-result :result="$eligibility" />
+    @enderror
 
     <form method="POST"
           action="{{ route('applicant.applications.store', $vacancy) }}"

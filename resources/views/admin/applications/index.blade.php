@@ -3,80 +3,93 @@
 
 @section('content')
 <div class="space-y-5">
-    <h1 class="text-lg font-semibold text-gray-900">{{ __('menus.applications') }}</h1>
+    <x-admin.page-header :title="__('menus.applications')"
+                         :description="trans_choice('messages.records_count', $applications->total(), ['count' => number_format($applications->total())])" />
 
-    <form method="GET" class="flex flex-wrap gap-2">
-        <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('messages.search') }}..."
-               class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand sm:w-56">
-        <select name="institution_id" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
-            <option value="">{{ __('applications.filter_by_institution') }}</option>
-            @foreach($institutions as $inst)
-            <option value="{{ $inst->id }}" {{ request('institution_id') === $inst->id ? 'selected' : '' }}>{{ $inst->name }}</option>
-            @endforeach
-        </select>
-        <select name="vacancy_id" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
-            <option value="">{{ __('messages.all_vacancies') }}</option>
-            @foreach($vacancies as $v)
-            <option value="{{ $v->id }}" {{ request('vacancy_id') === $v->id ? 'selected' : '' }}>{{ $v->code }} — {{ $v->title }}</option>
-            @endforeach
-        </select>
-        <select name="status" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
-            <option value="">{{ __('messages.all_statuses') }}</option>
-            @foreach($statuses as $s)
-            <option value="{{ $s->value }}" {{ request('status') === $s->value ? 'selected' : '' }}>{{ $s->getLabel() }}</option>
-            @endforeach
-        </select>
-        <button type="submit" class="btn btn-navy">{{ __('messages.filter') }}</button>
-        @if(request()->hasAny(['search','vacancy_id','institution_id','status']))
-        <a href="{{ route('admin.applications.index') }}" class="btn btn-secondary">{{ __('messages.reset') }}</a>
-        @endif
+    <form method="GET" class="filter-bar" role="search">
+        <div class="filter-field-lg">
+            <label for="f-search" class="form-label">{{ __('messages.search') }}</label>
+            <input type="search" id="f-search" name="search" value="{{ request('search') }}"
+                   placeholder="{{ __('messages.search_applicants_placeholder') }}" class="form-input">
+        </div>
+        <div class="filter-field">
+            <label for="f-institution" class="form-label">{{ __('admin.institution_name') }}</label>
+            <select id="f-institution" name="institution_id" class="form-select">
+                <option value="">{{ __('applications.filter_by_institution') }}</option>
+                @foreach($institutions as $inst)
+                <option value="{{ $inst->id }}" @selected(request('institution_id') === $inst->id)>{{ $inst->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="filter-field">
+            <label for="f-vacancy" class="form-label">{{ __('menus.vacancies') }}</label>
+            <select id="f-vacancy" name="vacancy_id" class="form-select">
+                <option value="">{{ __('messages.all_vacancies') }}</option>
+                @foreach($vacancies as $v)
+                <option value="{{ $v->id }}" @selected(request('vacancy_id') === $v->id)>{{ $v->code }} — {{ $v->title }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="filter-field">
+            <label for="f-status" class="form-label">{{ __('vacancies.status') }}</label>
+            <select id="f-status" name="status" class="form-select">
+                <option value="">{{ __('messages.all_statuses') }}</option>
+                @foreach($statuses as $s)
+                <option value="{{ $s->value }}" @selected(request('status') === $s->value)>{{ $s->getLabel() }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-primary">{{ __('messages.filter') }}</button>
+            @if(request()->hasAny(['search','vacancy_id','institution_id','status']))
+            <a href="{{ route('admin.applications.index') }}" class="btn btn-ghost">{{ __('messages.reset') }}</a>
+            @endif
+        </div>
     </form>
 
-    <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-        <table class="min-w-full divide-y divide-gray-100 text-sm">
-            <thead class="table-header">
-                <tr>
-                    <th class="table-th">{{ __('messages.applicant') }}</th>
-                    <th class="table-th hidden sm:table-cell">{{ __('menus.vacancies') }}</th>
-                    <th class="table-th hidden xl:table-cell">{{ __('admin.institution_name') }}</th>
-                    <th class="table-th hidden md:table-cell">{{ __('messages.reference') }}</th>
-                    <th class="table-th">{{ __('vacancies.status') }}</th>
-                    <th class="table-th hidden lg:table-cell">{{ __('messages.submitted') }}</th>
-                    <th class="table-th-right">{{ __('messages.actions') }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($applications as $app)
-                @php
-                $badgeMap = ['submitted'=>'badge-blue','passed_screening'=>'badge-green','failed_screening'=>'badge-red','draft'=>'badge-gray'];
-                $badgeClass = $badgeMap[$app->status->value] ?? 'badge-gray';
-                @endphp
-                <tr class="table-row">
-                    <td class="table-td">
-                        <p class="font-medium text-gray-900">{{ $app->applicant?->full_name }}</p>
-                        <p class="text-xs text-gray-400">{{ $canViewSensitive ? ($app->applicant?->phone ?? '—') : __('dashboard.restricted') }}</p>
-                    </td>
-                    <td class="table-td hidden sm:table-cell">
-                        <p class="font-medium text-gray-800">{{ $app->vacancy?->title }}</p>
-                        <p class="text-xs text-gray-400">{{ $app->vacancy?->code }}</p>
-                    </td>
-                    <td class="table-td hidden xl:table-cell text-gray-500 text-xs">
-                        {{ $app->vacancy?->institution?->displayName() ?? '—' }}
-                    </td>
-                    <td class="table-td hidden font-mono text-xs text-gray-500 md:table-cell">{{ $app->reference_number }}</td>
-                    <td class="table-td"><span class="{{ $badgeClass }}">{{ $app->status->getLabel() }}</span></td>
-                    <td class="table-td hidden text-gray-500 lg:table-cell">{{ et_date($app->created_at) }}</td>
-                    <td class="table-td text-right">
-                        <a href="{{ route('admin.applications.show', $app) }}" class="text-xs font-medium text-brand hover:text-brand-dark">{{ __('messages.view') }}</a>
-                    </td>
-                </tr>
-                @empty
-                <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">{{ __('messages.no_records') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+    <div class="table-wrap">
+        <div class="table-scroll">
+            <table class="min-w-full">
+                <thead class="table-header">
+                    <tr>
+                        <th class="table-th">{{ __('messages.applicant') }}</th>
+                        <th class="table-th hidden sm:table-cell">{{ __('menus.vacancies') }}</th>
+                        <th class="table-th hidden xl:table-cell">{{ __('admin.institution_name') }}</th>
+                        <th class="table-th hidden md:table-cell">{{ __('messages.reference') }}</th>
+                        <th class="table-th">{{ __('vacancies.status') }}</th>
+                        <th class="table-th hidden lg:table-cell">{{ __('messages.submitted') }}</th>
+                        <th class="table-th-right">{{ __('messages.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($applications as $app)
+                    <tr class="table-row">
+                        <td class="table-td">
+                            <p class="font-semibold">{{ $app->applicant?->full_name }}</p>
+                            <p class="text-[13px] text-gray-600">{{ $canViewSensitive ? ($app->applicant?->phone ?? '—') : __('dashboard.restricted') }}</p>
+                        </td>
+                        <td class="table-td hidden sm:table-cell">
+                            <p>{{ $app->vacancy?->title }}</p>
+                            <p class="font-mono text-[13px] text-gray-600">{{ $app->vacancy?->code }}</p>
+                        </td>
+                        <td class="table-td table-td-muted hidden xl:table-cell">
+                            {{ $app->vacancy?->institution?->displayName() ?? '—' }}
+                        </td>
+                        <td class="table-td hidden font-mono text-[13px] text-gray-700 md:table-cell">{{ $app->reference_number }}</td>
+                        <td class="table-td"><x-admin.status :status="$app->status" /></td>
+                        <td class="table-td table-td-muted hidden tabular-nums lg:table-cell">{{ et_date($app->created_at) }}</td>
+                        <td class="table-td text-right">
+                            <a href="{{ route('admin.applications.show', $app) }}" class="btn btn-secondary btn-sm">{{ __('messages.view') }}</a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="7"><x-admin.empty /></td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
         @if($applications->hasPages())
-        <div class="border-t border-gray-100 px-4 py-3">{{ $applications->links() }}</div>
+        <div class="table-footer">{{ $applications->links() }}</div>
         @endif
     </div>
 </div>

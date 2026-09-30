@@ -9,7 +9,7 @@
             <a href="{{ route('admin.schedules.index') }}" class="text-sm font-medium text-brand hover:text-brand-dark">
                 {{ __('messages.back') }}
             </a>
-            <h1 class="mt-2 text-lg font-semibold text-gray-900">{{ __('messages.record_results') }}</h1>
+            <h1 class="mt-2 page-title">{{ __('messages.record_results') }}</h1>
             <p class="mt-1 text-sm text-gray-500">
                 {{ $schedule->title }} · {{ $schedule->type->getLabel() }} · {{ et_date($schedule->date) }} {{ $schedule->start_time }}
             </p>
@@ -19,28 +19,28 @@
         </span>
     </div>
 
-    <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+    <div class="card card-body">
         <div class="grid gap-4 text-sm text-gray-600 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ __('menus.vacancies') }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">{{ __('menus.vacancies') }}</p>
                 <p class="mt-1 font-medium text-gray-900">{{ $schedule->vacancy?->code }} · {{ $schedule->vacancy?->title }}</p>
             </div>
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ __('dashboard.table.venue') }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">{{ __('dashboard.table.venue') }}</p>
                 <p class="mt-1 font-medium text-gray-900">{{ $schedule->venue }}</p>
             </div>
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ __('messages.total_records') }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">{{ __('messages.total_records') }}</p>
                 <p class="mt-1 font-medium text-gray-900">{{ $schedule->assignedApplicants->count() }}</p>
             </div>
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">{{ __('messages.instructions') }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-600">{{ __('messages.instructions') }}</p>
                 <p class="mt-1 line-clamp-2">{{ $schedule->instruction ?: '—' }}</p>
             </div>
         </div>
     </div>
 
-    <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+    <div class="card card-body">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h2 class="text-base font-semibold text-gray-900">{{ __('messages.assign_applicants') }}</h2>
@@ -72,13 +72,13 @@
             <button type="submit" class="btn btn-primary">{{ __('messages.assign_selected') }}</button>
         </form>
         @else
-        <div class="mt-4 rounded-lg border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-400">
+        <div class="mt-4 rounded-lg border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-600">
             {{ __('messages.no_eligible_applicants') }}
         </div>
         @endif
     </div>
 
-    <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+    <div class="card overflow-hidden">
         <table class="min-w-full divide-y divide-gray-100 text-sm">
             <thead class="table-header">
                 <tr>
@@ -106,7 +106,7 @@
                 <tr class="table-row align-top">
                     <td class="table-td">
                         <p class="font-medium text-gray-900">{{ $applicant?->full_name ?? '—' }}</p>
-                        <p class="mt-0.5 text-xs text-gray-400">{{ $applicant?->email ?? $applicant?->phone }}</p>
+                        <p class="mt-0.5 text-xs text-gray-600">{{ $applicant?->email ?? $applicant?->phone }}</p>
                     </td>
                     <td class="table-td font-mono text-xs text-gray-600">{{ $application?->reference_number ?? '—' }}</td>
                     <td class="table-td">
@@ -149,7 +149,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-10 text-center text-gray-400">{{ __('messages.no_records') }}</td>
+                    <td colspan="6" class="px-4 py-10 text-center text-gray-600">{{ __('messages.no_records') }}</td>
                 </tr>
                 @endforelse
             </tbody>

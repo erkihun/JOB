@@ -1,12 +1,10 @@
 @extends('layouts.admin')
 @section('title', __('messages.add_schedule'))
 @section('content')
-<div class="space-y-4">
-    <a href="{{ route('admin.schedules.index') }}" class="text-sm font-medium text-brand hover:text-brand-dark">← {{ __('menus.schedules') }}</a>
-    <h1 class="text-lg font-semibold text-gray-900">{{ __('messages.add_schedule') }}</h1>
-    <form method="POST" action="{{ route('admin.schedules.store') }}">
-        @csrf
-        @include('admin.schedules._form')
-    </form>
-</div>
+<form method="POST" action="{{ route('admin.schedules.store') }}" class="space-y-5">
+    @csrf
+    <x-admin.page-header :title="__('messages.add_schedule')" :description="__('messages.schedule_form_intro')"
+                         :crumbs="[['label' => __('menus.schedules'), 'url' => route('admin.schedules.index')], ['label' => __('messages.add_schedule')]]" />
+    @include('admin.schedules._form')
+</form>
 @endsection

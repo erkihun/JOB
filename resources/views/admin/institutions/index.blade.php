@@ -5,7 +5,7 @@
 <div class="space-y-4">
 
     <div class="flex flex-wrap items-center justify-between gap-3">
-        <h1 class="text-lg font-semibold text-gray-900">{{ __('admin.resource.institutions') }}</h1>
+        <h1 class="page-title">{{ __('admin.resource.institutions') }}</h1>
         @can('create', \App\Models\Institution::class)
         <a href="{{ route('admin.institutions.create') }}" class="btn-primary btn">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -16,7 +16,7 @@
         @endcan
     </div>
 
-    <form method="GET" class="flex flex-wrap gap-2">
+    <form method="GET" class="filter-bar">
         <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('messages.search') }}..."
                class="form-input w-full sm:w-56">
         <select name="status" class="form-select w-auto">
@@ -30,7 +30,7 @@
         @endif
     </form>
 
-    <div class="overflow-hidden rounded-xl bg-white" style="box-shadow: var(--shadow-card)">
+    <div class="card overflow-hidden">
         <table class="min-w-full divide-y divide-gray-100 text-sm">
             <thead class="table-header">
                 <tr>
@@ -50,7 +50,7 @@
                     <td class="table-td">
                         <div class="font-medium text-gray-900">{{ $institution->name }}</div>
                         @if($institution->short_name)
-                        <div class="text-xs text-gray-400">{{ $institution->short_name }}</div>
+                        <div class="text-xs text-gray-600">{{ $institution->short_name }}</div>
                         @endif
                     </td>
                     <td class="hidden table-td text-gray-500 sm:table-cell">{{ $institution->type ?? '—' }}</td>
@@ -69,17 +69,17 @@
                         <div class="flex items-center justify-end gap-3">
                             @can('view', $institution)
                             <a href="{{ route('admin.institutions.show', $institution) }}"
-                               class="text-xs font-medium text-gray-400 hover:text-gray-700 transition">{{ __('messages.view') }}</a>
+                               class="link-action">{{ __('messages.view') }}</a>
                             @endcan
                             @can('update', $institution)
                             <a href="{{ route('admin.institutions.edit', $institution) }}"
-                               class="text-xs font-medium text-accent hover:text-accent-dark transition">{{ __('messages.edit') }}</a>
+                               class="link-action">{{ __('messages.edit') }}</a>
                             @endcan
                             @if($institution->status === 'active')
                             @can('deactivate', $institution)
                             <form method="POST" action="{{ route('admin.institutions.deactivate', $institution) }}">
                                 @csrf
-                                <button type="submit" class="text-xs font-medium text-amber-500 hover:text-amber-700 transition">
+                                <button type="submit" class="link-danger">
                                     {{ __('admin.institution_deactivate') }}
                                 </button>
                             </form>
@@ -88,7 +88,7 @@
                             @can('activate', $institution)
                             <form method="POST" action="{{ route('admin.institutions.activate', $institution) }}">
                                 @csrf
-                                <button type="submit" class="text-xs font-medium text-green-600 hover:text-green-800 transition">
+                                <button type="submit" class="link-action">
                                     {{ __('admin.institution_activate') }}
                                 </button>
                             </form>
@@ -98,7 +98,7 @@
                             <form method="POST" action="{{ route('admin.institutions.destroy', $institution) }}"
                                   onsubmit="return confirm('{{ __('messages.confirm_delete') }}')">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="text-xs font-medium text-red-500 hover:text-red-700 transition">
+                                <button type="submit" class="link-danger">
                                     {{ __('messages.delete') }}
                                 </button>
                             </form>
@@ -109,7 +109,7 @@
                 @empty
                 <tr>
                     <td colspan="7" class="px-4 py-12 text-center">
-                        <p class="text-sm text-gray-400">{{ __('messages.no_records') }}</p>
+                        <p class="text-sm text-gray-600">{{ __('messages.no_records') }}</p>
                     </td>
                 </tr>
                 @endforelse

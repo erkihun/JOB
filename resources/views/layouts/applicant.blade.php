@@ -7,23 +7,8 @@
     @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
-    @php
-    $themePrimary = \App\Models\Setting::get('appearance.primary_color', '#1A56DB');
-    $themeSidebar = \App\Models\Setting::get('appearance.sidebar_color', '#1E3A8A');
-    $themeAccent  = \App\Models\Setting::get('appearance.accent_color',  '#FF6B2B');
-    @endphp
-    <style>
-    :root {
-        --color-brand:        {{ $themePrimary }};
-        --color-brand-dark:   color-mix(in srgb, {{ $themePrimary }} 80%, black);
-        --color-navy:         {{ $themeSidebar }};
-        --color-navy-dark:    color-mix(in srgb, {{ $themeSidebar }} 80%, black);
-        --color-accent:       {{ $themeAccent }};
-        --color-accent-dark:  color-mix(in srgb, {{ $themeAccent }} 80%, black);
-        --color-brand-muted:  color-mix(in srgb, {{ $themePrimary }} 12%, white);
-        --color-accent-muted: color-mix(in srgb, {{ $themeAccent }} 12%, white);
-    }
-    </style>
+    {{-- Same validated theme (colours + palette mapping) as the admin and public site --}}
+    @include('partials.admin-theme')
 </head>
 <body class="min-h-screen bg-gray-50 font-sans text-gray-900 antialiased locale-{{ app()->getLocale() }} lang-{{ app()->getLocale() }}"
       x-data="{ mobileOpen: false, userOpen: false, darkMode: localStorage.getItem('theme')==='dark', toggleDark(){ this.darkMode=!this.darkMode; localStorage.setItem('theme',this.darkMode?'dark':'light'); document.documentElement.classList.toggle('dark',this.darkMode); } }">
@@ -74,10 +59,14 @@
     {{-- Language toggle (desktop) --}}
     @if(\App\Models\Setting::get('localization.show_language_switcher', true))
     <div class="hidden sm:flex items-center rounded-lg border border-gray-200 overflow-hidden text-xs font-semibold">
-        <a href="{{ route('lang.switch', 'en') }}"
+        @if(in_array('en', (array) \App\Models\Setting::get('app.available_locales', ['en', 'am']), true))
+                <a href="{{ route('lang.switch', 'en') }}"
            class="px-3 py-1.5 transition {{ app()->getLocale() === 'en' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-50' }}">EN</a>
-        <a href="{{ route('lang.switch', 'am') }}"
+                @endif
+        @if(in_array('am', (array) \App\Models\Setting::get('app.available_locales', ['en', 'am']), true))
+                <a href="{{ route('lang.switch', 'am') }}"
            class="px-3 py-1.5 transition {{ app()->getLocale() === 'am' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-50' }}">አማ</a>
+                @endif
     </div>
     @endif
 
@@ -266,10 +255,14 @@
     <div class="p-3 border-t border-gray-100 space-y-2 shrink-0">
         @if(\App\Models\Setting::get('localization.show_language_switcher', true))
         <div class="flex items-center rounded-xl border border-gray-200 overflow-hidden text-xs font-semibold">
-            <a href="{{ route('lang.switch', 'en') }}" @click="mobileOpen = false"
+            @if(in_array('en', (array) \App\Models\Setting::get('app.available_locales', ['en', 'am']), true))
+                <a href="{{ route('lang.switch', 'en') }}" @click="mobileOpen = false"
                class="flex-1 text-center py-2.5 transition {{ app()->getLocale() === 'en' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-50' }}">EN</a>
-            <a href="{{ route('lang.switch', 'am') }}" @click="mobileOpen = false"
+                @endif
+            @if(in_array('am', (array) \App\Models\Setting::get('app.available_locales', ['en', 'am']), true))
+                <a href="{{ route('lang.switch', 'am') }}" @click="mobileOpen = false"
                class="flex-1 text-center py-2.5 transition {{ app()->getLocale() === 'am' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-50' }}">አማ</a>
+                @endif
         </div>
         @endif
         <form method="POST" action="{{ route('applicant.logout') }}">
@@ -348,10 +341,14 @@
     <div class="p-3 border-t border-gray-100 space-y-1">
         @if(\App\Models\Setting::get('localization.show_language_switcher', true))
         <div class="flex items-center rounded-xl border border-gray-200 overflow-hidden text-xs font-semibold">
-            <a href="{{ route('lang.switch', 'en') }}"
+            @if(in_array('en', (array) \App\Models\Setting::get('app.available_locales', ['en', 'am']), true))
+                <a href="{{ route('lang.switch', 'en') }}"
                class="flex-1 text-center py-2 transition {{ app()->getLocale() === 'en' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-50' }}">EN</a>
-            <a href="{{ route('lang.switch', 'am') }}"
+                @endif
+            @if(in_array('am', (array) \App\Models\Setting::get('app.available_locales', ['en', 'am']), true))
+                <a href="{{ route('lang.switch', 'am') }}"
                class="flex-1 text-center py-2 transition {{ app()->getLocale() === 'am' ? 'bg-blue-600 text-white' : 'text-gray-500 hover:bg-gray-50' }}">አማ</a>
+                @endif
         </div>
         @endif
         <form method="POST" action="{{ route('applicant.logout') }}">

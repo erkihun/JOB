@@ -3,43 +3,74 @@
 @section('title', __('applications.track_title'))
 
 @section('content')
-<div class="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
+@php
+    $inputClass = 'h-11 w-full rounded-xl border bg-white pl-10 pr-3 text-sm text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:outline-none focus:ring-2';
+@endphp
 
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ __('applications.track_title') }}</h1>
-    <p class="text-gray-500 mb-8 text-sm">{{ __('applications.track_subtitle') }}</p>
+<x-public.page-header :title="__('applications.track_title')"
+                      :subtitle="__('applications.track_subtitle')"
+                      :crumbs="[['label' => __('menus.track_application')]]"
+                      width="max-w-3xl" />
 
-    {{-- Search Form --}}
-    <form method="POST" action="{{ route('track.search') }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+<div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+
+    {{-- Lookup form --}}
+    <form method="POST" action="{{ route('track.search') }}"
+          class="relative z-10 -mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-lg shadow-gray-900/5 sm:p-6"
+          x-data="{ busy: false }" @submit="busy = true">
         @csrf
-        <div class="space-y-4">
+        <div class="grid gap-4 sm:grid-cols-2">
             <div>
-                <label for="reference_number" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="reference_number" class="mb-1.5 block text-xs font-semibold text-gray-600">
                     {{ __('applications.reference_number') }}
                 </label>
-                <input type="text" id="reference_number" name="reference_number"
-                       value="{{ old('reference_number') }}"
-                       placeholder="APP-2024-000001"
-                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('reference_number') border-red-400 @enderror">
+                <div class="relative">
+                    <x-public.icon name="hashtag" class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input type="text" id="reference_number" name="reference_number" required
+                           value="{{ old('reference_number', isset($application) ? $application->reference_number : '') }}"
+                           placeholder="APP-2024-000001" autocomplete="off" spellcheck="false"
+                           @error('reference_number') aria-invalid="true" aria-describedby="reference_number_error" @enderror
+                           class="{{ $inputClass }} font-mono uppercase placeholder:normal-case @error('reference_number') border-red-300 focus:border-red-500 focus:ring-red-500/20 @else border-gray-200 focus:border-brand focus:ring-brand/20 @enderror">
+                </div>
                 @error('reference_number')
-                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    <p id="reference_number_error" class="mt-1.5 flex items-center gap-1 text-xs text-red-600">
+                        <x-public.icon name="alert" class="h-3.5 w-3.5" /> {{ $message }}
+                    </p>
                 @enderror
             </div>
 
             <div>
-                <label for="identifier" class="block text-sm font-medium text-gray-700 mb-1">
+                <label for="identifier" class="mb-1.5 block text-xs font-semibold text-gray-600">
                     {{ __('applications.track_identifier_label') }}
                 </label>
-                <input type="text" id="identifier" name="identifier"
-                       value="{{ old('identifier') }}"
-                       placeholder="{{ __('applications.track_identifier_placeholder') }}"
-                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('identifier') border-red-400 @enderror">
+                <div class="relative">
+                    <x-public.icon name="mail" class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input type="text" id="identifier" name="identifier" required
+                           value="{{ old('identifier') }}"
+                           placeholder="{{ __('applications.track_identifier_placeholder') }}" autocomplete="email"
+                           @error('identifier') aria-invalid="true" aria-describedby="identifier_error" @enderror
+                           class="{{ $inputClass }} @error('identifier') border-red-300 focus:border-red-500 focus:ring-red-500/20 @else border-gray-200 focus:border-brand focus:ring-brand/20 @enderror">
+                </div>
                 @error('identifier')
-                    <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
+                    <p id="identifier_error" class="mt-1.5 flex items-center gap-1 text-xs text-red-600">
+                        <x-public.icon name="alert" class="h-3.5 w-3.5" /> {{ $message }}
+                    </p>
                 @enderror
             </div>
+        </div>
 
-            <button type="submit"
-                    class="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition">
+        <div class="mt-5 flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="flex items-center gap-1.5 text-xs text-gray-500">
+                <x-public.icon name="lock" class="h-3.5 w-3.5 text-gray-400" />
+                {{ __('public.track_privacy_note') }}
+            </p>
+            <button type="submit" :disabled="busy"
+                    class="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark disabled:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">
+                <svg x-show="busy" x-cloak class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <x-public.icon name="search" x-show="!busy" />
                 {{ __('applications.track_submit') }}
             </button>
         </div>
@@ -48,97 +79,130 @@
     {{-- Result --}}
     @isset($application)
     @php
-        $statusColors = [
-            'submitted'            => 'bg-blue-100 text-blue-800',
-            'under_review'         => 'bg-yellow-100 text-yellow-800',
-            'correction_required'  => 'bg-orange-100 text-orange-800',
-            'passed_screening'     => 'bg-green-100 text-green-800',
-            'failed_screening'     => 'bg-red-100 text-red-800',
-            'shortlisted_exam'     => 'bg-green-100 text-green-800',
-            'exam_completed'       => 'bg-blue-100 text-blue-800',
-            'shortlisted_interview'=> 'bg-green-100 text-green-800',
-            'interview_completed'  => 'bg-blue-100 text-blue-800',
-            'selected'             => 'bg-green-100 text-green-800',
-            'waitlisted'           => 'bg-yellow-100 text-yellow-800',
-            'not_selected'         => 'bg-red-100 text-red-800',
-            'withdrawn'            => 'bg-gray-100 text-gray-700',
+        $tone = match ($application->status->value) {
+            'passed_screening', 'shortlisted_exam', 'shortlisted_interview', 'selected' => 'green',
+            'failed_screening', 'not_selected'                                        => 'red',
+            'correction_required'                                                     => 'orange',
+            'under_review', 'waitlisted'                                              => 'amber',
+            'withdrawn'                                                               => 'gray',
+            default                                                                   => 'blue',
+        };
+        $toneClasses = [
+            'green'  => 'bg-green-50 text-green-700 ring-green-600/20',
+            'red'    => 'bg-red-50 text-red-700 ring-red-600/20',
+            'orange' => 'bg-orange-50 text-orange-700 ring-orange-600/20',
+            'amber'  => 'bg-amber-50 text-amber-800 ring-amber-600/20',
+            'gray'   => 'bg-gray-100 text-gray-700 ring-gray-500/20',
+            'blue'   => 'bg-blue-50 text-blue-700 ring-blue-600/20',
+        ][$tone];
+        $vacancyTitle = is_array($application->vacancy->title)
+            ? ($application->vacancy->title[app()->getLocale()] ?? $application->vacancy->title['en'] ?? '')
+            : ($application->vacancy->getTranslation('title', app()->getLocale(), false) ?: $application->vacancy->getTranslation('title', 'en', false));
+
+        $currentValue = $application->status->value;
+        $steps = [
+            ['status' => ['submitted', 'under_review', 'correction_required', 'passed_screening', 'failed_screening', 'shortlisted_exam', 'exam_completed', 'shortlisted_interview', 'interview_completed', 'selected', 'waitlisted', 'not_selected'], 'label' => __('applications.step_submitted'), 'icon' => 'file-text'],
+            ['status' => ['passed_screening', 'failed_screening', 'shortlisted_exam', 'exam_completed', 'shortlisted_interview', 'interview_completed', 'selected', 'waitlisted', 'not_selected'], 'label' => __('applications.step_screened'), 'icon' => 'clipboard-check'],
+            ['status' => ['shortlisted_exam', 'exam_completed', 'shortlisted_interview', 'interview_completed', 'selected', 'waitlisted', 'not_selected'], 'label' => __('applications.step_exam'), 'icon' => 'academic'],
+            ['status' => ['shortlisted_interview', 'interview_completed', 'selected', 'waitlisted', 'not_selected'], 'label' => __('applications.step_interview'), 'icon' => 'users'],
+            ['status' => ['selected', 'waitlisted', 'not_selected'], 'label' => __('applications.step_final'), 'icon' => 'check-circle'],
         ];
-        $color = $statusColors[$application->status->value] ?? 'bg-gray-100 text-gray-700';
-        $vacancyTitle = is_array($application->vacancy->title) ? ($application->vacancy->title[app()->getLocale()] ?? $application->vacancy->title['en'] ?? '') : $application->vacancy->title;
+        $doneCount = collect($steps)->filter(fn ($s) => in_array($currentValue, $s['status'], true))->count();
+        $isTerminalFail = in_array($currentValue, ['failed_screening', 'not_selected', 'withdrawn'], true);
     @endphp
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="bg-blue-600 px-6 py-4">
-            <p class="text-xs text-blue-200 uppercase tracking-wider font-medium">{{ __('applications.reference_number') }}</p>
-            <p class="text-xl font-bold text-white mt-1">{{ $application->reference_number }}</p>
+    <section class="mt-8 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-card" aria-labelledby="result-heading" aria-live="polite">
+        <div class="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 p-5 sm:p-6">
+            <div class="min-w-0">
+                <p class="text-xs font-medium text-gray-500">{{ __('applications.reference_number') }}</p>
+                <h2 id="result-heading" class="mt-0.5 font-mono text-lg font-bold text-gray-900">{{ $application->reference_number }}</h2>
+            </div>
+            <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold ring-1 ring-inset {{ $toneClasses }}">
+                <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
+                {{ app()->getLocale() === 'am' ? $application->status->labelAmharic() : $application->status->label() }}
+            </span>
         </div>
 
-        <div class="p-6 space-y-4">
-            {{-- Status --}}
-            <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-500">{{ __('applications.status') }}</span>
-                <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold {{ $color }}">
-                    {{ app()->getLocale() === 'am' ? $application->status->labelAmharic() : $application->status->label() }}
-                </span>
+        <dl class="grid gap-4 border-b border-gray-100 p-5 sm:grid-cols-2 sm:p-6">
+            <div>
+                <dt class="text-xs font-medium text-gray-500">{{ __('vacancies.position') }}</dt>
+                <dd class="mt-0.5 text-sm font-semibold text-gray-900">{{ $vacancyTitle }}</dd>
             </div>
-
-            <div class="border-t border-gray-100 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <p class="text-xs text-gray-500 uppercase font-medium">{{ __('vacancies.position') }}</p>
-                    <p class="text-sm font-semibold text-gray-900 mt-0.5">{{ $vacancyTitle }}</p>
-                </div>
-                <div>
-                    <p class="text-xs text-gray-500 uppercase font-medium">{{ __('applications.submitted_at') }}</p>
-                    <p class="text-sm text-gray-700 mt-0.5">{{ $application->submitted_at ? et_date($application->submitted_at, 'd M Y H:i') : '—' }}</p>
-                </div>
+            <div>
+                <dt class="text-xs font-medium text-gray-500">{{ __('applications.submitted_at') }}</dt>
+                <dd class="mt-0.5 text-sm font-semibold text-gray-900">{{ $application->submitted_at ? et_date($application->submitted_at, 'd M Y H:i') : '—' }}</dd>
             </div>
+        </dl>
 
-            {{-- Correction Required message --}}
-            @if($application->status === \App\Enums\ApplicationStatus::CorrectionRequired && $application->screening_remark)
-            <div class="rounded-lg bg-orange-50 border border-orange-200 p-4">
-                <p class="text-sm font-medium text-orange-800 mb-1">{{ __('applications.correction_required_note') }}</p>
-                <p class="text-sm text-orange-700">{{ $application->screening_remark }}</p>
+        @if($application->status === \App\Enums\ApplicationStatus::CorrectionRequired && $application->screening_remark)
+        <div class="border-b border-gray-100 p-5 sm:p-6">
+            <div class="rounded-xl bg-orange-50 p-4 ring-1 ring-orange-200">
+                <p class="flex items-center gap-2 text-sm font-semibold text-orange-800">
+                    <x-public.icon name="alert" />
+                    {{ __('applications.correction_required_note') }}
+                </p>
+                <p class="mt-2 text-sm text-orange-800/90">{{ $application->screening_remark }}</p>
                 <a href="{{ route('login') }}"
-                   class="mt-2 inline-block text-sm font-medium text-orange-800 underline hover:text-orange-900">
+                   class="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-orange-700">
                     {{ __('applications.login_to_update') }}
+                    <x-public.icon name="arrow-right" class="h-3.5 w-3.5" />
                 </a>
             </div>
-            @endif
+        </div>
+        @endif
 
-            {{-- Progress Timeline --}}
-            <div class="border-t border-gray-100 pt-4">
-                <p class="text-xs font-medium text-gray-500 uppercase mb-3">{{ __('applications.progress') }}</p>
+        {{-- Progress --}}
+        <div class="p-5 sm:p-6">
+            <p class="mb-5 text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('applications.progress') }}</p>
+            <ol class="grid gap-4 sm:grid-cols-5 sm:gap-0">
+                @foreach($steps as $step)
                 @php
-                    $steps = [
-                        ['status' => ['submitted', 'under_review', 'correction_required', 'passed_screening', 'failed_screening', 'shortlisted_exam', 'exam_completed', 'shortlisted_interview', 'interview_completed', 'selected', 'waitlisted', 'not_selected'], 'label' => __('applications.step_submitted')],
-                        ['status' => ['passed_screening', 'failed_screening', 'shortlisted_exam', 'exam_completed', 'shortlisted_interview', 'interview_completed', 'selected', 'waitlisted', 'not_selected'], 'label' => __('applications.step_screened')],
-                        ['status' => ['shortlisted_exam', 'exam_completed', 'shortlisted_interview', 'interview_completed', 'selected', 'waitlisted', 'not_selected'], 'label' => __('applications.step_exam')],
-                        ['status' => ['shortlisted_interview', 'interview_completed', 'selected', 'waitlisted', 'not_selected'], 'label' => __('applications.step_interview')],
-                        ['status' => ['selected', 'waitlisted', 'not_selected'], 'label' => __('applications.step_final')],
-                    ];
-                    $currentValue = $application->status->value;
+                    $done      = in_array($currentValue, $step['status'], true);
+                    $isCurrent = $loop->iteration === $doneCount;
+                    $failHere  = $isCurrent && $isTerminalFail;
+                    $circle = $failHere ? 'bg-red-600 text-white ring-red-100'
+                        : ($done ? 'bg-brand text-white ring-brand/15' : 'bg-white text-gray-400 ring-gray-100 border border-gray-200');
                 @endphp
-                <ol class="flex items-center gap-1 flex-wrap">
-                    @foreach($steps as $step)
-                    @php $done = in_array($currentValue, $step['status'], true); @endphp
-                    <li class="flex items-center">
-                        <span class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold
-                                     {{ $done ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500' }}">
-                            {{ $loop->index + 1 }}
-                        </span>
-                        <span class="ml-1 text-xs {{ $done ? 'text-gray-800 font-medium' : 'text-gray-400' }}">
-                            {{ $step['label'] }}
-                        </span>
-                        @if(!$loop->last)
-                        <span class="mx-2 text-gray-300 text-sm">›</span>
+                <li class="relative flex items-center gap-3 sm:flex-col sm:gap-2 sm:text-center" @if($isCurrent) aria-current="step" @endif>
+                    @if(!$loop->last)
+                    <span class="absolute left-4 top-9 h-[calc(100%-1rem)] w-0.5 sm:left-1/2 sm:top-4 sm:h-0.5 sm:w-full {{ $loop->iteration < $doneCount ? 'bg-brand' : 'bg-gray-200' }}" aria-hidden="true"></span>
+                    @endif
+                    <span class="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ring-4 {{ $circle }}">
+                        @if($failHere)
+                            <x-public.icon name="x" class="h-4 w-4" />
+                        @elseif($done)
+                            <x-public.icon name="check" class="h-4 w-4" />
+                        @else
+                            <x-public.icon :name="$step['icon']" class="h-4 w-4" />
                         @endif
-                    </li>
-                    @endforeach
-                </ol>
+                    </span>
+                    <span class="text-xs sm:px-1 {{ $done ? 'font-semibold text-gray-900' : 'text-gray-400' }}">{{ $step['label'] }}</span>
+                </li>
+                @endforeach
+            </ol>
+        </div>
+    </section>
+    @else
+    {{-- Help --}}
+    <div class="mt-8 grid gap-4 sm:grid-cols-2">
+        <div class="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-5">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-muted text-brand"><x-public.icon name="info" /></span>
+            <div>
+                <p class="text-sm font-semibold text-gray-900">{{ __('public.track_help_title') }}</p>
+                <p class="mt-1 text-sm text-gray-500">{{ __('public.track_help_desc') }}</p>
+            </div>
+        </div>
+        <div class="flex items-start gap-3 rounded-2xl border border-gray-200 bg-white p-5">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent-muted text-accent"><x-public.icon name="login" /></span>
+            <div>
+                <p class="text-sm font-semibold text-gray-900">{{ __('public.track_login_title') }}</p>
+                <p class="mt-1 text-sm text-gray-500">{{ __('public.track_login_desc') }}</p>
+                <a href="{{ route('login') }}" class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
+                    {{ __('menus.login') }} <x-public.icon name="arrow-right" class="h-3.5 w-3.5" />
+                </a>
             </div>
         </div>
     </div>
     @endisset
-
 </div>
 @endsection

@@ -4,7 +4,7 @@
 @section('content')
 <div class="space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-3">
-        <h1 class="text-lg font-semibold text-gray-900">{{ __('menus.users') }}</h1>
+        <h1 class="page-title">{{ __('menus.users') }}</h1>
         <a href="{{ route('admin.users.create') }}" class="btn-primary btn">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -13,7 +13,7 @@
         </a>
     </div>
 
-    <form method="GET" class="flex flex-wrap gap-2">
+    <form method="GET" class="filter-bar">
         <input type="text" name="search" value="{{ request('search') }}" placeholder="{{ __('messages.search') }}..."
                class="form-input w-full sm:w-56">
         <select name="role" class="form-select w-auto">
@@ -34,7 +34,7 @@
         @endif
     </form>
 
-    <div class="overflow-hidden rounded-xl bg-white" style="box-shadow: var(--shadow-card)">
+    <div class="card overflow-hidden">
         <table class="min-w-full divide-y divide-gray-100 text-sm">
             <thead class="table-header">
                 <tr>
@@ -47,7 +47,6 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse($users as $user)
-                @php $userBadge = $user->status->value === 'active' ? 'badge-green' : 'badge-red'; @endphp
                 <tr class="table-row">
                     <td class="table-td font-medium text-gray-900">{{ $user->name }}</td>
                     <td class="hidden table-td text-gray-500 sm:table-cell">{{ $user->email }}</td>
@@ -57,18 +56,18 @@
                         @endforeach
                     </td>
                     <td class="table-td">
-                        <span class="{{ $userBadge }}">{{ $user->status->getLabel() }}</span>
+                        <x-admin.status :status="$user->status" />
                     </td>
                     <td class="table-td text-right">
                         <div class="flex items-center justify-end gap-3">
                             <a href="{{ route('admin.users.edit', $user) }}"
-                               class="text-xs font-medium text-accent hover:text-accent-dark transition">{{ __('messages.edit') }}</a>
+                               class="link-action">{{ __('messages.edit') }}</a>
                             @if($user->id !== auth()->id())
                             <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
                                   onsubmit="return confirm('{{ __('messages.confirm_delete') }}')">
                                 @csrf @method('DELETE')
                                 <button type="submit"
-                                        class="text-xs font-medium text-red-500 hover:text-red-700 transition">{{ __('messages.delete') }}</button>
+                                        class="link-danger">{{ __('messages.delete') }}</button>
                             </form>
                             @endif
                         </div>
@@ -83,7 +82,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                                 </svg>
                             </div>
-                            <p class="text-sm text-gray-400">{{ __('messages.no_records') }}</p>
+                            <p class="text-sm text-gray-600">{{ __('messages.no_records') }}</p>
                         </div>
                     </td>
                 </tr>

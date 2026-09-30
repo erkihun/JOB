@@ -77,6 +77,10 @@ class EthiopianCalendar
             return (string) $et['year'];
         }
 
+        if ($gcFormat === 'd') {
+            return (string) $et['day'];
+        }
+
         if (in_array($gcFormat, ['M Y', 'F Y', 'M, Y'], true)) {
             return "{$name} {$et['year']}";
         }

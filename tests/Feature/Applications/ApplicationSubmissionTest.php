@@ -617,9 +617,7 @@ test('applicant can edit application after a screening decision while the vacanc
     // a screening pass/fail decision.
     $user = User::factory()->asApplicant()->create();
     $applicant = Applicant::factory()->create(['user_id' => $user->id]);
-    $vacancy = Vacancy::factory()->open()->create([
-        'closing_date' => now()->addDays(30),
-    ]);
+    $vacancy = Vacancy::factory()->open()->create();
 
     $application = Application::create([
         'applicant_id' => $applicant->id,

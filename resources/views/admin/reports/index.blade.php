@@ -3,18 +3,18 @@
 @section('content')
 <div class="space-y-5">
     <div>
-        <h1 class="text-lg font-semibold text-gray-900">{{ __('admin.reports_center.title') }}</h1>
+        <h1 class="page-title">{{ __('admin.reports_center.title') }}</h1>
         <p class="text-sm text-gray-500">{{ __('menus.reports') }}</p>
     </div>
 
-    <form method="GET" class="flex flex-wrap gap-2">
-        <select name="vacancy_id" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
+    <form method="GET" class="filter-bar">
+        <select name="vacancy_id" class="form-select">
             <option value="">{{ __('messages.all_vacancies') }}</option>
             @foreach($vacancies as $v)
             <option value="{{ $v->id }}" {{ request('vacancy_id') == $v->id ? 'selected' : '' }}>{{ $v->code }} — {{ $v->title }}</option>
             @endforeach
         </select>
-        <select name="status" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
+        <select name="status" class="form-select">
             <option value="">{{ __('messages.all_statuses') }}</option>
             @foreach($statuses as $s)
             <option value="{{ $s->value }}" {{ request('status') === $s->value ? 'selected' : '' }}>{{ $s->getLabel() }}</option>
@@ -25,9 +25,9 @@
             <x-ethiopian-datepicker name="date_until" :label="__('messages.date_until')" :value="request('date_until')"/>
         @else
         <input type="date" name="date_from" value="{{ request('date_from') }}"
-               class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
+               class="form-input">
         <input type="date" name="date_until" value="{{ request('date_until') }}"
-               class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
+               class="form-input">
         @endif
         <button type="submit" class="btn btn-navy">{{ __('messages.filter') }}</button>
         @if(request()->hasAny(['vacancy_id','status','date_from','date_until']))
@@ -44,7 +44,7 @@
         ];
         @endphp
         @foreach($kpiDefs as $key => $card)
-        <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-card">
+        <div class="card overflow-hidden">
             <div class="h-1 {{ $card['bar'] }}"></div>
             <div class="p-5">
                 <p class="text-sm text-gray-500">{{ $card['label'] }}</p>
@@ -54,7 +54,7 @@
         @endforeach
     </div>
 
-    <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+    <div class="card overflow-hidden">
         <table class="min-w-full divide-y divide-gray-100 text-sm">
             <thead class="table-header">
                 <tr>
@@ -67,19 +67,20 @@
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse($applications as $app)
-                @php
-                $badgeMap = ['submitted'=>'badge-blue','passed_screening'=>'badge-green','failed_screening'=>'badge-red','draft'=>'badge-gray'];
-                $badgeClass = $badgeMap[$app->status->value] ?? 'badge-gray';
-                @endphp
-                <tr class="table-row">
+                                <tr class="table-row">
                     <td class="table-td font-medium text-gray-900">{{ $app->applicant?->full_name }}</td>
-                    <td class="table-td hidden text-gray-600 sm:table-cell">{{ $app->vacancy?->title }}</td>
-                    <td class="table-td hidden font-mono text-xs text-gray-400 md:table-cell">{{ $app->reference_number }}</td>
-                    <td class="table-td"><span class="{{ $badgeClass }}">{{ $app->status->getLabel() }}</span></td>
+                    <td class="table-td hidden text-gray-600 sm:table-cell">
+                        {{ $app->vacancy?->title }}
+                        @if($app->vacancy?->announcement)
+                            <p class="mt-1 text-xs text-gray-500">{{ __('vacancies.opening_date') }}: {{ et_date($app->vacancy->announcement->opening_date) }}<br>{{ __('vacancies.closing_date') }}: {{ et_date($app->vacancy->announcement->closing_date) }}</p>
+                        @endif
+                    </td>
+                    <td class="table-td hidden font-mono text-xs text-gray-600 md:table-cell">{{ $app->reference_number }}</td>
+                    <td class="table-td"><x-admin.status :status="$app->status" /></td>
                     <td class="table-td hidden text-gray-500 lg:table-cell">{{ et_date($app->created_at) }}</td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">{{ __('messages.no_records') }}</td></tr>
+                <tr><td colspan="5" class="px-4 py-10 text-center text-gray-600">{{ __('messages.no_records') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

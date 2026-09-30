@@ -6,7 +6,7 @@
     <a href="{{ route('admin.hero-sliders.index') }}" class="text-sm font-medium text-brand hover:text-brand-dark">
         ← {{ __('menus.hero_slider') }}
     </a>
-    <h1 class="text-lg font-semibold text-gray-900">
+    <h1 class="page-title">
         {{ __('messages.edit') }}: {{ $heroSlider->getTranslation('title', 'en', false) }}
     </h1>
 

@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Screening\ChangeScreeningDecisionAction;
 use App\Actions\Screening\ReviewApplicationAction;
 use App\Enums\ApplicationStatus;
 use App\Enums\ScreeningDecision;
 use App\Exports\FailedScreeningReportExport;
 use App\Exports\PassedScreeningReportExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Screening\ChangeScreeningDecisionRequest;
 use App\Http\Requests\Screening\StoreScreeningReviewRequest;
 use App\Models\Application;
 use App\Models\User;
 use App\Models\Vacancy;
+use App\Services\Eligibility\EligibilityProfile;
+use App\Services\Eligibility\VacancyEligibilityChecker;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -80,20 +85,42 @@ class ScreeningController extends Controller
         return $this->doExport($request, ApplicationStatus::FailedScreening, __('menus.failed_applicants'));
     }
 
-    public function review(Application $application): View
+    public function review(Request $request, Application $application, VacancyEligibilityChecker $eligibilityChecker): View
     {
         $canViewSensitive = auth()->user()?->hasPermissionTo('applications.view-sensitive') ?? false;
 
         $application->load([
             'applicant.profileDocuments',
-            'vacancy',
-            'documents',
+            'vacancy.requirementGroups.requirements',
+            'documents.vacancyDocument',
             'screeningReviews.reviewer',
+            'screener',
         ]);
 
         $reviewers = User::role(['admin', 'screening_officer'])->where('status', 'active')->get(['id', 'name']);
 
-        return view('admin.screening.review', compact('application', 'reviewers', 'canViewSensitive'));
+        // Screening aid: does the application meet one of the vacancy's requirement options?
+        $eligibility = $application->applicant
+            ? $eligibilityChecker->check($application->vacancy, EligibilityProfile::fromApplication($application))
+            : null;
+
+        // Queue context: how many are still waiting and who comes next (for "Skip").
+        $queueVacancyId = $request->string('vacancy_id')->toString() ?: null;
+        $queueRemaining = $this->pendingQueue($request->user(), $queueVacancyId)->whereKeyNot($application->id)->count();
+        $nextApplication = $this->nextInQueue($application, $request->user(), $queueVacancyId);
+
+        $canChangeDecision = $request->user()?->can('reverseDecision', $application) ?? false;
+
+        return view('admin.screening.review', compact(
+            'canChangeDecision',
+            'application',
+            'reviewers',
+            'canViewSensitive',
+            'eligibility',
+            'queueVacancyId',
+            'queueRemaining',
+            'nextApplication',
+        ));
     }
 
     public function submitReview(
@@ -106,6 +133,13 @@ class ScreeningController extends Controller
         // with broader screening authority may review any application.
         $this->authorize('screen', $application);
 
+        // A decision is final once given; changing it goes through changeDecision()
+        // (permission + reason required).
+        if (! $application->awaitsScreeningDecision()) {
+            return redirect()->route('admin.screening.review', $application)
+                ->with('error', __('messages.decision_already_recorded'));
+        }
+
         $data = $request->validated();
 
         $reviewApplicationAction->handle(
@@ -115,8 +149,80 @@ class ScreeningController extends Controller
             $data['remark'] ?? null,
         );
 
-        return redirect()->route('admin.screening.index')
-            ->with('success', __('messages.screening_submitted'));
+        // Keep the screener in flow: open the next applicant waiting in the queue
+        // (same vacancy filter, if one was applied) instead of returning to the list.
+        $queueVacancyId = $request->string('queue_vacancy_id')->toString() ?: null;
+        $next = $this->nextInQueue($application, $request->user(), $queueVacancyId);
+
+        if ($next === null) {
+            return redirect()->route('admin.screening.index', array_filter(['vacancy_id' => $queueVacancyId]))
+                ->with('success', __('messages.screening_queue_done'));
+        }
+
+        $remaining = $this->pendingQueue($request->user(), $queueVacancyId)->count();
+
+        return redirect()->route('admin.screening.review', array_filter([
+            'application' => $next->id,
+            'vacancy_id' => $queueVacancyId,
+        ]))->with('success', trans_choice('messages.screening_saved_next', $remaining, ['count' => $remaining]));
+    }
+
+    public function changeDecision(
+        ChangeScreeningDecisionRequest $request,
+        Application $application,
+        ChangeScreeningDecisionAction $changeDecision,
+    ): RedirectResponse {
+        $this->authorize('reverseDecision', $application);
+
+        $data = $request->validated();
+
+        $changeDecision->handle(
+            $application,
+            $request->user(),
+            ScreeningDecision::from($data['decision']),
+            $data['reason'],
+        );
+
+        return redirect()->route('admin.screening.review', $application)
+            ->with('success', __('messages.decision_changed'));
+    }
+
+    /**
+     * Applications still awaiting a screening decision that this user may screen.
+     * Correction-required ones are excluded: they are waiting on the applicant.
+     *
+     * @return Builder<Application>
+     */
+    private function pendingQueue(?User $user, ?string $vacancyId): Builder
+    {
+        $broad = $user?->hasAnyPermission(['applications.view-sensitive', 'applications.assign-reviewer']) ?? false;
+
+        return Application::query()
+            ->whereIn('status', [ApplicationStatus::Submitted->value, ApplicationStatus::UnderReview->value])
+            ->when($vacancyId, fn (Builder $q) => $q->where('vacancy_id', $vacancyId))
+            ->when(! $broad && $user, fn (Builder $q) => $q->where(fn (Builder $w) => $w
+                ->whereNull('assigned_reviewer_id')
+                ->orWhere('assigned_reviewer_id', $user->id)));
+    }
+
+    /**
+     * The applicant after $current in queue order (newest first, same as the list),
+     * wrapping around to the top when $current was the last one.
+     */
+    private function nextInQueue(Application $current, ?User $user, ?string $vacancyId): ?Application
+    {
+        $after = $this->pendingQueue($user, $vacancyId)
+            ->whereKeyNot($current->id)
+            ->where(fn (Builder $q) => $q
+                ->where('created_at', '<', $current->created_at)
+                ->orWhere(fn (Builder $q) => $q->where('created_at', $current->created_at)->where('id', '<', $current->id)))
+            ->orderByDesc('created_at')->orderByDesc('id')
+            ->first();
+
+        return $after ?? $this->pendingQueue($user, $vacancyId)
+            ->whereKeyNot($current->id)
+            ->orderByDesc('created_at')->orderByDesc('id')
+            ->first();
     }
 
     private function doExport(

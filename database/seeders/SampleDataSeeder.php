@@ -10,9 +10,9 @@ use App\Enums\VacancyStatus;
 use App\Models\Applicant;
 use App\Models\Application;
 use App\Models\Institution;
+use App\Models\RecruitmentAnnouncement;
 use App\Models\User;
 use App\Models\Vacancy;
-use App\Models\VacancyAnnouncement;
 use App\Models\VacancyDocument;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -257,7 +257,21 @@ class SampleDataSeeder extends Seeder
                 continue;
             }
 
+            $announcement = RecruitmentAnnouncement::create([
+                'subject' => $v['title']['en'],
+                'code' => 'ANN-'.$v['code'],
+                'content' => '',
+                'opening_date' => $v['opening'],
+                'closing_date' => $v['closing'],
+                'status' => $v['status'] === 'draft' ? 'draft' : 'published',
+                'published_at' => now()->subDays(7),
+                'created_by' => $admin->id,
+            ]);
+            if ($institutionId = $institutionMap[$v['institution']] ?? null) {
+                $announcement->institutions()->attach($institutionId);
+            }
             $vacancy = Vacancy::create([
+                'announcement_id' => $announcement->id,
                 'institution_id' => $institutionMap[$v['institution']] ?? null,
                 'code' => $v['code'],
                 'title' => $v['title'],
@@ -270,8 +284,6 @@ class SampleDataSeeder extends Seeder
                 'minimum_experience' => $v['experience'],
                 'description' => $v['description'],
                 'qualification_requirements' => $v['requirements'],
-                'opening_date' => $v['opening'],
-                'closing_date' => $v['closing'],
                 'status' => $v['status'],
                 'published_at' => now()->subDays(rand(1, 7)),
                 'created_by' => $admin->id,
@@ -438,7 +450,7 @@ class SampleDataSeeder extends Seeder
         ];
 
         foreach ($announcements as $ann) {
-            VacancyAnnouncement::firstOrCreate(
+            RecruitmentAnnouncement::firstOrCreate(
                 ['subject' => $ann['subject']],
                 [
                     'content' => $ann['content'],

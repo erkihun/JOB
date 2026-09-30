@@ -8,7 +8,7 @@
     {{-- ── Page Header ─────────────────────────────────────────────────── --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-xl font-bold text-gray-900">{{ __('dashboard.title') }}</h1>
+            <h1 class="page-title">{{ __('dashboard.title') }}</h1>
             <p class="mt-0.5 text-sm text-gray-500">{{ now()->format('l, d F Y') }}</p>
         </div>
         <div class="flex flex-wrap gap-2">
@@ -44,7 +44,7 @@
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @foreach($kpiCards as $card)
-        <div class="flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+        <div class="flex flex-col card overflow-hidden">
             <div class="flex flex-1 items-start justify-between p-5">
                 <div>
                     <div class="flex items-center gap-2">
@@ -67,15 +67,15 @@
     </div>
 
     {{-- ── Application Pipeline ─────────────────────────────────────────── --}}
-    <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+    <div class="card overflow-hidden">
         <div class="border-b border-gray-100 px-5 py-4">
-            <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.pipeline') }}</h2>
+            <h2 class="card-title">{{ __('dashboard.sections.pipeline') }}</h2>
             <p class="mt-0.5 text-xs text-gray-500">
                 {{ __('dashboard.pipeline_summary', ['count' => number_format($pipelineStages->sum('count')), 'stages' => $pipelineStages->count()]) }}
             </p>
         </div>
         @if($pipelineStages->isEmpty())
-        <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_pipeline_data') }}</p>
+        <p class="px-5 py-8 text-center text-sm text-gray-600">{{ __('dashboard.empty.no_pipeline_data') }}</p>
         @else
         <div class="p-5 space-y-2.5">
             @foreach($pipelineStages as $stage)
@@ -87,7 +87,7 @@
                 </div>
                 <span class="w-20 shrink-0 text-xs text-gray-700">
                     {{ number_format($stage['count']) }}
-                    <span class="text-gray-400">({{ $stage['pct'] }}%)</span>
+                    <span class="text-gray-600">({{ $stage['pct'] }}%)</span>
                 </span>
             </div>
             @endforeach
@@ -99,9 +99,9 @@
     <div class="grid gap-6 lg:grid-cols-3">
 
         {{-- Gender Distribution --}}
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.gender_distribution') }}</h2>
+                <h2 class="card-title">{{ __('dashboard.sections.gender_distribution') }}</h2>
             </div>
             <div class="p-5 space-y-5">
                 @php
@@ -133,9 +133,9 @@
         </div>
 
         {{-- Age Distribution --}}
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.age_distribution') }}</h2>
+                <h2 class="card-title">{{ __('dashboard.sections.age_distribution') }}</h2>
             </div>
             <div class="p-5 space-y-3">
                 @php
@@ -159,15 +159,15 @@
                 </div>
                 @endforeach
                 <div class="mt-2 border-t border-gray-100 pt-2">
-                    <p class="text-xs text-gray-400">{{ __('dashboard.age.total_known_dob') }}: {{ number_format(array_sum($ageDist)) }}</p>
+                    <p class="text-xs text-gray-600">{{ __('dashboard.age.total_known_dob') }}: {{ number_format(array_sum($ageDist)) }}</p>
                 </div>
             </div>
         </div>
 
         {{-- Disability Distribution (SVG Donut) --}}
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.disability_status') }}</h2>
+                <h2 class="card-title">{{ __('dashboard.sections.disability_status') }}</h2>
             </div>
             <div class="flex flex-col items-center justify-center p-5">
                 @php
@@ -197,7 +197,7 @@
                         </div>
                         <span class="text-sm font-semibold text-gray-800">
                             {{ number_format($disabilityDist['without']) }}
-                            <span class="text-xs font-normal text-gray-400">({{ $withoutPct }}%)</span>
+                            <span class="text-xs font-normal text-gray-600">({{ $withoutPct }}%)</span>
                         </span>
                     </div>
                     <div class="flex items-center justify-between">
@@ -207,7 +207,7 @@
                         </div>
                         <span class="text-sm font-semibold text-gray-800">
                             {{ number_format($disabilityDist['with']) }}
-                            <span class="text-xs font-normal text-gray-400">({{ $withPct }}%)</span>
+                            <span class="text-xs font-normal text-gray-600">({{ $withPct }}%)</span>
                         </span>
                     </div>
                 </div>
@@ -220,19 +220,19 @@
     <div class="grid gap-6 lg:grid-cols-2">
 
         {{-- Exam Top Scorers --}}
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.exam_top_scorers') }}</h2>
-                <p class="mt-0.5 text-xs text-gray-400">{{ __('dashboard.scores.top_10_exam') }}</p>
+                <h2 class="card-title">{{ __('dashboard.sections.exam_top_scorers') }}</h2>
+                <p class="mt-0.5 text-xs text-gray-600">{{ __('dashboard.scores.top_10_exam') }}</p>
             </div>
             @if($examTopScorers->isEmpty())
-            <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_exam_scores') }}</p>
+            <p class="px-5 py-8 text-center text-sm text-gray-600">{{ __('dashboard.empty.no_exam_scores') }}</p>
             @else
             <div class="divide-y divide-gray-50">
                 @foreach($examTopScorers as $i => $scorer)
                 @php $medals = ['🥇','🥈','🥉']; @endphp
                 <div class="flex items-center gap-3 px-5 py-2.5">
-                    <span class="w-6 shrink-0 text-center text-sm {{ $i < 3 ? 'font-bold' : 'text-gray-400 text-xs' }}">
+                    <span class="w-6 shrink-0 text-center text-sm {{ $i < 3 ? 'font-bold' : 'text-gray-600 text-xs' }}">
                         {{ $i < 3 ? $medals[$i] : ($i + 1) }}
                     </span>
                     <div class="min-w-0 flex-1">
@@ -241,9 +241,9 @@
                             {{ $scorer->application?->applicant?->full_name ?? '—' }}
                         </p>
                         @else
-                        <p class="text-sm italic text-gray-400">{{ __('dashboard.restricted') }}</p>
+                        <p class="text-sm italic text-gray-600">{{ __('dashboard.restricted') }}</p>
                         @endif
-                        <p class="truncate text-xs text-gray-400">{{ $scorer->schedule?->vacancy?->title ?? '—' }}</p>
+                        <p class="truncate text-xs text-gray-600">{{ $scorer->schedule?->vacancy?->title ?? '—' }}</p>
                     </div>
                     <div class="shrink-0 text-right">
                         <span class="text-sm font-bold text-violet-700">{{ $scorer->score }}</span>
@@ -259,19 +259,19 @@
         </div>
 
         {{-- Interview Top Scorers --}}
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.interview_top_scorers') }}</h2>
-                <p class="mt-0.5 text-xs text-gray-400">{{ __('dashboard.scores.top_10_interview') }}</p>
+                <h2 class="card-title">{{ __('dashboard.sections.interview_top_scorers') }}</h2>
+                <p class="mt-0.5 text-xs text-gray-600">{{ __('dashboard.scores.top_10_interview') }}</p>
             </div>
             @if($interviewTopScorers->isEmpty())
-            <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_interview_scores') }}</p>
+            <p class="px-5 py-8 text-center text-sm text-gray-600">{{ __('dashboard.empty.no_interview_scores') }}</p>
             @else
             <div class="divide-y divide-gray-50">
                 @foreach($interviewTopScorers as $i => $scorer)
                 @php $medals = ['🥇','🥈','🥉']; @endphp
                 <div class="flex items-center gap-3 px-5 py-2.5">
-                    <span class="w-6 shrink-0 text-center text-sm {{ $i < 3 ? 'font-bold' : 'text-gray-400 text-xs' }}">
+                    <span class="w-6 shrink-0 text-center text-sm {{ $i < 3 ? 'font-bold' : 'text-gray-600 text-xs' }}">
                         {{ $i < 3 ? $medals[$i] : ($i + 1) }}
                     </span>
                     <div class="min-w-0 flex-1">
@@ -280,9 +280,9 @@
                             {{ $scorer->application?->applicant?->full_name ?? '—' }}
                         </p>
                         @else
-                        <p class="text-sm italic text-gray-400">{{ __('dashboard.restricted') }}</p>
+                        <p class="text-sm italic text-gray-600">{{ __('dashboard.restricted') }}</p>
                         @endif
-                        <p class="truncate text-xs text-gray-400">{{ $scorer->schedule?->vacancy?->title ?? '—' }}</p>
+                        <p class="truncate text-xs text-gray-600">{{ $scorer->schedule?->vacancy?->title ?? '—' }}</p>
                     </div>
                     <div class="shrink-0 text-right">
                         <span class="text-sm font-bold text-cyan-700">{{ $scorer->score }}</span>
@@ -303,19 +303,19 @@
     <div class="grid gap-6 lg:grid-cols-3">
 
         {{-- Exam Performance by Gender --}}
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.exam_by_gender') }}</h2>
+                <h2 class="card-title">{{ __('dashboard.sections.exam_by_gender') }}</h2>
             </div>
             @if($examPassByGender->isEmpty())
-            <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_exam_data') }}</p>
+            <p class="px-5 py-8 text-center text-sm text-gray-600">{{ __('dashboard.empty.no_exam_data') }}</p>
             @else
             <table class="w-full text-sm">
-                <thead class="bg-gray-50">
+                <thead class="table-header">
                     <tr>
                         <th class="px-5 py-2 text-left text-xs font-medium text-gray-500">{{ __('dashboard.scores.gender') }}</th>
-                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500">{{ __('dashboard.scores.count') }}</th>
-                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500">{{ __('dashboard.scores.avg') }}</th>
+                        <th class="table-th-right">{{ __('dashboard.scores.count') }}</th>
+                        <th class="table-th-right">{{ __('dashboard.scores.avg') }}</th>
                         <th class="px-5 py-2 text-right text-xs font-medium text-gray-500">{{ __('dashboard.scores.max') }}</th>
                     </tr>
                 </thead>
@@ -334,9 +334,9 @@
         </div>
 
         {{-- Final Results Overview --}}
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.final_results') }}</h2>
+                <h2 class="card-title">{{ __('dashboard.sections.final_results') }}</h2>
             </div>
             <div class="grid grid-cols-2 gap-4 p-5">
                 <div class="rounded-lg bg-gray-50 p-4 text-center">
@@ -359,13 +359,13 @@
         </div>
 
         {{-- Applications per Vacancy --}}
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.vacancy_load') }}</h2>
-                <p class="mt-0.5 text-xs text-gray-400">{{ __('dashboard.scores.top_8_open') }}</p>
+                <h2 class="card-title">{{ __('dashboard.sections.vacancy_load') }}</h2>
+                <p class="mt-0.5 text-xs text-gray-600">{{ __('dashboard.scores.top_8_open') }}</p>
             </div>
             @if($vacancyLoad->isEmpty())
-            <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_open_vacancies') }}</p>
+            <p class="px-5 py-8 text-center text-sm text-gray-600">{{ __('dashboard.empty.no_open_vacancies') }}</p>
             @else
             @php $maxLoad = $vacancyLoad->max('applications_count') ?: 1; @endphp
             <div class="space-y-3 p-4">
@@ -391,14 +391,14 @@
     <div class="grid gap-6 lg:grid-cols-2">
 
         {{-- Upcoming Schedules --}}
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+        <div class="card overflow-hidden">
             <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.upcoming_schedules') }}</h2>
+                <h2 class="card-title">{{ __('dashboard.sections.upcoming_schedules') }}</h2>
                 <a href="{{ route('admin.schedules.index') }}"
-                   class="text-xs font-medium text-brand hover:underline">{{ __('dashboard.actions.view_all') }} →</a>
+                   class="link-action">{{ __('dashboard.actions.view_all') }} →</a>
             </div>
             @if($upcomingSchedules->isEmpty())
-            <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_schedules') }}</p>
+            <p class="px-5 py-8 text-center text-sm text-gray-600">{{ __('dashboard.empty.no_schedules') }}</p>
             @else
             <div class="divide-y divide-gray-50">
                 @foreach($upcomingSchedules as $schedule)
@@ -409,7 +409,7 @@
                     </div>
                     <div class="min-w-0 flex-1">
                         <p class="truncate text-sm font-medium text-gray-800">{{ $schedule->title }}</p>
-                        <p class="truncate text-xs text-gray-400">
+                        <p class="truncate text-xs text-gray-600">
                             {{ $schedule->start_time }}
                             @if($schedule->venue) · {{ $schedule->venue }} @endif
                             @if($schedule->vacancy) · {{ $schedule->vacancy->title }} @endif
@@ -428,14 +428,14 @@
         </div>
 
         {{-- Recent Applications --}}
-        <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+        <div class="card overflow-hidden">
             <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-                <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.recent_applications') }}</h2>
+                <h2 class="card-title">{{ __('dashboard.sections.recent_applications') }}</h2>
                 <a href="{{ route('admin.applications.index') }}"
-                   class="text-xs font-medium text-brand hover:underline">{{ __('dashboard.actions.view_all') }} →</a>
+                   class="link-action">{{ __('dashboard.actions.view_all') }} →</a>
             </div>
             @if($recentApplications->isEmpty())
-            <p class="px-5 py-8 text-center text-sm text-gray-400">{{ __('dashboard.empty.no_applications') }}</p>
+            <p class="px-5 py-8 text-center text-sm text-gray-600">{{ __('dashboard.empty.no_applications') }}</p>
             @else
             <div class="divide-y divide-gray-50">
                 @foreach($recentApplications as $app)
@@ -465,15 +465,15 @@
                         @if($canViewSensitive)
                         <p class="truncate text-sm font-medium text-gray-800">{{ $app->applicant?->full_name }}</p>
                         @else
-                        <p class="truncate text-sm italic text-gray-400">{{ __('dashboard.restricted') }}</p>
+                        <p class="truncate text-sm italic text-gray-600">{{ __('dashboard.restricted') }}</p>
                         @endif
-                        <p class="truncate text-xs text-gray-400">{{ $app->vacancy?->title }}</p>
+                        <p class="truncate text-xs text-gray-600">{{ $app->vacancy?->title }}</p>
                     </div>
                     <div class="shrink-0 text-right">
                         <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ $sClass }}">
                             {{ $app->status->getLabel() }}
                         </span>
-                        <p class="mt-0.5 text-xs text-gray-400">{{ $app->created_at->diffForHumans() }}</p>
+                        <p class="mt-0.5 text-xs text-gray-600">{{ $app->created_at->diffForHumans() }}</p>
                     </div>
                 </div>
                 @endforeach
@@ -485,11 +485,11 @@
 
     {{-- ── Recent Audit Activity ────────────────────────────────────────── --}}
     @if($canViewAudit && $recentActivity->isNotEmpty())
-    <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200/60">
+    <div class="card overflow-hidden">
         <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-            <h2 class="text-sm font-semibold text-gray-800">{{ __('dashboard.sections.recent_activity') }}</h2>
+            <h2 class="card-title">{{ __('dashboard.sections.recent_activity') }}</h2>
             <a href="{{ route('admin.audit-logs.index') }}"
-               class="text-xs font-medium text-brand hover:underline">{{ __('dashboard.actions.view_all') }} →</a>
+               class="link-action">{{ __('dashboard.actions.view_all') }} →</a>
         </div>
         <div class="divide-y divide-gray-50">
             @foreach($recentActivity as $log)
@@ -500,13 +500,13 @@
                 <div class="min-w-0 flex-1">
                     <p class="text-xs text-gray-700">
                         <span class="font-medium">{{ $log->user?->name ?? __('dashboard.system') }}</span>
-                        <span class="mx-1 text-gray-400">·</span>
+                        <span class="mx-1 text-gray-600">·</span>
                         <span class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-600">{{ $log->action }}</span>
-                        <span class="mx-1 text-gray-400">on</span>
+                        <span class="mx-1 text-gray-600">on</span>
                         <span class="capitalize text-gray-600">{{ $log->module }}</span>
                     </p>
                 </div>
-                <span class="shrink-0 text-xs text-gray-400">{{ $log->created_at->diffForHumans() }}</span>
+                <span class="shrink-0 text-xs text-gray-600">{{ $log->created_at->diffForHumans() }}</span>
             </div>
             @endforeach
         </div>

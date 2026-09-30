@@ -4,7 +4,7 @@
 <div class="space-y-4">
     <a href="{{ route('admin.notification-templates.index') }}" class="text-sm font-medium text-brand hover:text-brand-dark">← {{ __('menus.notification_templates') }}</a>
     <div class="flex items-center gap-3">
-        <h1 class="text-lg font-semibold text-gray-900">{{ $template->type->getLabel() }}</h1>
+        <h1 class="page-title">{{ $template->type->getLabel() }}</h1>
         <span class="rounded-full bg-brand-muted px-2 py-0.5 text-xs font-medium uppercase text-brand">{{ $template->locale }}</span>
     </div>
 
@@ -12,7 +12,7 @@
         <form method="POST" action="{{ route('admin.notification-templates.update', $template) }}" class="space-y-4">
             @csrf @method('PUT')
 
-            <div class="space-y-4 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div class="space-y-4 card card-body">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">{{ __('messages.subject') }} <span class="text-red-500">*</span></label>
                     <input type="text" name="subject" value="{{ old('subject', $template->subject) }}"
@@ -22,7 +22,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">{{ __('messages.body') }} <span class="text-red-500">*</span></label>
-                    <p class="mt-0.5 text-xs text-gray-400">
+                    <p class="mt-0.5 text-xs text-gray-600">
                         Placeholders: <code>{{ '{{ applicant_name }}' }}</code>, <code>{{ '{{ vacancy_title }}' }}</code>,
                         <code>{{ '{{ reference_number }}' }}</code>, <code>{{ '{{ date }}' }}</code>,
                         <code>{{ '{{ time }}' }}</code>, <code>{{ '{{ venue }}' }}</code>

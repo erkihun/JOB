@@ -2,8 +2,8 @@
 @section('title', __('menus.notification_templates'))
 @section('content')
 <div class="space-y-5">
-    <h1 class="text-lg font-semibold text-gray-900">{{ __('menus.notification_templates') }}</h1>
-    <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+    <h1 class="page-title">{{ __('menus.notification_templates') }}</h1>
+    <div class="card overflow-hidden">
         <table class="min-w-full divide-y divide-gray-100 text-sm">
             <thead class="table-header">
                 <tr>
@@ -29,11 +29,11 @@
                         </span>
                     </td>
                     <td class="table-td text-right">
-                        <a href="{{ route('admin.notification-templates.edit', $template) }}" class="text-xs font-medium text-brand hover:text-brand-dark">{{ __('messages.edit') }}</a>
+                        <a href="{{ route('admin.notification-templates.edit', $template) }}" class="link-action">{{ __('messages.edit') }}</a>
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">{{ __('messages.no_records') }}</td></tr>
+                <tr><td colspan="5" class="px-4 py-10 text-center text-gray-600">{{ __('messages.no_records') }}</td></tr>
                 @endforelse
             </tbody>
         </table>

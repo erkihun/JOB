@@ -177,4 +177,6 @@ return [
 
     // ── Application list ──────────────────────────────────────────────────────
     'applications_count' => ':count application(s)',
+    // Admin UI
+    'application_documents' => 'Application documents',
 ];

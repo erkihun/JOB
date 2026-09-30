@@ -13,6 +13,8 @@ return [
     'using_profile_data' => 'ለዚህ ማመልከቻ ከመገለጫዎ ላይ ያሉ የትምህርት መረጃዎች ጥቅም ላይ ይውላሉ።',
     'deadline_locked' => 'ይህ ማመልከቻ ሊስተካከል አይችልም። የክፍት ቦታው ማብቂያ ጊዜ አልፏል።',
     'duplicate_application' => 'ለዚህ ተቋም በዚህ የቅጥር ማስታወቂያ አስቀድሞ አመልክተዋል።',
+    'cannot_switch_after_shortlist' => 'ለፈተና ወይም ለቃለ መጠይቅ ከተመረጡ በኋላ ማመልከቻውን ወደ ሌላ የሥራ ቦታ ማዛወር አይቻልም።',
+    'resubmitted_for_review' => 'ለውጦችዎ ተቀምጠዋል፤ ማመልከቻዎ ለድጋሚ ማጣራት ተልኳል።',
     'other_institutions_note' => 'ብቁ ከሆኑ በዚህ ማስታወቂያ ውስጥ ላሉ ሌሎች ተቋማት ማመልከት ይችላሉ።',
     'recruitment_announcement' => 'የቅጥር ማስታወቂያ',
     'institution' => 'ተቋም',

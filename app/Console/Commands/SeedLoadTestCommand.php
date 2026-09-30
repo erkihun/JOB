@@ -8,6 +8,7 @@ use App\Enums\ApplicationStatus;
 use App\Enums\VacancyStatus;
 use App\Models\Applicant;
 use App\Models\Application;
+use App\Models\RecruitmentAnnouncement;
 use App\Models\User;
 use App\Models\Vacancy;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -98,6 +99,16 @@ class SeedLoadTestCommand extends Command
         $rows = [];
         $hash = fn () => Str::orderedUuid()->toString();
 
+        $announcement = RecruitmentAnnouncement::create([
+            'subject' => 'Load Test Recruitment',
+            'code' => 'LT-ANN-'.Str::uuid7(),
+            'content' => '',
+            'opening_date' => $now->toDateString(),
+            'closing_date' => $now->copy()->addDays(60)->toDateString(),
+            'status' => 'published',
+            'published_at' => $now,
+            'created_by' => $this->getOrCreateAdminId(),
+        ]);
         for ($i = 0; $i < $count; $i++) {
             $id = $hash();
             $ids[] = $id;
@@ -115,8 +126,7 @@ class SeedLoadTestCommand extends Command
                 'qualification_requirements' => json_encode(['en' => 'N/A', 'am' => 'N/A']),
                 'field_of_study' => null,
                 'minimum_experience' => null,
-                'opening_date' => $now->toDateString(),
-                'closing_date' => $now->addDays(60)->toDateString(),
+                'announcement_id' => $announcement->id,
                 'status' => VacancyStatus::Open->value,
                 'published_at' => $now,
                 'created_by' => $this->getOrCreateAdminId(),

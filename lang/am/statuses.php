@@ -66,6 +66,7 @@ return [
     'exam_interview_type' => [
         'exam' => 'ፈተና',
         'interview' => 'ቃለ መጠይቅ',
+        'practical' => 'የተግባር ፈተና',
     ],
 
     'notification_type' => [

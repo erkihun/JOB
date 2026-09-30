@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminApplicantProfileDocumentDownloadController;
 use App\Http\Controllers\Admin\AdminApplicantProfileDocumentPreviewController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDocumentDownloadController;
+use App\Http\Controllers\Admin\AdminDocumentPreviewController;
 use App\Http\Controllers\Admin\AdminPasswordResetController;
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\ApplicationController as AdminApplicationController;
@@ -294,6 +295,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/screening/{application}', [ScreeningController::class, 'submitReview'])
             ->middleware('permission:screening.review')
             ->name('screening.submit');
+        Route::post('/screening/{application}/change-decision', [ScreeningController::class, 'changeDecision'])
+            ->middleware('permission:screening.reverse-decision')
+            ->name('screening.change-decision');
 
         Route::get('/settings', [SettingsController::class, 'index'])
             ->middleware('permission:settings.view')
@@ -312,6 +316,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/documents/{document}/download', AdminDocumentDownloadController::class)
             ->middleware('permission:applications.view')
             ->name('documents.download');
+        Route::get('/documents/{document}/preview', AdminDocumentPreviewController::class)
+            ->middleware('permission:applications.view')
+            ->name('documents.preview');
         Route::get('/profile-documents/{document}/download', AdminApplicantProfileDocumentDownloadController::class)
             ->middleware('permission:applications.view')
             ->name('profile-documents.download');

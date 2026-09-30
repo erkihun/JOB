@@ -46,9 +46,13 @@ function strongAdminEnvironment(?string $password = 'ProductionAdmin@1234'): voi
 
 test('announcement content is sanitized before storage', function (): void {
     $this->actingAs(adminUser())->post(route('admin.announcements.store'), [
+        'code' => 'ANN-SECURITY',
+        'opening_date' => today()->toDateString(),
+        'closing_date' => today()->addDays(30)->toDateString(),
         'subject' => 'Security Notice',
         'content' => '<p onclick="alert(1)">Hello <strong>team</strong></p><script>alert(1)</script><a href="javascript:alert(1)">bad</a><a href="https://example.com" target="_blank">safe</a>',
         'published_at' => now()->toDateTimeString(),
+        'status' => 'published',
     ])->assertRedirect(route('admin.announcements.index'));
 
     $content = VacancyAnnouncement::query()->firstOrFail()->content;
@@ -63,8 +67,12 @@ test('announcement content is sanitized before storage', function (): void {
 
 test('safe announcement html tags remain renderable', function (): void {
     $this->actingAs(adminUser())->post(route('admin.announcements.store'), [
+        'code' => 'ANN-SECURITY',
+        'opening_date' => today()->toDateString(),
+        'closing_date' => today()->addDays(30)->toDateString(),
         'subject' => 'Safe Notice',
         'content' => '<p>One<br><em>two</em></p><ul><li>Item</li></ul>',
+        'status' => 'published',
     ])->assertRedirect(route('admin.announcements.index'));
 
     expect(VacancyAnnouncement::query()->firstOrFail()->content)

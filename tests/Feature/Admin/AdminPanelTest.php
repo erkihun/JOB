@@ -182,10 +182,10 @@ test('authorized admin can access integrated settings page', function (): void {
     $this->actingAs($admin)
         ->get('/admin/settings')
         ->assertOk()
-        ->assertSee('Allowed Upload File Types')
-        ->assertSee('Available Languages')
-        ->assertSee('Fallback Language')
-        ->assertSee('Mail From Name');
+        ->assertSee(__('settings.allowed_file_types'))
+        ->assertSee(__('settings.available_languages'))
+        ->assertSee(__('settings.fallback_language'))
+        ->assertSee(__('settings.email_sender_name'));
 });
 
 test('audit logs page requires audit view permission', function (): void {
@@ -207,11 +207,11 @@ test('admin route list contains expected admin routes', function (): void {
         ->toContain('admin.settings.index');
 });
 
-test('admin css uses noto serif ethiopic and not abyssinica', function (): void {
+test('app css self-hosts abyssinica sil for amharic', function (): void {
     $css = file_get_contents(resource_path('css/app.css'));
 
-    expect($css)->toContain('Noto Serif Ethiopic')
-        ->not->toContain('Abyssinica');
+    expect($css)->toContain('Abyssinica SIL')
+        ->toContain('Noto Serif Ethiopic');
 });
 
 test('authorized admin can preview applicant profile document inline', function (): void {

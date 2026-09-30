@@ -16,8 +16,10 @@ class FinalResult extends Model
         'application_id',
         'exam_score',
         'interview_score',
+        'practical_score',
         'exam_weight',
         'interview_weight',
+        'practical_weight',
         'final_score',
         'decision',
         'remarks',
@@ -29,8 +31,10 @@ class FinalResult extends Model
         return [
             'exam_score' => 'decimal:2',
             'interview_score' => 'decimal:2',
+            'practical_score' => 'decimal:2',
             'exam_weight' => 'decimal:2',
             'interview_weight' => 'decimal:2',
+            'practical_weight' => 'decimal:2',
             'final_score' => 'decimal:2',
         ];
     }
@@ -45,34 +49,34 @@ class FinalResult extends Model
         return $this->belongsTo(User::class, 'recorded_by');
     }
 
+    /**
+     * Weighted final score out of 100 from exam, interview and practical test scores.
+     * Components without a score are left out and the remaining weights are scaled
+     * back up to 100, so a missing component never counts as zero.
+     */
     public static function computeFinalScore(
         ?float $examScore,
         ?float $interviewScore,
         float $examWeight,
         float $interviewWeight,
+        ?float $practicalScore = null,
+        float $practicalWeight = 0.0,
     ): ?float {
-        if ($examScore === null && $interviewScore === null) {
-            return null;
-        }
-
         $total = 0.0;
         $usedWeight = 0.0;
 
-        if ($examScore !== null) {
-            $total += $examScore * ($examWeight / 100);
-            $usedWeight += $examWeight;
-        }
-
-        if ($interviewScore !== null) {
-            $total += $interviewScore * ($interviewWeight / 100);
-            $usedWeight += $interviewWeight;
+        foreach ([[$examScore, $examWeight], [$interviewScore, $interviewWeight], [$practicalScore, $practicalWeight]] as [$score, $weight]) {
+            if ($score === null || $weight <= 0) {
+                continue;
+            }
+            $total += $score * ($weight / 100);
+            $usedWeight += $weight;
         }
 
         if ($usedWeight === 0.0) {
             return null;
         }
 
-        // Scale to full 100 if only one component is present
         return round($total * (100 / $usedWeight), 2);
     }
 }

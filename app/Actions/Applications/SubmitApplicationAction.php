@@ -32,10 +32,12 @@ class SubmitApplicationAction
         array $files = [],
     ): Application {
         return DB::transaction(function () use ($applicant, $vacancy, $data, $files): Application {
+            $vacancy->refresh();
+            $vacancy->setRelation('announcement', $vacancy->announcement()->lockForUpdate()->first());
             // Re-verify deadline inside the transaction so the check and insert are atomic.
             if (! $vacancy->canAcceptApplications()) {
                 throw ValidationException::withMessages([
-                    'vacancy' => [__('vacancies.deadline_passed')],
+                    'vacancy' => [__($vacancy->isPastDeadline() ? 'vacancies.deadline_passed' : 'vacancies.not_accepting_applications')],
                 ]);
             }
 

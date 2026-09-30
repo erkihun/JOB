@@ -206,7 +206,7 @@ test('screening decision creates an audit log entry', function (): void {
 
     $this->actingAs($reviewer);
 
-    $before = AuditLog::count();
+    $before = AuditLog::where('action', 'screening_status_changed')->count();
 
     app(ReviewApplicationAction::class)->handle(
         $application,
@@ -215,9 +215,10 @@ test('screening decision creates an audit log entry', function (): void {
         'Documents verified',
     );
 
-    expect(AuditLog::count())->toBe($before + 1);
+    // Exactly one screening audit entry (the applicant notification is logged separately).
+    expect(AuditLog::where('action', 'screening_status_changed')->count())->toBe($before + 1);
 
-    $log = AuditLog::latest()->first();
+    $log = AuditLog::where('action', 'screening_status_changed')->latest()->first();
     expect($log->action)->toBe('screening_status_changed')
         ->and($log->module)->toBe('screening')
         ->and($log->record_id)->toBe($application->id)

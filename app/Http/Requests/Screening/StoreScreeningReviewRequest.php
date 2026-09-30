@@ -20,10 +20,12 @@ class StoreScreeningReviewRequest extends FormRequest
         $decision = $this->input('decision');
 
         return [
-            'decision' => ['required', Rule::enum(ScreeningDecision::class)],
+            // Screening has exactly two outcomes. (Older correction-required /
+            // pending records remain valid in history; they just can't be chosen.)
+            'decision' => ['required', Rule::in([ScreeningDecision::Passed->value, ScreeningDecision::Failed->value])],
             'remark' => [
                 Rule::when(
-                    in_array($decision, [ScreeningDecision::Failed->value, ScreeningDecision::CorrectionRequired->value], true),
+                    $decision === ScreeningDecision::Failed->value,
                     ['required', 'string', 'min:10', 'max:2000'],
                     ['nullable', 'string', 'max:2000'],
                 ),
@@ -34,7 +36,7 @@ class StoreScreeningReviewRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'remark.required' => 'A remark is required when marking an application as failed or correction required.',
+            'remark.required' => __('messages.fail_remark_required'),
         ];
     }
 }

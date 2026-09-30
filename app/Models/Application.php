@@ -93,7 +93,7 @@ class Application extends Model
 
     public function isEditable(): bool
     {
-        // An application may be edited any time before the vacancy closing date.
+        // An application may be edited during its announcement's application period.
         // (An explicit admin lock via `locked_at` still hard-blocks editing.)
         if ($this->locked_at !== null) {
             return false;
@@ -106,6 +106,25 @@ class Application extends Model
     {
         return $this->locked_at !== null
             || $this->vacancy->isPastDeadline();
+    }
+
+    /** Still waiting for a first screening decision (pass / fail). */
+    public function awaitsScreeningDecision(): bool
+    {
+        return in_array($this->status, [
+            ApplicationStatus::Submitted,
+            ApplicationStatus::UnderReview,
+            ApplicationStatus::CorrectionRequired,
+        ], true);
+    }
+
+    /**
+     * Screened, but not yet moved on to exams/interviews — the only point at which an
+     * authorised user may change the decision. Later stages depend on it, so it's final.
+     */
+    public function screeningDecisionChangeable(): bool
+    {
+        return in_array($this->status, [ApplicationStatus::PassedScreening, ApplicationStatus::FailedScreening], true);
     }
 
     protected static function booted(): void

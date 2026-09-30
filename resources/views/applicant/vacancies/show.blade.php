@@ -5,8 +5,8 @@
 
 @section('content')
 @php
-    $isPast      = $vacancy->closing_date->isPast();
-    $daysLeft    = (int) now()->diffInDays($vacancy->closing_date, false);
+    $isPast      = $vacancy->isPastDeadline();
+    $daysLeft    = (int) today()->diffInDays($vacancy->announcement->closing_date, false);
     $isUrgent    = !$isPast && $daysLeft <= 6;
     $loc         = $vacancy->getTranslation('location', app()->getLocale(), false) ?: $vacancy->getTranslation('location', 'en', false);
     $isAm        = app()->getLocale() === 'am';
@@ -127,14 +127,14 @@
                     @endif
                     <div class="px-4 py-4">
                         <dt class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{{ __('vacancies.opening_date') }}</dt>
-                        <dd class="text-sm font-semibold text-gray-900">{{ et_date($vacancy->opening_date, 'M d, Y') }}</dd>
+                        <dd class="text-sm font-semibold text-gray-900">{{ et_date($vacancy->announcement->opening_date, 'M d, Y') }}</dd>
                     </div>
                     <div class="px-4 py-4">
                         <dt class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{{ __('vacancies.closing_date') }}</dt>
                         <dd class="text-sm font-semibold {{ $isPast ? 'text-red-600' : 'text-gray-900' }}">
-                            {{ et_date($vacancy->closing_date, 'M d, Y') }}
+                            {{ et_date($vacancy->announcement->closing_date, 'M d, Y') }}
                             @if(!$isPast)
-                            <span class="block text-xs font-normal text-gray-400 mt-0.5">({{ et_diff_for_humans($vacancy->closing_date) }})</span>
+                            <span class="block text-xs font-normal text-gray-400 mt-0.5">({{ et_diff_for_humans($vacancy->announcement->closing_date) }})</span>
                             @endif
                         </dd>
                     </div>

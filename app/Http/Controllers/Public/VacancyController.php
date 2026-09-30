@@ -16,13 +16,15 @@ class VacancyController extends Controller
     public function index(Request $request): View
     {
         $query = Vacancy::query()
-            ->where('status', VacancyStatus::Open)
-            ->where('closing_date', '>=', now()->toDateString());
+            ->acceptingApplications();
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search): void {
                 $q->whereRaw("JSON_EXTRACT(title, '$.en') LIKE ?", ["%{$search}%"])
-                    ->orWhereRaw("JSON_EXTRACT(title, '$.am') LIKE ?", ["%{$search}%"]);
+                    ->orWhereRaw("JSON_EXTRACT(title, '$.am') LIKE ?", ["%{$search}%"])
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('department', 'like', "%{$search}%")
+                    ->orWhere('field_of_study', 'like', "%{$search}%");
             });
         }
 
@@ -46,16 +48,17 @@ class VacancyController extends Controller
         }
 
         if ($openingDate = $request->input('opening_date')) {
-            $query->where('opening_date', '>=', $openingDate);
+            $query->whereHas('announcement', fn ($q) => $q->whereDate('opening_date', '>=', $openingDate));
         }
 
         if ($closingDate = $request->input('closing_date')) {
-            $query->where('closing_date', '<=', $closingDate);
+            $query->whereHas('announcement', fn ($q) => $q->whereDate('closing_date', '<=', $closingDate));
         }
 
         $vacancies = $query->with('institution')->latest('published_at')->paginate(12)->withQueryString();
 
-        $departments = Vacancy::where('status', VacancyStatus::Open)
+        $departments = Vacancy::acceptingApplications()
+            ->whereNotNull('department')
             ->distinct()
             ->pluck('department')
             ->sort()
@@ -70,9 +73,13 @@ class VacancyController extends Controller
 
     public function show(Vacancy $vacancy): View
     {
-        abort_unless($vacancy->status === VacancyStatus::Open, 404);
+        abort_unless($vacancy->status === VacancyStatus::Open && $vacancy->announcement?->isPublished(), 404);
 
-        $vacancy->load(['institution', 'requiredDocuments']);
+        $vacancy->load([
+            'institution',
+            'requiredDocuments',
+            'requirementGroups' => fn ($q) => $q->where('is_active', true)->with('requirements'),
+        ]);
         $canApply = $vacancy->canAcceptApplications();
 
         $alreadyApplied = false;

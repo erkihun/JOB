@@ -64,6 +64,7 @@ return [
     'exam_interview_type' => [
         'exam' => 'Exam',
         'interview' => 'Interview',
+        'practical' => 'Practical test',
     ],
 
     'notification_type' => [

@@ -6,12 +6,12 @@
 <div class="space-y-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h1 class="text-lg font-semibold text-gray-900">{{ __('menus.exam_interview_scores') }}</h1>
+            <h1 class="page-title">{{ __('menus.exam_interview_scores') }}</h1>
             <p class="mt-1 text-sm text-gray-500">{{ __('messages.select_schedule_to_record_results') }}</p>
         </div>
     </div>
 
-    <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+    <div class="card overflow-hidden">
         <table class="min-w-full divide-y divide-gray-100 text-sm">
             <thead class="table-header">
                 <tr>
@@ -42,7 +42,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-4 py-10 text-center text-gray-400">{{ __('messages.no_records') }}</td>
+                    <td colspan="6" class="px-4 py-10 text-center text-gray-600">{{ __('messages.no_records') }}</td>
                 </tr>
                 @endforelse
             </tbody>

@@ -85,4 +85,50 @@ return [
     'no_results_title' => 'No vacancies found',
     'more_filters' => 'More filters',
     'hide_filters' => 'Hide filters',
+
+    // Layout & accessibility
+    'skip_to_content' => 'Skip to main content',
+    'main_navigation' => 'Main navigation',
+    'language' => 'Language',
+    'menu' => 'Menu',
+    'close' => 'Close',
+    'footer_tagline' => 'Official recruitment portal. Browse open vacancies, apply online and follow your application every step of the way.',
+
+    // Home
+    'stat_open_vacancies' => 'Open vacancies',
+    'stat_positions' => 'Positions available',
+    'stat_institutions' => 'Hiring institutions',
+    'go_to_slide' => 'Go to slide :number',
+    'previous' => 'Previous',
+    'next' => 'Next',
+    'no_vacancies_hint' => 'New opportunities are published regularly. Create an account so you are ready to apply.',
+    'latest_announcements' => 'Latest Announcements',
+    'view_all_announcements' => 'All announcements',
+    'how_it_works_desc' => 'Four simple steps from registration to results.',
+
+    // Vacancy listing & detail
+    'vacancies_subtitle' => 'Find a role that matches your skills and apply online in minutes.',
+    'map' => 'Map',
+    'closed' => 'Closed',
+    'opened_after' => 'Opened after',
+    'closes_before' => 'Closes before',
+    'result_singular' => 'vacancy found',
+    'result_plural' => 'vacancies found',
+    'remove_filter' => 'Remove filter',
+    'clear_all' => 'Clear all',
+    'key_details' => 'Key details',
+    'deadline' => 'Application deadline',
+    'days_left' => 'days left',
+
+    // Tracking
+    'track_privacy_note' => 'Your details are only used to verify the application belongs to you.',
+    'track_help_title' => 'Where is my reference number?',
+    'track_help_desc' => 'It was shown after you submitted your application and sent to your email.',
+    'track_login_title' => 'Have an account?',
+    'track_login_desc' => 'Log in to see all your applications, documents and notifications.',
+
+    // Announcements
+    'announcements_subtitle' => 'Official notices, results and updates from the recruitment team.',
+    'published_on' => 'Published',
+    'back_to_announcements' => 'Back to announcements',
 ];

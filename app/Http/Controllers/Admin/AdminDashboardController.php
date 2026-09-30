@@ -28,7 +28,7 @@ class AdminDashboardController extends Controller
 
         $stats = $this->remember('dashboard.stats', fn (): array => [
             'total_applicants' => Applicant::count(),
-            'open_vacancies' => Vacancy::where('status', VacancyStatus::Open)->count(),
+            'open_vacancies' => Vacancy::acceptingApplications()->count(),
             'total_applications' => Application::count(),
             'pending_screening' => Application::whereIn('status', [
                 ApplicationStatus::Submitted,
@@ -141,7 +141,7 @@ class AdminDashboardController extends Controller
             'avg_fin' => round((float) FinalResult::avg('final_score'), 1),
         ]);
 
-        $vacancyLoad = $this->remember('dashboard.vacancy_load', fn () => Vacancy::where('status', VacancyStatus::Open)
+        $vacancyLoad = $this->remember('dashboard.vacancy_load', fn () => Vacancy::acceptingApplications()
             ->withCount('applications')
             ->orderByDesc('applications_count')
             ->limit(8)

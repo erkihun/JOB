@@ -1,223 +1,197 @@
 @extends('layouts.public')
 
-@section('title', $vacancy->getTranslation('title', app()->getLocale(), false) ?: $vacancy->getTranslation('title', 'en', false))
-@section('meta_description', strip_tags(Str::limit($vacancy->getTranslation('description', app()->getLocale(), false) ?: $vacancy->getTranslation('description', 'en', false), 160)))
-
-@section('content')
-@php use Illuminate\Support\Str; @endphp
-
 @php
-    $daysLeft = (int) now()->diffInDays($vacancy->closing_date, false);
-    $isUrgent = $daysLeft >= 0 && $daysLeft <= 6;
-    $isPast   = $daysLeft < 0;
-    $loc      = $vacancy->getTranslation('location', app()->getLocale(), false) ?: $vacancy->getTranslation('location', 'en', false);
+    $locale       = app()->getLocale();
+    $tr           = fn (string $field) => $vacancy->getTranslation($field, $locale, false) ?: $vacancy->getTranslation($field, 'en', false);
+    $title        = $tr('title');
+    $description  = $tr('description');
+    $requirements = $tr('qualification_requirements');
+    $loc          = $tr('location');
+    $daysLeft     = (int) today()->diffInDays($vacancy->announcement->closing_date, false);
+    $isPast       = $daysLeft < 0;
+    $isUrgent     = ! $isPast && $daysLeft <= 6;
+    $institution  = $vacancy->institution;
+    $isApplicant  = auth()->check() && auth()->user()->hasRole('applicant');
+    $applyUrl     = $isApplicant
+        ? route('applicant.applications.create', $vacancy)
+        : route('login') . '?redirect=' . urlencode(request()->url());
+    $showApply    = ! $alreadyApplied && ! $isPast && $canApply && (! auth()->check() || $isApplicant);
+    $shareUrl     = urlencode(request()->url());
 @endphp
 
-<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+@section('title', $title)
+@section('meta_description', Str::limit(trim(strip_tags((string) $description)), 160))
 
-    {{-- Breadcrumb --}}
-    <nav class="mb-6 flex items-center gap-2 text-sm text-gray-500">
-        <a href="{{ route('home') }}" class="hover:text-blue-600 transition">{{ __('public.home') }}</a>
-        <svg class="h-4 w-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-        <a href="{{ route('vacancies.index') }}" class="hover:text-blue-600 transition">{{ __('vacancies.job_vacancies') }}</a>
-        <svg class="h-4 w-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-        <span class="text-gray-700 truncate max-w-xs">
-            {{ Str::limit($vacancy->getTranslation('title', app()->getLocale(), false) ?: $vacancy->getTranslation('title', 'en', false), 40) }}
+@section('content')
+
+<x-public.page-header :title="$title"
+                      :crumbs="[['label' => __('vacancies.job_vacancies'), 'url' => route('vacancies.index')], ['label' => Str::limit($title, 40)]]">
+    <div class="mt-5 flex flex-wrap items-center gap-2 text-xs font-medium">
+        @if($institution)
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 ring-1 ring-white/15">
+            <x-public.icon name="building" class="h-3.5 w-3.5 text-white/60" />
+            {{ $institution->name }}
         </span>
-    </nav>
+        @endif
+        @if($vacancy->department)
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 ring-1 ring-white/15">
+            <x-public.icon name="office" class="h-3.5 w-3.5 text-white/60" />
+            {{ $vacancy->department }}
+        </span>
+        @endif
+        @if($loc)
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 ring-1 ring-white/15">
+            <x-public.icon name="map-pin" class="h-3.5 w-3.5 text-white/60" />
+            {{ $loc }}
+        </span>
+        @endif
+        @if($vacancy->employment_type)
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 ring-1 ring-white/15">
+            <x-public.icon name="briefcase" class="h-3.5 w-3.5 text-white/60" />
+            {{ $vacancy->employment_type->label() }}
+        </span>
+        @endif
+        @if($vacancy->code)
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 font-mono ring-1 ring-white/15">
+            <x-public.icon name="hashtag" class="h-3.5 w-3.5 text-white/60" />
+            {{ $vacancy->code }}
+        </span>
+        @endif
+    </div>
+</x-public.page-header>
 
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 {{ $showApply ? 'pb-28 lg:pb-10' : '' }}">
     <div class="lg:grid lg:grid-cols-3 lg:gap-8">
 
-        {{-- ── Main Content Column ── --}}
-        <div class="lg:col-span-2 space-y-6">
+        {{-- ── Main column ── --}}
+        <div class="space-y-6 lg:col-span-2">
 
-            {{-- Hero Header Card --}}
-            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 p-6 sm:p-8 text-white shadow-lg">
-                <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.12),_transparent_60%)]"></div>
-                <div class="relative">
-                    <div class="flex flex-wrap items-start justify-between gap-4">
-                        <div class="flex-1 min-w-0">
-                            @if($vacancy->code)
-                            <span class="inline-block font-mono text-xs font-medium text-blue-200 bg-white/10 border border-white/20 rounded-lg px-2.5 py-1 mb-3">
-                                {{ $vacancy->code }}
-                            </span>
-                            @endif
-                            <h1 class="text-2xl sm:text-3xl font-extrabold leading-tight text-white">
-                                {{ $vacancy->getTranslation('title', app()->getLocale(), false) ?: $vacancy->getTranslation('title', 'en', false) }}
-                            </h1>
-                            @if($vacancy->department)
-                            <p class="mt-2 text-blue-200 text-sm font-medium">{{ $vacancy->department }}</p>
-                            @endif
-                        </div>
-
-                        {{-- Days remaining badge --}}
-                        @if(!$isPast)
-                        <div class="shrink-0">
-                            @if($isUrgent)
-                            <span class="inline-flex items-center gap-1.5 rounded-xl bg-red-500 px-3 py-2 text-xs font-bold text-white shadow">
-                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                                </svg>
-                                {{ $daysLeft === 0 ? __('public.closes_today') : __('public.closes_in_days', ['days' => $daysLeft]) }}
-                            </span>
-                            @else
-                            <span class="inline-flex items-center gap-1.5 rounded-xl bg-white/15 border border-white/25 px-3 py-2 text-xs font-semibold text-white">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                {{ __('public.closes_in_days', ['days' => $daysLeft]) }}
-                            </span>
-                            @endif
-                        </div>
-                        @endif
+            {{-- Key facts --}}
+            <section class="rounded-2xl border border-gray-200 bg-white shadow-card" aria-labelledby="facts-heading">
+                <h2 id="facts-heading" class="sr-only">{{ __('public.key_details') }}</h2>
+                <dl class="grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-gray-100 sm:grid-cols-3">
+                    @php
+                        $facts = array_filter([
+                            ['icon' => 'users',    'label' => __('vacancies.number_of_positions'), 'value' => $vacancy->number_of_positions],
+                            ['icon' => 'academic', 'label' => __('vacancies.field_of_study'),      'value' => $vacancy->field_of_study],
+                            ['icon' => 'clock',    'label' => __('vacancies.min_experience'),      'value' => $vacancy->minimum_experience !== null
+                                ? $vacancy->minimum_experience . ' ' . ($locale === 'am' ? __('public.years') : ($vacancy->minimum_experience === 1 ? 'year' : 'years'))
+                                : null],
+                            ['icon' => 'currency', 'label' => __('vacancies.salary_grade'),        'value' => $vacancy->salary_grade],
+                            ['icon' => 'calendar', 'label' => __('vacancies.opening_date'),        'value' => et_date($vacancy->announcement->opening_date, 'M d, Y')],
+                            ['icon' => 'calendar', 'label' => __('vacancies.closing_date'),        'value' => et_date($vacancy->announcement->closing_date, 'M d, Y')],
+                        ], fn ($f) => filled($f['value']));
+                    @endphp
+                    @foreach($facts as $fact)
+                    <div class="bg-white p-4 sm:p-5">
+                        <dt class="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                            <x-public.icon :name="$fact['icon']" class="h-3.5 w-3.5 text-gray-400" />
+                            {{ $fact['label'] }}
+                        </dt>
+                        <dd class="mt-1.5 text-sm font-semibold text-gray-900">{{ $fact['value'] }}</dd>
                     </div>
-
-                    {{-- Metadata chips --}}
-                    <div class="mt-5 flex flex-wrap gap-2">
-                        @if($vacancy->employment_type)
-                        <span class="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/20 px-3 py-1.5 text-xs font-semibold text-white">
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                            </svg>
-                            {{ $vacancy->employment_type->label() }}
-                        </span>
-                        @endif
-                        @if($loc)
-                        <span class="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/20 px-3 py-1.5 text-xs font-semibold text-white">
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                            {{ $loc }}
-                        </span>
-                        @endif
-                        @if($vacancy->number_of_positions)
-                        <span class="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/20 px-3 py-1.5 text-xs font-semibold text-white">
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                            {{ $vacancy->number_of_positions }} {{ __('public.positions') }}
-                        </span>
-                        @endif
-                        @if($vacancy->salary_grade)
-                        <span class="inline-flex items-center gap-1.5 rounded-lg bg-white/15 border border-white/20 px-3 py-1.5 text-xs font-semibold text-white">
-                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            {{ $vacancy->salary_grade }}
-                        </span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            {{-- Key Info Grid --}}
-            <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div class="grid grid-cols-2 divide-x divide-y divide-gray-100 sm:grid-cols-3 lg:grid-cols-4">
-                    @if($vacancy->institution)
-                    <div class="px-4 py-4">
-                        <dt class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{{ __('vacancies.recruiting_institution') }}</dt>
-                        <dd class="text-sm font-semibold text-gray-900">{{ $vacancy->institution->name }}</dd>
-                    </div>
+                    @endforeach
+                    {{-- Fill the last row so the grid never shows a grey hole --}}
+                    @for($i = 0; $i < (3 - count($facts) % 3) % 3; $i++)
+                    <div class="hidden bg-white sm:block" aria-hidden="true"></div>
+                    @endfor
+                    @if(count($facts) % 2 === 1)
+                    <div class="bg-white sm:hidden" aria-hidden="true"></div>
                     @endif
-                    @if($vacancy->field_of_study)
-                    <div class="px-4 py-4">
-                        <dt class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{{ __('vacancies.field_of_study') }}</dt>
-                        <dd class="text-sm font-semibold text-gray-900">{{ $vacancy->field_of_study }}</dd>
-                    </div>
-                    @endif
-                    @if($vacancy->minimum_experience !== null)
-                    <div class="px-4 py-4">
-                        <dt class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{{ __('vacancies.min_experience') }}</dt>
-                        <dd class="text-sm font-semibold text-gray-900">
-                            {{ $vacancy->minimum_experience }}
-                            {{ app()->getLocale() === 'am' ? __('public.years') : ($vacancy->minimum_experience === 1 ? 'year' : 'years') }}
-                        </dd>
-                    </div>
-                    @endif
-                    <div class="px-4 py-4">
-                        <dt class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{{ __('vacancies.opening_date') }}</dt>
-                        <dd class="text-sm font-semibold text-gray-900">{{ et_date($vacancy->opening_date, 'M d, Y') }}</dd>
-                    </div>
-                    <div class="px-4 py-4">
-                        <dt class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{{ __('vacancies.closing_date') }}</dt>
-                        <dd class="text-sm font-semibold {{ $isPast ? 'text-red-600' : 'text-gray-900' }}">
-                            {{ et_date($vacancy->closing_date, 'M d, Y') }}
-                            @if(!$isPast)
-                            <span class="text-xs font-normal text-gray-400 block mt-0.5">({{ et_diff_for_humans($vacancy->closing_date) }})</span>
-                            @endif
-                        </dd>
-                    </div>
-                </div>
-            </div>
+                </dl>
+            </section>
 
             {{-- Description --}}
-            @if($vacancy->getTranslation('description', app()->getLocale(), false) ?: $vacancy->getTranslation('description', 'en', false))
-            <section class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div class="border-b border-gray-100 bg-gray-50 px-6 py-4 flex items-center gap-3">
-                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
-                        <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                    </div>
-                    <h2 class="text-sm font-bold text-gray-900">{{ __('vacancies.description') }}</h2>
-                </div>
-                <div class="px-6 py-5 prose prose-sm max-w-none text-gray-700">
-                    {!! nl2br(e($vacancy->getTranslation('description', app()->getLocale(), false) ?: $vacancy->getTranslation('description', 'en', false))) !!}
+            @if($description)
+            <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8" aria-labelledby="desc-heading">
+                <h2 id="desc-heading" class="flex items-center gap-2.5 text-lg font-bold text-gray-900">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-muted text-brand"><x-public.icon name="document" /></span>
+                    {{ __('vacancies.description') }}
+                </h2>
+                <div class="prose prose-sm mt-4 max-w-none leading-relaxed text-gray-700 sm:prose-base">
+                    {!! nl2br(e($description)) !!}
                 </div>
             </section>
             @endif
 
             {{-- Requirements --}}
-            @if($vacancy->getTranslation('qualification_requirements', app()->getLocale(), false) ?: $vacancy->getTranslation('qualification_requirements', 'en', false))
-            <section class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div class="border-b border-gray-100 bg-gray-50 px-6 py-4 flex items-center gap-3">
-                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100">
-                        <svg class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                        </svg>
-                    </div>
-                    <h2 class="text-sm font-bold text-gray-900">{{ __('vacancies.requirements') }}</h2>
-                </div>
-                <div class="px-6 py-5 prose prose-sm max-w-none text-gray-700">
-                    {!! nl2br(e($vacancy->getTranslation('qualification_requirements', app()->getLocale(), false) ?: $vacancy->getTranslation('qualification_requirements', 'en', false))) !!}
+            @if($requirements)
+            <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8" aria-labelledby="req-heading">
+                <h2 id="req-heading" class="flex items-center gap-2.5 text-lg font-bold text-gray-900">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-muted text-brand"><x-public.icon name="clipboard-check" /></span>
+                    {{ __('vacancies.requirements') }}
+                </h2>
+                <div class="prose prose-sm mt-4 max-w-none leading-relaxed text-gray-700 sm:prose-base">
+                    {!! nl2br(e($requirements)) !!}
                 </div>
             </section>
             @endif
 
-            {{-- Required Documents Checklist --}}
+            {{-- Eligibility requirement options (alternatives) --}}
+            @php $options = $vacancy->requirementGroups->filter(fn ($g) => $g->requirements->isNotEmpty())->values(); @endphp
+            @if($options->isNotEmpty())
+            <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8" aria-labelledby="eligibility-heading">
+                <h2 id="eligibility-heading" class="flex items-center gap-2.5 text-lg font-bold text-gray-900">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-muted text-brand"><x-public.icon name="academic" /></span>
+                    {{ __('vacancies.eligibility_requirements') }}
+                </h2>
+                @if($options->count() > 1)
+                <p class="mt-2 text-sm text-gray-500">{{ __('vacancies.eligibility_any_option_hint') }}</p>
+                @endif
+
+                <ol class="mt-5 space-y-3">
+                    @foreach($options as $group)
+                    @if(! $loop->first)
+                    <li class="relative flex items-center justify-center" aria-hidden="true">
+                        <span class="absolute inset-x-0 h-px bg-gray-200"></span>
+                        <span class="relative rounded-full bg-white px-3 text-xs font-bold uppercase tracking-widest text-accent">{{ __('vacancies.or') }}</span>
+                    </li>
+                    @endif
+                    <li class="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                        <p class="text-sm font-bold text-brand">
+                            {{ \App\Services\Eligibility\VacancyEligibilityChecker::optionLabel($loop->iteration, $group->title) }}
+                        </p>
+                        <ul class="mt-2 space-y-1.5">
+                            @foreach($group->requirements as $req)
+                            <li class="flex items-start gap-2 text-sm text-gray-700">
+                                <x-public.icon name="check" class="mt-0.5 h-4 w-4 text-green-600" />
+                                <span>
+                                    {{ $req->summary() }}
+                                    @if($req->notes)<span class="block text-xs text-gray-500">{{ $req->notes }}</span>@endif
+                                </span>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </li>
+                    @endforeach
+                </ol>
+            </section>
+            @endif
+
+            {{-- Required documents --}}
             @if($vacancy->requiredDocuments->isNotEmpty())
-            <section class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div class="border-b border-gray-100 bg-gray-50 px-6 py-4 flex items-center gap-3">
-                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
-                        <svg class="h-4 w-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                        </svg>
-                    </div>
-                    <h2 class="text-sm font-bold text-gray-900">{{ __('vacancies.required_documents') }}</h2>
-                </div>
-                <ul class="divide-y divide-gray-50 px-6 py-3">
+            <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8" aria-labelledby="docs-heading">
+                <h2 id="docs-heading" class="flex items-center gap-2.5 text-lg font-bold text-gray-900">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-muted text-brand"><x-public.icon name="paperclip" /></span>
+                    {{ __('vacancies.required_documents') }}
+                </h2>
+                <ul class="mt-5 grid gap-3 sm:grid-cols-2">
                     @foreach($vacancy->requiredDocuments as $doc)
-                    <li class="flex items-start gap-4 py-3.5">
-                        <div class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full {{ $doc->is_required ? 'bg-blue-100' : 'bg-gray-100' }}">
-                            <svg class="h-3.5 w-3.5 {{ $doc->is_required ? 'text-blue-600' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
+                    <li class="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4">
+                        <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg {{ $doc->is_required ? 'bg-white text-brand ring-1 ring-brand/20' : 'bg-white text-gray-400 ring-1 ring-gray-200' }}">
+                            <x-public.icon name="document" class="h-3.5 w-3.5" />
+                        </span>
+                        <div class="min-w-0 flex-1">
                             <p class="text-sm font-semibold text-gray-900">{{ $doc->document_name }}</p>
-                            <p class="mt-0.5 flex flex-wrap gap-2 text-xs text-gray-500">
+                            <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
                                 @if($doc->is_required)
-                                <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">{{ __('public.required') }}</span>
+                                <span class="rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-700">{{ __('public.required') }}</span>
                                 @else
-                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">{{ __('public.optional') }}</span>
+                                <span class="rounded-full bg-gray-200/70 px-2 py-0.5 font-medium text-gray-600">{{ __('public.optional') }}</span>
                                 @endif
                                 @if($doc->allowed_types)
                                 <span>{{ implode(', ', array_map('strtoupper', $doc->allowed_types)) }}</span>
+                                <span class="text-gray-300">·</span>
                                 @endif
                                 <span>{{ __('vacancies.detail_max') }} {{ $doc->max_size_mb }} MB</span>
                             </p>
@@ -228,102 +202,138 @@
             </section>
             @endif
 
-            {{-- Back link --}}
-            <div>
-                <a href="{{ route('vacancies.index') }}"
-                   class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 transition">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                    {{ __('public.back_to_vacancies') }}
-                </a>
-            </div>
+            <a href="{{ route('vacancies.index') }}"
+               class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 transition hover:text-brand">
+                <x-public.icon name="arrow-left" />
+                {{ __('public.back_to_list') }}
+            </a>
         </div>
 
-        {{-- ── Sticky Sidebar (Apply CTA) ── --}}
-        <div class="mt-8 lg:mt-0">
-            <div class="lg:sticky lg:top-24 space-y-4">
+        {{-- ── Sidebar ── --}}
+        <aside class="mt-8 lg:mt-0">
+            <div class="space-y-4 lg:sticky lg:top-24">
 
-                {{-- Apply Card --}}
-                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                    <div class="border-b border-gray-100 bg-gray-50 px-5 py-4">
-                        <h3 class="text-sm font-bold text-gray-900">{{ __('vacancies.apply_now') }}</h3>
-                    </div>
-                    <div class="p-5 space-y-4">
-                        @if($alreadyApplied)
-                        <div class="flex items-center gap-2.5 rounded-xl bg-green-50 border border-green-200 px-4 py-3">
-                            <svg class="h-5 w-5 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <p class="text-sm font-semibold text-green-800">{{ __('vacancies.already_applied') }}</p>
-                        </div>
-
-                        @elseif($isPast)
-                        <div class="flex items-center gap-2.5 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
-                            <svg class="h-5 w-5 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <p class="text-sm font-semibold text-red-800">{{ __('vacancies.deadline_passed') }}</p>
-                        </div>
-
-                        @elseif($canApply)
-                            @auth
-                                @if(auth()->user()->hasRole('applicant'))
-                                <a href="{{ route('applicant.applications.create', $vacancy) }}"
-                                   class="block w-full text-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow hover:bg-blue-700 transition">
-                                    {{ __('vacancies.apply_now') }}
-                                </a>
-                                @endif
-                            @else
-                            <a href="{{ route('login') }}?redirect={{ urlencode(request()->url()) }}"
-                               class="block w-full text-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow hover:bg-blue-700 transition">
-                                {{ __('vacancies.apply_now') }}
-                            </a>
-                            <p class="text-center text-xs text-gray-400">{{ __('vacancies.login_to_apply') }}</p>
-                            @endauth
-
+                {{-- Apply card --}}
+                <div id="apply" class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-card">
+                    {{-- Countdown --}}
+                    <div class="border-b border-gray-100 p-5 {{ $isPast ? 'bg-red-50' : ($isUrgent ? 'bg-orange-50' : 'bg-brand-muted') }}">
+                        @if($isPast)
+                            <p class="flex items-center gap-2 text-sm font-semibold text-red-700">
+                                <x-public.icon name="x-circle" class="h-5 w-5" />
+                                {{ __('public.closed') }}
+                            </p>
                         @else
-                        <div class="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-600">
-                            {{ __('vacancies.vacancy_not_open') }}
-                        </div>
+                            <p class="text-xs font-semibold uppercase tracking-wide {{ $isUrgent ? 'text-orange-700' : 'text-brand' }}">{{ __('public.deadline') }}</p>
+                            <p class="mt-1 flex items-baseline gap-2">
+                                @if($daysLeft === 0)
+                                <span class="text-2xl font-extrabold text-orange-700">{{ __('public.closes_today') }}</span>
+                                @else
+                                <span class="text-3xl font-extrabold tabular-nums {{ $isUrgent ? 'text-orange-700' : 'text-gray-900' }}">{{ $daysLeft }}</span>
+                                <span class="text-sm font-medium text-gray-600">{{ __('public.days_left') }}</span>
+                                @endif
+                            </p>
+                            <p class="mt-1 text-xs text-gray-600">{{ et_date($vacancy->announcement->closing_date, 'M d, Y') }} · {{ et_diff_for_humans($vacancy->announcement->closing_date) }}</p>
+                        @endif
+                    </div>
+
+                    <div class="space-y-3 p-5">
+                        @if($alreadyApplied)
+                            <div class="flex items-start gap-2.5 rounded-xl bg-green-50 px-4 py-3 ring-1 ring-green-200">
+                                <x-public.icon name="check-circle" class="h-5 w-5 text-green-600" />
+                                <p class="text-sm font-semibold text-green-800">{{ __('vacancies.already_applied') }}</p>
+                            </div>
+                            <a href="{{ route('applicant.applications.index') }}"
+                               class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                                {{ __('menus.my_applications') }}
+                            </a>
+                        @elseif($isPast)
+                            <p class="text-sm text-red-700">{{ __('vacancies.deadline_passed') }}</p>
+                        @elseif($canApply)
+                            @if(! auth()->check() || $isApplicant)
+                            <a href="{{ $applyUrl }}"
+                               class="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-accent/20 transition hover:bg-accent-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">
+                                {{ __('vacancies.apply_now') }}
+                                <x-public.icon name="arrow-right" />
+                            </a>
+                            @endif
+                            @guest
+                            <p class="text-center text-xs text-gray-500">
+                                {{ __('vacancies.login_to_apply') }} ·
+                                <a href="{{ route('applicant.register') }}" class="font-semibold text-brand hover:underline">{{ __('menus.register') }}</a>
+                            </p>
+                            @endguest
+                        @else
+                            <div class="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600 ring-1 ring-gray-200">
+                                {{ __('vacancies.vacancy_not_open') }}
+                            </div>
                         @endif
 
-                        {{-- Deadline summary --}}
-                        @if(!$isPast && !$alreadyApplied)
-                        <div class="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 text-xs text-gray-500 space-y-1.5">
-                            <div class="flex justify-between">
-                                <span>{{ __('vacancies.opening_date') }}</span>
-                                <span class="font-semibold text-gray-700">{{ et_date($vacancy->opening_date, 'M d, Y') }}</span>
+                        @if($institution)
+                        <div class="flex items-center gap-3 rounded-xl bg-gray-50 p-3">
+                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-brand ring-1 ring-gray-200">
+                                <x-public.icon name="building" />
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[11px] font-medium text-gray-500">{{ __('vacancies.recruiting_institution') }}</p>
+                                <p class="truncate text-sm font-semibold text-gray-900" title="{{ $institution->name }}">{{ $institution->name }}</p>
                             </div>
-                            <div class="flex justify-between">
-                                <span>{{ __('vacancies.closing_date') }}</span>
-                                <span class="font-semibold {{ $isUrgent ? 'text-red-600' : 'text-gray-700' }}">{{ et_date($vacancy->closing_date, 'M d, Y') }}</span>
-                            </div>
-                            @if($vacancy->number_of_positions)
-                            <div class="flex justify-between">
-                                <span>{{ __('vacancies.number_of_positions') }}</span>
-                                <span class="font-semibold text-gray-700">{{ $vacancy->number_of_positions }}</span>
-                            </div>
+                            @if($institution->latitude && $institution->longitude)
+                            <a href="https://www.google.com/maps?q={{ $institution->latitude }},{{ $institution->longitude }}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-white hover:text-brand"
+                               title="{{ __('admin.institution_open_in_maps') }}">
+                                <x-public.icon name="map-pin" />
+                                <span class="sr-only">{{ __('admin.institution_open_in_maps') }}</span>
+                            </a>
                             @endif
                         </div>
                         @endif
                     </div>
                 </div>
 
-                {{-- Share card --}}
-                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-5">
-                    <p class="text-xs font-semibold text-gray-500 mb-3">{{ __('vacancies.share_vacancy') }}</p>
+                {{-- Share --}}
+                <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-card"
+                     x-data="{ copied: false, copy() { navigator.clipboard.writeText(window.location.href).then(() => { this.copied = true; setTimeout(() => this.copied = false, 2000) }) } }">
+                    <p class="mb-3 text-xs font-semibold text-gray-600">{{ __('vacancies.share_vacancy') }}</p>
                     <div class="flex gap-2">
-                        <button type="button"
-                                onclick="navigator.clipboard.writeText(window.location.href); this.textContent='{{ __('vacancies.link_copied') }}'; setTimeout(()=>this.textContent='{{ __('vacancies.copy_link') }}', 2000)"
-                                class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition">
-                            {{ __('vacancies.copy_link') }}
+                        <button type="button" @click="copy()"
+                                class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50">
+                            <x-public.icon name="link" class="h-3.5 w-3.5" x-show="!copied" />
+                            <x-public.icon name="check" class="h-3.5 w-3.5 text-green-600" x-show="copied" x-cloak />
+                            <span x-text="copied ? @js(__('vacancies.link_copied')) : @js(__('vacancies.copy_link'))">{{ __('vacancies.copy_link') }}</span>
                         </button>
+                        <a href="https://t.me/share/url?url={{ $shareUrl }}&text={{ urlencode($title) }}" target="_blank" rel="noopener noreferrer"
+                           class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-600"
+                           aria-label="Telegram">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+                        </a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer"
+                           class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+                           aria-label="Facebook">
+                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/></svg>
+                        </a>
                     </div>
                 </div>
             </div>
-        </div>
-
-    </div><!-- /grid -->
+        </aside>
+    </div>
 </div>
+
+{{-- Mobile sticky apply bar --}}
+@if($showApply)
+<div class="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] backdrop-blur lg:hidden">
+    <div class="mx-auto flex max-w-7xl items-center gap-3">
+        <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-semibold text-gray-900">{{ $title }}</p>
+            <p class="text-xs {{ $isUrgent ? 'font-semibold text-orange-700' : 'text-gray-500' }}">
+                {{ $daysLeft === 0 ? __('public.closes_today') : __('public.closes_in_days', ['days' => $daysLeft]) }}
+            </p>
+        </div>
+        <a href="{{ $applyUrl }}"
+           class="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-accent px-5 py-3 text-sm font-bold text-white transition hover:bg-accent-dark">
+            {{ __('vacancies.apply_now') }}
+        </a>
+    </div>
+</div>
+@endif
 @endsection

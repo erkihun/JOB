@@ -12,47 +12,7 @@
         $adminLogoSize = min(max((int) \App\Models\Setting::get('appearance.logo_size', 36), 24), 72);
     @endphp
     <style>
-    /* ── Brand CSS vars ─────────────────────────────────────────── */
-    /* ── Sidebar design tokens — light mode (default) ───────────── */
-    :root {
-        --sb-text:          #1e293b;
-        --sb-muted:         #64748b;
-        --sb-dim:           #94a3b8;
-        --sb-border:        rgba(0,0,0,.08);
-        --sb-hover:         rgba(0,0,0,.05);
-        --sb-active-bg:     color-mix(in srgb, var(--color-brand) 10%, white);
-        --sb-active-text:   var(--color-brand);
-        --sb-active-icon:   var(--color-brand);
-        --sb-inactive-icon: #94a3b8;
-        --sb-hover-icon:    #475569;
-        --sb-line:          rgba(0,0,0,.08);
-        --sb-badge-bg:      rgba(0,0,0,.06);
-        --sb-badge-text:    #475569;
-        --sb-footer-bg:     rgba(0,0,0,.03);
-        --sb-action:        #94a3b8;
-        --sb-radial:        transparent;
-    }
-
-    /* ── Sidebar design tokens — dark mode ──────────────────────── */
-    html.dark {
-        --sb-text:          rgba(255,255,255,.92);
-        --sb-muted:         rgba(255,255,255,.55);
-        --sb-dim:           rgba(255,255,255,.35);
-        --sb-border:        rgba(255,255,255,.08);
-        --sb-hover:         rgba(255,255,255,.07);
-        --sb-active-bg:     rgba(255,255,255,.1);
-        --sb-active-text:   #ffffff;
-        --sb-active-icon:   #ffffff;
-        --sb-inactive-icon: rgba(255,255,255,.38);
-        --sb-hover-icon:    rgba(255,255,255,.85);
-        --sb-line:          rgba(255,255,255,.1);
-        --sb-badge-bg:      rgba(255,255,255,.1);
-        --sb-badge-text:    rgba(255,255,255,.7);
-        --sb-footer-bg:     rgba(255,255,255,.04);
-        --sb-action:        rgba(255,255,255,.42);
-        --sb-radial:        rgba(255,255,255,.055);
-    }
-
+    /* Sidebar colour tokens (--sb-*) come from partials.admin-theme, chosen for the sidebar colour. */
     /* ── Sidebar scrollbar ──────────────────────────────────────── */
     .sidebar-nav::-webkit-scrollbar       { width: 3px; }
     .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
@@ -63,14 +23,14 @@
     .nav-tooltip {
         pointer-events: none;
         position: fixed;
-        left: 4.5rem;
+        left: 5rem;
         z-index: 200;
         white-space: nowrap;
         padding: .35rem .75rem;
         background: #0f172a;
         color: #f8fafc;
-        font-size: .75rem;
-        font-weight: 500;
+        font-size: .8125rem;
+        font-weight: 600;
         border-radius: .5rem;
         box-shadow: 0 4px 12px rgba(0,0,0,.35);
         opacity: 0;
@@ -91,12 +51,12 @@
         --tb-bg:            rgba(255,255,255,.97);
         --tb-border:        rgba(0,0,0,.07);
         --tb-text:          #111827;
-        --tb-muted:         #6b7280;
-        --tb-dim:           #9ca3af;
+        --tb-muted:         #4b5563;
+        --tb-dim:           #6b7280;
         --tb-hover:         rgba(0,0,0,.05);
-        --tb-search-bg:     #f3f4f6;
-        --tb-search-border: rgba(0,0,0,.09);
-        --tb-search-text:   #9ca3af;
+        --tb-search-bg:     #f6f7f9;
+        --tb-search-border: #e5e7eb;
+        --tb-search-text:   #4b5563;
     }
 
     /* ── Topbar design tokens — dark mode ───────────────────────── */
@@ -104,18 +64,18 @@
         --tb-bg:            rgba(10,17,34,.97);
         --tb-border:        rgba(255,255,255,.07);
         --tb-text:          rgba(255,255,255,.88);
-        --tb-muted:         rgba(255,255,255,.45);
-        --tb-dim:           rgba(255,255,255,.28);
+        --tb-muted:         rgba(255,255,255,.75);
+        --tb-dim:           rgba(255,255,255,.6);
         --tb-hover:         rgba(255,255,255,.07);
         --tb-search-bg:     rgba(255,255,255,.06);
-        --tb-search-border: rgba(255,255,255,.09);
-        --tb-search-text:   rgba(255,255,255,.3);
+        --tb-search-border: rgba(255,255,255,.12);
+        --tb-search-text:   rgba(255,255,255,.7);
     }
 
     /* ── Topbar btn base ────────────────────────────────────────── */
     .tb-btn {
         align-items: center; justify-content: center;
-        height: 2rem; width: 2rem; border-radius: .5rem;
+        height: 2.25rem; width: 2.25rem; border-radius: .5rem;
         color: var(--tb-muted); transition: background .12s ease, color .12s ease;
     }
     .tb-btn:hover { background: var(--tb-hover); color: var(--tb-text); }
@@ -166,67 +126,64 @@
      @click="sidebarOpen = false" style="display:none"></div>
 
 {{-- ════════════════════════════════════════════════════════════
-     Sidebar
-     Background switches via Alpine darkMode:
-       light → white + right-border shadow
-       dark  → 3-stop navy gradient + drop shadow
+     Sidebar — colour from Settings › Appearance (sidebar colour);
+     text tokens (--sb-*) are chosen for readability in partials.admin-theme.
+     Desktop: 264px, collapsible to 72px. Mobile: slide-in drawer.
 ════════════════════════════════════════════════════════════ --}}
+@php
+    $orgName = \App\Models\Setting::get('org.name', config('app.name'));
+    $orgLogo = \App\Models\Setting::get('org.logo', '');
+@endphp
 <aside
+    id="admin-sidebar"
+    aria-label="{{ __('menus.admin_panel') }}"
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-    :style="`
-        width: ${sidebarOpen || !sidebarCollapsed ? '16rem' : '4rem'};
-        background: ${darkMode
-            ? 'linear-gradient(160deg, color-mix(in srgb,var(--color-navy) 112%,white) 0%, var(--color-navy) 42%, color-mix(in srgb,var(--color-navy) 78%,black) 100%)'
-            : 'white'};
-        box-shadow: ${darkMode
-            ? '4px 0 28px rgba(0,0,0,.22)'
-            : '1px 0 0 rgba(0,0,0,.08), 3px 0 12px rgba(0,0,0,.04)'};
-    `"
-    class="fixed inset-y-0 left-0 z-50 flex flex-col lg:translate-x-0 transition-all duration-300 ease-out overflow-hidden">
+    {{-- object syntax keeps the static background below --}}
+    :style="{ width: (sidebarOpen || !sidebarCollapsed) ? '16.5rem' : '4.5rem' }"
+    style="width: 16.5rem; background: linear-gradient(180deg, color-mix(in srgb, var(--color-navy) 90%, white) 0%, var(--color-navy) 38%, var(--color-navy-dark) 100%); box-shadow: 1px 0 0 var(--sb-border), 4px 0 24px rgba(0,0,0,.10);"
+    class="fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden transition-all duration-300 ease-out lg:translate-x-0">
 
-    {{-- Radial highlight (dark mode only) ─────────────────────── --}}
-    <div class="pointer-events-none absolute inset-0 z-0"
-         style="background: radial-gradient(ellipse 200px 180px at 8% 0%, var(--sb-radial) 0%, transparent 70%);"></div>
+    {{-- ── Brand + collapse ── --}}
+    <div class="flex min-h-16 shrink-0 items-center gap-3 px-3.5 py-2" style="border-bottom: 1px solid var(--sb-border);">
+        <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 flex-1 items-center gap-3" :class="sidebarCollapsed && !sidebarOpen ? 'justify-center' : ''">
+            @if($orgLogo)
+            <img src="{{ Storage::url($orgLogo) }}" alt="" class="shrink-0 rounded-md object-contain"
+                 style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px;">
+            @else
+            <span class="flex shrink-0 items-center justify-center rounded-lg text-[13px] font-bold"
+                  style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px; color: var(--sb-text); border: 1px solid var(--sb-line); background: var(--sb-footer-bg);">
+                {{ mb_strtoupper(mb_substr($orgName, 0, 2)) }}
+            </span>
+            @endif
+            <span class="min-w-0" x-show="!sidebarCollapsed || sidebarOpen">
+                <span class="block truncate text-sm font-bold leading-tight" style="color: var(--sb-text);">{{ $orgName }}</span>
+                <span class="mt-0.5 block truncate text-xs" style="color: var(--sb-dim);">{{ __('menus.admin_panel') }}</span>
+            </span>
+        </a>
 
-    {{-- ════════════════════════════════════════════════════════════
-         Brand header
-    ════════════════════════════════════════════════════════════ --}}
-    <div class="relative z-10 flex h-16 shrink-0 items-center gap-3 px-3.5"
-         style="border-bottom: 1px solid var(--sb-border);">
+        {{-- Desktop: collapse / expand --}}
+        <button type="button" @click="toggleSidebar()" x-show="!sidebarOpen"
+                class="hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg transition lg:flex"
+                style="color: var(--sb-text); background: var(--sb-hover);"
+                :class="sidebarCollapsed ? 'absolute left-1/2 top-[4.5rem] -translate-x-1/2' : ''"
+                :title="sidebarCollapsed ? @js(__('messages.expand_sidebar')) : @js(__('messages.collapse_sidebar'))"
+                :aria-label="sidebarCollapsed ? @js(__('messages.expand_sidebar')) : @js(__('messages.collapse_sidebar'))"
+                aria-controls="admin-sidebar" :aria-expanded="(!sidebarCollapsed).toString()">
+            <svg class="h-4 w-4 transition-transform duration-300" :class="sidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+            </svg>
+        </button>
 
-        {{-- Logo mark --}}
-        @php $orgLogo = \App\Models\Setting::get('org.logo', ''); @endphp
-        @if($orgLogo)
-        <img src="{{ Storage::url($orgLogo) }}" alt=""
-             class="shrink-0 object-contain"
-             style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px;">
-        @else
-        <div class="flex shrink-0 items-center justify-center text-sm font-bold"
-             style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px; color: var(--color-brand);">
-            {{ mb_substr(\App\Models\Setting::get('org.name', config('app.name')), 0, 2) }}
-        </div>
-        @endif
-
-        {{-- Org name + "Admin" badge --}}
-        <div class="flex-1 min-w-0 overflow-hidden transition-all duration-300"
-             :class="sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'">
-            <p class="truncate text-[13px] font-semibold leading-tight whitespace-nowrap"
-               style="color: var(--sb-text);">
-                {{ \App\Models\Setting::get('org.name', config('app.name')) }}
-            </p>
-            <div class="flex items-center gap-1.5 mt-0.5">
-                <span class="inline-flex items-center rounded px-1.5 py-px text-[10px] font-semibold uppercase tracking-wider"
-                      style="background: var(--sb-badge-bg); color: var(--sb-badge-text); letter-spacing:.07em;">
-                    Admin
-                </span>
-            </div>
-        </div>
+        {{-- Mobile: close drawer --}}
+        <button type="button" @click="sidebarOpen = false" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg lg:hidden"
+                style="color: var(--sb-text);" aria-label="{{ __('public.close') }}">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
     </div>
 
-    {{-- ════════════════════════════════════════════════════════════
-         Navigation
-    ════════════════════════════════════════════════════════════ --}}
-    <nav class="sidebar-nav relative z-10 flex-1 overflow-y-auto overflow-x-hidden py-3 px-2 space-y-0.5">
+    {{-- ── Navigation ── --}}
+    <nav class="sidebar-nav flex-1 overflow-y-auto overflow-x-hidden px-2.5 pb-3" :class="sidebarCollapsed && !sidebarOpen ? 'pt-14' : 'pt-2'"
+         aria-label="{{ __('menus.admin_panel') }}">
         @php
         $authUser = auth()->user();
         $nav = [];
@@ -314,6 +271,19 @@
                     'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'];
         }
 
+        // Live count of applications waiting for screening (only for users who can screen).
+        if ($canPerm('screening.view')) {
+            try {
+                $pendingScreening = \App\Models\Application::whereIn('status', [\App\Enums\ApplicationStatus::Submitted, \App\Enums\ApplicationStatus::UnderReview])->count();
+            } catch (\Throwable) {
+                $pendingScreening = 0;
+            }
+            foreach ($nav as &$navEntry) {
+                if (is_array($navEntry) && $navEntry['route'] === 'admin.screening.index') { $navEntry['count'] = $pendingScreening; }
+            }
+            unset($navEntry);
+        }
+
         $groupLabels = [
             'recruitment'   => __('menus.recruitment'),
             'screening'     => __('menus.screening'),
@@ -324,144 +294,61 @@
             'system'        => __('menus.system'),
         ];
         @endphp
-
         @foreach($nav as $item)
-
-        {{-- ── Section group header ───────────────────────────────── --}}
-        @if(is_string($item))
-        <div class="overflow-hidden transition-all duration-300"
-             :class="sidebarCollapsed ? 'mt-2 mb-1' : 'mt-5 mb-1.5'">
-            {{-- Expanded: ruled label --}}
-            <div class="flex items-center gap-2 px-1 transition-all duration-200"
-                 :class="sidebarCollapsed ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'">
-                <span class="block h-px flex-1 rounded-full" style="background:var(--sb-line)"></span>
-                <span class="text-[9.5px] font-bold uppercase tracking-widest whitespace-nowrap"
-                      style="color:var(--sb-dim)">{{ $groupLabels[$item] ?? $item }}</span>
-                <span class="block h-px flex-1 rounded-full" style="background:var(--sb-line)"></span>
-            </div>
-            {{-- Collapsed: single rule --}}
-            <div class="mx-2 h-px rounded-full transition-opacity duration-200"
-                 style="background:var(--sb-line)"
-                 :class="sidebarCollapsed ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'"></div>
-        </div>
-
-        {{-- ── Nav link ────────────────────────────────────────────── --}}
-        @else
-        @php $active = request()->routeIs($item['match']); @endphp
-        <a href="{{ route($item['route']) }}"
-           class="nav-item group relative flex items-center rounded-lg text-sm font-medium transition-all duration-150 ease-out {{ $active ? 'nav-active' : 'nav-inactive' }}"
-           :class="sidebarCollapsed ? 'justify-center py-2.5 px-0' : 'gap-3 py-2 px-3'">
-
-            {{-- Active: left accent rail with glow --}}
-            @if($active)
-            <span class="absolute inset-y-0 left-0 w-0.75 rounded-full"
-                  style="background: var(--color-accent); box-shadow: 0 0 8px color-mix(in srgb, var(--color-accent) 70%, transparent);"
-                  :class="sidebarCollapsed ? 'opacity-0' : 'opacity-100'"></span>
+            @if(is_string($item))
+                <p class="mt-5 mb-1.5 px-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap" style="color: var(--sb-dim)"
+                   x-show="!sidebarCollapsed || sidebarOpen">{{ $groupLabels[$item] ?? $item }}</p>
+                <div class="mx-2 my-2.5 h-px" style="background: var(--sb-line)" x-show="sidebarCollapsed && !sidebarOpen" x-cloak></div>
             @else
-            {{-- Hover: ghost left rail --}}
-            <span class="absolute inset-y-1 left-0 w-0.5 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-150"
-                  style="background: var(--color-accent);"></span>
+                @php $active = request()->routeIs($item['match']); @endphp
+                <a href="{{ route($item['route']) }}"
+                   @if($active) aria-current="page" @endif
+                   class="nav-item group relative mb-0.5 flex h-10 items-center rounded-lg text-sm transition-colors duration-150 {{ $active ? 'nav-active font-semibold' : 'nav-inactive font-medium' }}"
+                   :class="sidebarCollapsed && !sidebarOpen ? 'justify-center' : 'gap-3 px-3'">
+                    @if($active)
+                    <span class="absolute inset-y-2 left-0 w-0.75 rounded-full" style="background: var(--color-accent);" aria-hidden="true"></span>
+                    @endif
+                    <svg class="h-[18px] w-[18px] shrink-0 {{ $active ? 'nav-icon-active' : 'nav-icon-inactive' }}" aria-hidden="true"
+                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <path d="{{ $item['icon'] }}"/>
+                    </svg>
+                    <span class="flex-1 truncate" x-show="!sidebarCollapsed || sidebarOpen">{{ $item['label'] }}</span>
+                    @if(!empty($item['count']))
+                    <span class="rounded-full px-2 py-px text-xs font-bold text-white" style="background: var(--color-accent);"
+                          x-show="!sidebarCollapsed || sidebarOpen"
+                          title="{{ trans_choice('messages.waiting_count', $item['count'], ['count' => $item['count']]) }}">{{ $item['count'] > 99 ? '99+' : $item['count'] }}</span>
+                    <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full" style="background: var(--color-accent);" x-show="sidebarCollapsed && !sidebarOpen" x-cloak aria-hidden="true"></span>
+                    @endif
+                    <span class="nav-tooltip" x-show="sidebarCollapsed && !sidebarOpen" x-cloak>{{ $item['label'] }}</span>
+                </a>
             @endif
-
-            {{-- Icon --}}
-            <svg class="shrink-0 transition-colors duration-150 ease-out {{ $active ? 'nav-icon-active' : 'nav-icon-inactive' }}"
-                 style="width:17px;height:17px;"
-                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                 viewBox="0 0 24 24">
-                <path d="{{ $item['icon'] }}"/>
-            </svg>
-
-            {{-- Label --}}
-            <span class="truncate whitespace-nowrap overflow-hidden transition-all duration-200 ease-out"
-                  :class="sidebarCollapsed ? 'max-w-0 opacity-0' : 'max-w-xs opacity-100'">
-                {{ $item['label'] }}
-            </span>
-
-            {{-- Active dot --}}
-            @if($active)
-            <span class="ml-auto shrink-0 h-1.5 w-1.5 rounded-full"
-                  style="background:var(--color-accent)"
-                  :class="sidebarCollapsed ? 'hidden' : 'block'"></span>
-            @endif
-
-            {{-- Collapsed tooltip --}}
-            <span class="nav-tooltip" :class="sidebarCollapsed ? '' : 'hidden!'">
-                {{ $item['label'] }}
-            </span>
-        </a>
-        @endif
-
         @endforeach
     </nav>
 
-    {{-- ════════════════════════════════════════════════════════════
-         User footer
-    ════════════════════════════════════════════════════════════ --}}
-    <div class="relative z-10 shrink-0 p-2.5" style="border-top: 1px solid var(--sb-border);">
-        @php
-            $userName    = auth()->user()?->name ?? 'User';
-            $userRole    = auth()->user()?->roles->first()?->name ?? '';
-            $firstName   = explode(' ', trim($userName))[0] ?? $userName;
-            $lastName    = count(explode(' ', trim($userName))) > 1 ? explode(' ', trim($userName))[count(explode(' ', trim($userName)))-1] : '';
-            $userInitials = mb_strtoupper(mb_substr($firstName,0,1) . mb_substr($lastName,0,1));
-        @endphp
-
-        <div class="flex items-center gap-2.5 rounded-xl p-2 transition-colors duration-150"
-             style="background: var(--sb-footer-bg);"
-             :class="sidebarCollapsed ? 'justify-center' : ''">
-
-            {{-- Avatar --}}
-            <div class="relative shrink-0">
-                <div class="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold text-white"
-                     style="background: linear-gradient(135deg, var(--color-brand) 0%, color-mix(in srgb,var(--color-brand) 60%,var(--color-accent)) 100%);
-                            box-shadow: 0 0 0 2px var(--sb-line), 0 2px 6px rgba(0,0,0,.2);">
-                    {{ $userInitials ?: mb_strtoupper(mb_substr($userName,0,2)) }}
-                </div>
-                <span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 bg-emerald-400"
-                      style="border-color: inherit;"></span>
-            </div>
-
-            {{-- Name + role --}}
-            <div class="min-w-0 flex-1 overflow-hidden transition-all duration-200"
-                 :class="sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'">
-                <p class="truncate text-[12.5px] font-semibold whitespace-nowrap leading-tight"
-                   style="color: var(--sb-text);">{{ $userName }}</p>
-                @if($userRole)
-                <p class="truncate text-[10.5px] font-medium whitespace-nowrap mt-0.5"
-                   style="color: var(--color-accent); opacity:.9;">
-                    {{ ucfirst(str_replace('_', ' ', $userRole)) }}
-                </p>
+    {{-- ── Footer ── --}}
+    <div class="shrink-0 space-y-2 p-2.5" style="border-top: 1px solid var(--sb-border);">
+        {{-- Language switch lives here on mobile (topbar hides it) --}}
+        @if(\App\Models\Setting::get('localization.show_language_switcher', true))
+        <div class="flex rounded-lg p-0.5 text-sm font-semibold sm:hidden" style="background: var(--sb-hover);" role="group" aria-label="{{ __('public.language') }}">
+            @foreach(['en' => 'EN', 'am' => 'አማ'] as $code => $label)
+                @if(in_array($code, (array) \App\Models\Setting::get('app.available_locales', ['en', 'am']), true))
+                <a href="{{ route('lang.switch', $code) }}" lang="{{ $code }}" data-admin-no-spa
+                   class="flex-1 rounded-md py-2 text-center"
+                   style="{{ app()->getLocale() === $code ? 'background:#fff;color:#111827;' : 'color: var(--sb-text);' }}">{{ $label }}</a>
                 @endif
-            </div>
-
-            {{-- Action buttons --}}
-            <div class="flex shrink-0 items-center gap-0.5 transition-all duration-200"
-                 :class="sidebarCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'opacity-100'">
-                <a href="{{ route('admin.profile.edit') }}"
-                   title="{{ __('messages.edit_profile') }}"
-                   class="flex h-7 w-7 items-center justify-center rounded-lg transition-colors duration-150 hover:opacity-100"
-                   style="color: var(--sb-action);"
-                   onmouseover="this.style.background='var(--sb-hover)'"
-                   onmouseout="this.style.background='transparent'">
-                    <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                    </svg>
-                </a>
-                <form method="POST" action="{{ route('admin.logout') }}">
-                    @csrf
-                    <button type="submit" title="{{ __('menus.logout') }}"
-                            class="flex h-7 w-7 items-center justify-center rounded-lg transition-colors duration-150"
-                            style="color: var(--sb-action);"
-                            onmouseover="this.style.background='rgba(239,68,68,.1)';this.style.color='#ef4444'"
-                            onmouseout="this.style.background='transparent';this.style.color='var(--sb-action)'">
-                        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                        </svg>
-                    </button>
-                </form>
-            </div>
+            @endforeach
         </div>
+        @endif
+        <a href="{{ route('home') }}" target="_blank" rel="noopener"
+           class="nav-item nav-inactive group relative flex h-10 items-center rounded-lg text-sm font-medium"
+           :class="sidebarCollapsed && !sidebarOpen ? 'justify-center' : 'gap-3 px-3'">
+            <svg class="h-[18px] w-[18px] shrink-0 nav-icon-inactive" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+            <span class="truncate" x-show="!sidebarCollapsed || sidebarOpen">{{ __('messages.view_public_site') }}</span>
+            <span class="sr-only">({{ __('messages.opens_new_tab') }})</span>
+            <span class="nav-tooltip" x-show="sidebarCollapsed && !sidebarOpen" x-cloak>{{ __('messages.view_public_site') }}</span>
+        </a>
     </div>
 </aside>
 
@@ -469,219 +356,133 @@
      Main content wrapper
 ════════════════════════════════════════════════════════════ --}}
 <div class="flex flex-col min-h-full transition-all duration-300 ease-out"
-     :class="sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-64'">
+     :class="sidebarCollapsed ? 'lg:pl-18' : 'lg:pl-66'">
     <div data-admin-progress class="fixed left-0 right-0 top-0 z-[80] h-0.5"
          style="background: linear-gradient(90deg, var(--color-brand), var(--color-accent));"></div>
 
     {{-- ════════════════════════════════════════════════════════════
-         Topbar — three-zone: LEFT | CENTER | RIGHT
+         Topbar — LEFT breadcrumb | CENTER search | RIGHT language, theme, user
     ════════════════════════════════════════════════════════════ --}}
-    <header class="sticky top-0 z-30 h-14 shrink-0 flex items-center gap-2 px-4 sm:px-5"
-            style="background:var(--tb-bg); border-bottom:1px solid var(--tb-border);
-                   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-                   box-shadow:0 1px 0 rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);">
+    @php
+        $userName     = auth()->user()?->name ?? 'User';
+        $userRole     = auth()->user()?->roles->first()?->name ?? '';
+        $nameParts    = preg_split('/\s+/', trim($userName)) ?: [$userName];
+        $userInitials = mb_strtoupper(mb_substr($nameParts[0], 0, 1).(count($nameParts) > 1 ? mb_substr(end($nameParts), 0, 1) : ''));
 
-        {{-- ── LEFT: toggles + breadcrumb ─────────────────────────── --}}
-        <div class="flex items-center gap-1 shrink-0">
+        // Breadcrumb: the menu group of the active page, then the page title.
+        $crumbGroup = null;
+        $lastGroup = null;
+        foreach ($nav as $navItem) {
+            if (is_string($navItem)) { $lastGroup = $groupLabels[$navItem] ?? null; continue; }
+            if (request()->routeIs($navItem['match'])) { $crumbGroup = $lastGroup; break; }
+        }
+    @endphp
+    <header class="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 px-4 sm:px-6"
+            style="background: var(--tb-bg); border-bottom: 1px solid var(--tb-border); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);">
 
-            {{-- Mobile hamburger --}}
-            <button @click="sidebarOpen = !sidebarOpen"
-                    class="tb-btn lg:hidden"
-                    aria-label="Open menu">
-                <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
+        {{-- LEFT: menu (mobile) + breadcrumb --}}
+        <div class="flex min-w-0 items-center gap-2">
+            <button type="button" @click="sidebarOpen = true" class="tb-btn flex lg:hidden"
+                    aria-label="{{ __('public.menu') }}" aria-controls="admin-sidebar" :aria-expanded="sidebarOpen.toString()">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
             </button>
-
-            {{-- Desktop sidebar collapse toggle --}}
-            <button @click="toggleSidebar()"
-                    :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-                    class="tb-btn hidden lg:flex"
-                    aria-label="Toggle sidebar">
-                <svg class="h-4.5 w-4.5 transition-transform duration-300 ease-out"
-                     :class="sidebarCollapsed ? 'rotate-180' : ''"
-                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-                </svg>
-            </button>
-
-            {{-- Separator --}}
-            <div class="hidden sm:block h-5 w-px mx-0.5 shrink-0" style="background:var(--tb-border)"></div>
-
-            {{-- Page title / breadcrumb --}}
-            <div class="flex items-center gap-1.5 min-w-0">
-                <h1 class="text-sm font-semibold truncate" style="color:var(--tb-text)">
-                    @yield('title', __('menus.dashboard'))
-                </h1>
-                @hasSection('breadcrumb')
-                <svg class="h-3.5 w-3.5 shrink-0" style="color:var(--tb-dim)"
-                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                </svg>
-                @yield('breadcrumb')
-                @endif
-            </div>
+            <nav aria-label="Breadcrumb" class="min-w-0" data-admin-breadcrumb>
+                <ol class="flex min-w-0 items-center gap-2 text-sm">
+                    @if($crumbGroup)
+                    <li class="hidden truncate md:block" style="color: var(--tb-muted)">{{ $crumbGroup }}</li>
+                    <li class="hidden md:block" aria-hidden="true" style="color: var(--tb-dim)">/</li>
+                    @endif
+                    {{-- Not an <h1>: each page renders its own page title --}}
+                    <li class="truncate font-semibold" style="color: var(--tb-text)" aria-current="page">@yield('title', __('menus.dashboard'))</li>
+                    @hasSection('breadcrumb')
+                    <li aria-hidden="true" style="color: var(--tb-dim)">/</li>
+                    <li class="truncate" style="color: var(--tb-muted)">@yield('breadcrumb')</li>
+                    @endif
+                </ol>
+            </nav>
         </div>
 
-        {{-- ── CENTER: command-palette search trigger ──────────────── --}}
-        <div class="flex-1 flex justify-center px-3 sm:px-6">
-
-            {{-- Full pill on sm+ --}}
-            <button @click="openSearch()"
-                    class="hidden sm:flex items-center gap-2.5 h-9 w-full max-w-xs xl:max-w-sm rounded-xl px-3 text-sm transition-all duration-150"
-                    style="background:var(--tb-search-bg); border:1px solid var(--tb-search-border);"
-                    onmouseover="this.style.borderColor='var(--color-brand)'"
-                    onmouseout="this.style.borderColor='var(--tb-search-border)'">
-                <svg class="h-4 w-4 shrink-0" style="color:var(--tb-search-text)"
-                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                <span class="flex-1 text-left" style="color:var(--tb-search-text)">Search...</span>
-                <kbd class="hidden lg:inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-medium"
-                     style="background:var(--tb-hover); color:var(--tb-dim); border:1px solid var(--tb-search-border);">
-                    <span>⌘</span><span>K</span>
-                </kbd>
+        {{-- CENTER: search (Ctrl K) --}}
+        <div class="flex flex-1 justify-end sm:justify-center">
+            <button type="button" @click="openSearch()"
+                    class="hidden h-10 w-full max-w-md items-center gap-2.5 rounded-xl px-3 text-sm transition sm:flex hover:border-brand"
+                    style="background: var(--tb-search-bg); border: 1px solid var(--tb-search-border);">
+                <svg class="h-4 w-4 shrink-0" style="color: var(--tb-search-text)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <span class="flex-1 text-left" style="color: var(--tb-search-text)">{{ __('messages.search_pages') }}</span>
+                <kbd class="hidden rounded-md px-1.5 py-0.5 text-xs font-medium lg:inline" style="color: var(--tb-dim); border: 1px solid var(--tb-search-border);">Ctrl K</kbd>
             </button>
-
-            {{-- Icon-only on mobile --}}
-            <button @click="openSearch()"
-                    class="sm:hidden tb-btn"
-                    aria-label="Search">
-                <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
+            <button type="button" @click="openSearch()" class="tb-btn flex sm:hidden" aria-label="{{ __('messages.search_pages') }}">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </button>
         </div>
 
-        {{-- ── RIGHT: notifications + dark + locale + user ────────── --}}
-        <div class="flex items-center gap-0.5 shrink-0">
-
-            {{-- Notification bell --}}
-            <div class="relative" x-data="{ notifOpen: false }">
-                <button @click="notifOpen = !notifOpen" @click.outside="notifOpen = false"
-                        class="tb-btn relative"
-                        aria-label="Notifications">
-                    <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
-                    {{-- Red dot placeholder badge --}}
-                    <span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full"
-                          style="background:#ef4444; border:1.5px solid var(--tb-bg);"></span>
-                </button>
-
-                <div x-show="notifOpen"
-                     x-transition:enter="transition ease-out duration-150"
-                     x-transition:enter-start="opacity-0 scale-95 translate-y-1"
-                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                     x-transition:leave="transition ease-in duration-100"
-                     x-transition:leave-start="opacity-100 scale-100"
-                     x-transition:leave-end="opacity-0 scale-95"
-                     class="absolute right-0 mt-2 w-80 rounded-2xl overflow-hidden"
-                     style="background:var(--tb-bg); border:1px solid var(--tb-border);
-                            box-shadow:0 12px 40px rgba(0,0,0,.18); display:none;">
-                    <div class="px-4 py-3" style="border-bottom:1px solid var(--tb-border);">
-                        <p class="text-sm font-semibold" style="color:var(--tb-text)">Notifications</p>
-                    </div>
-                    <div class="py-10 text-center">
-                        <svg class="mx-auto h-8 w-8 mb-2.5" style="color:var(--tb-dim)"
-                             fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                        </svg>
-                        <p class="text-sm" style="color:var(--tb-muted)">No notifications yet</p>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Dark / light toggle --}}
-            <button @click="toggleDark()" title="Toggle dark mode" class="tb-btn">
-                <svg x-show="!darkMode" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                </svg>
-                <svg x-show="darkMode" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"
-                     viewBox="0 0 24 24" style="display:none">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                </svg>
-            </button>
-
-            {{-- Locale switcher --}}
+        {{-- RIGHT --}}
+        <div class="flex shrink-0 items-center gap-1.5">
             @if(\App\Models\Setting::get('localization.show_language_switcher', true))
-            <div class="hidden sm:flex items-center gap-0.5 rounded-lg p-0.5 text-xs mx-0.5"
-                 style="border:1px solid var(--tb-border); background:var(--tb-search-bg);">
-                <a href="{{ route('lang.switch', 'en') }}"
-                   class="rounded-md px-2.5 py-1 font-medium transition-all duration-150 {{ app()->getLocale() === 'en' ? 'locale-active' : 'locale-inactive' }}">EN</a>
-                <a href="{{ route('lang.switch', 'am') }}"
-                   class="rounded-md px-2.5 py-1 font-medium transition-all duration-150 {{ app()->getLocale() === 'am' ? 'locale-active' : 'locale-inactive' }}">አማ</a>
+            <div class="hidden items-center rounded-lg p-0.5 text-[13px] font-semibold sm:flex" style="background: var(--tb-search-bg); border: 1px solid var(--tb-search-border);"
+                 role="group" aria-label="{{ __('public.language') }}">
+                @foreach(['en' => 'EN', 'am' => 'አማ'] as $code => $label)
+                    @if(in_array($code, (array) \App\Models\Setting::get('app.available_locales', ['en', 'am']), true))
+                    <a href="{{ route('lang.switch', $code) }}" lang="{{ $code }}" data-admin-no-spa
+                       @if(app()->getLocale() === $code) aria-current="true" @endif
+                       class="rounded-md px-2.5 py-1 transition {{ app()->getLocale() === $code ? 'locale-active' : 'locale-inactive' }}">{{ $label }}</a>
+                    @endif
+                @endforeach
             </div>
             @endif
 
-            {{-- Separator --}}
-            <div class="hidden sm:block h-5 w-px mx-1 shrink-0" style="background:var(--tb-border)"></div>
+            <button type="button" @click="toggleDark()" class="tb-btn flex"
+                    :title="darkMode ? @js(__('messages.light_mode')) : @js(__('messages.dark_mode'))"
+                    :aria-label="darkMode ? @js(__('messages.light_mode')) : @js(__('messages.dark_mode'))">
+                <svg x-show="!darkMode" class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                <svg x-show="darkMode" x-cloak class="h-[18px] w-[18px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            </button>
 
-            {{-- User dropdown --}}
-            <div class="relative" x-data="{ open: false }">
-                <button @click="open = !open" @click.outside="open = false"
-                        class="flex items-center gap-2 rounded-xl pl-1.5 pr-2.5 py-1 text-sm transition-all duration-150"
-                        style="border:1px solid var(--tb-border);"
-                        onmouseover="this.style.background='var(--tb-hover)'"
-                        onmouseout="this.style.background='transparent'">
-                    <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                         style="background:linear-gradient(135deg,var(--color-brand),color-mix(in srgb,var(--color-brand) 60%,var(--color-accent)))">
-                        {{ $userInitials ?: mb_strtoupper(mb_substr($userName,0,2)) }}
-                    </div>
-                    <span class="hidden sm:block max-w-24 truncate text-[13px] font-medium"
-                          style="color:var(--tb-text)">{{ $firstName }}</span>
-                    <svg class="h-3.5 w-3.5 transition-transform duration-200" :class="open && 'rotate-180'"
-                         style="color:var(--tb-dim)"
-                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                    </svg>
+            <div class="mx-1 hidden h-6 w-px sm:block" style="background: var(--tb-border)" aria-hidden="true"></div>
+
+            {{-- User menu --}}
+            <div class="relative" x-data="{ open: false }" @keydown.escape.stop="open = false; $refs.userButton.focus()">
+                <button type="button" x-ref="userButton" @click="open = !open" @click.outside="open = false"
+                        :aria-expanded="open.toString()" aria-haspopup="menu"
+                        class="flex h-11 items-center gap-2.5 rounded-xl pl-1 pr-2 text-left transition hover:bg-(--tb-hover)"
+                        :class="open ? 'bg-(--tb-hover)' : ''">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand text-[13px] font-bold text-white">{{ $userInitials ?: 'U' }}</span>
+                    <span class="hidden min-w-0 md:block">
+                        <span class="block max-w-40 truncate text-sm font-semibold leading-tight" style="color: var(--tb-text)">{{ $userName }}</span>
+                        @if($userRole)
+                        <span class="block max-w-40 truncate text-xs leading-tight" style="color: var(--tb-muted)">{{ \Illuminate\Support\Str::headline($userRole) }}</span>
+                        @endif
+                    </span>
+                    <svg class="h-4 w-4 transition-transform" :class="open && 'rotate-180'" style="color: var(--tb-dim)" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M19 9l-7 7-7-7"/></svg>
                 </button>
 
-                <div x-show="open"
-                     x-transition:enter="transition ease-out duration-150"
-                     x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
-                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                     x-transition:leave="transition ease-in duration-75"
-                     x-transition:leave-start="opacity-100 scale-100"
-                     x-transition:leave-end="opacity-0 scale-95"
-                     class="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl overflow-hidden"
-                     style="background:var(--tb-bg); border:1px solid var(--tb-border);
-                            box-shadow:0 12px 40px rgba(0,0,0,.18); display:none;">
-                    <div class="px-4 py-3.5" style="border-bottom:1px solid var(--tb-border);">
-                        <p class="text-[12.5px] font-semibold truncate" style="color:var(--tb-text)">{{ $userName }}</p>
-                        <p class="text-xs truncate mt-0.5" style="color:var(--tb-muted)">{{ auth()->user()?->email }}</p>
+                <div x-show="open" x-cloak role="menu"
+                     x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                     class="absolute right-0 mt-2 w-64 overflow-hidden rounded-xl"
+                     style="background: var(--tb-bg); border: 1px solid var(--tb-border); box-shadow: 0 16px 40px rgba(16,24,40,.16);">
+                    <div class="px-4 py-3" style="border-bottom: 1px solid var(--tb-border);">
+                        <p class="truncate text-sm font-semibold" style="color: var(--tb-text)">{{ $userName }}</p>
+                        <p class="mt-0.5 truncate text-[13px]" style="color: var(--tb-muted)">{{ auth()->user()?->email }}</p>
                     </div>
                     <div class="py-1">
-                        <a href="{{ route('admin.profile.edit') }}"
-                           class="flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors duration-100"
-                           style="color:var(--tb-text);"
-                           onmouseover="this.style.background='var(--tb-hover)'"
-                           onmouseout="this.style.background='transparent'">
-                            <svg class="h-4 w-4 shrink-0" style="color:var(--tb-dim)"
-                                 fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                            {{ __('messages.edit_profile') }}
+                        @foreach([
+                            [route('admin.profile.edit'), __('messages.edit_profile'), 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
+                            [route('admin.two-factor.show'), __('messages.two_factor_security'), 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'],
+                        ] as [$href, $label, $icon])
+                        <a href="{{ $href }}" role="menuitem" @click="open = false"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm transition hover:bg-(--tb-hover) focus:bg-(--tb-hover) focus:outline-none" style="color: var(--tb-text);">
+                            <svg class="h-4 w-4 shrink-0" style="color: var(--tb-muted)" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ $icon }}"/></svg>
+                            {{ $label }}
                         </a>
+                        @endforeach
                     </div>
-                    <div class="py-1" style="border-top:1px solid var(--tb-border);">
+                    <div class="py-1" style="border-top: 1px solid var(--tb-border);">
                         <form method="POST" action="{{ route('admin.logout') }}">
                             @csrf
-                            <button type="submit"
-                                    class="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm transition-colors duration-100"
-                                    style="color:#ef4444;"
-                                    onmouseover="this.style.background='rgba(239,68,68,.08)'"
-                                    onmouseout="this.style.background='transparent'">
-                                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor"
-                                     stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                                </svg>
+                            <button type="submit" role="menuitem"
+                                    class="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:bg-red-50 focus:bg-red-50 focus:outline-none">
+                                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                                 {{ __('menus.logout') }}
                             </button>
                         </form>
@@ -723,65 +524,58 @@
                     <path stroke-linecap="round" stroke-linejoin="round"
                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
+                <label for="admin-search-input" class="sr-only">{{ __('messages.search_pages') }}</label>
                 <input x-ref="searchInput"
+                       id="admin-search-input"
                        x-model="searchQuery"
                        type="text"
-                       placeholder="Search anything..."
-                       class="flex-1 bg-transparent py-4 text-sm outline-none"
+                       autocomplete="off"
+                       placeholder="{{ __('messages.search_pages') }}"
+                       class="flex-1 bg-transparent py-4 text-[15px] outline-none"
                        style="color:var(--tb-text); caret-color:var(--color-brand);"
-                       @keydown.escape.stop="searchOpen = false">
-                <kbd class="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-medium"
-                     style="background:var(--tb-hover); color:var(--tb-dim); border:1px solid var(--tb-search-border);">ESC</kbd>
+                       @keydown.escape.stop="searchOpen = false"
+                       @keydown.enter.prevent="$refs.searchResults.querySelector('a:not([hidden])')?.click()">
+                <kbd class="shrink-0 rounded-md px-1.5 py-0.5 text-xs font-medium"
+                     style="background:var(--tb-hover); color:var(--tb-dim); border:1px solid var(--tb-search-border);">Esc</kbd>
             </div>
 
-            {{-- Quick links --}}
-            <div class="p-2">
-                <p class="px-2 pt-1 pb-1.5 text-[10.5px] font-semibold uppercase tracking-wider"
-                   style="color:var(--tb-dim)">Quick links</p>
-                @php
-                $searchLinks = [
-                    ['route'=>'admin.dashboard',         'label'=>__('menus.dashboard'),
-                     'icon'=>'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
-                    ['route'=>'admin.vacancies.index',   'label'=>__('menus.vacancies'),
-                     'icon'=>'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
-                    ['route'=>'admin.applications.index','label'=>__('menus.applications'),
-                     'icon'=>'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
-                    ['route'=>'admin.settings.index',    'label'=>__('menus.settings'),
-                     'icon'=>'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'],
-                ];
-                @endphp
+            {{-- Every page this user can open (same list as the sidebar), filtered as you type --}}
+            @php
+                $searchLinks = collect($nav)->filter(fn ($i) => is_array($i))->values();
+            @endphp
+            <div class="max-h-[50vh] overflow-y-auto p-2" x-ref="searchResults">
                 @foreach($searchLinks as $link)
                 <a href="{{ route($link['route']) }}"
                    @click="searchOpen = false"
-                   class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors duration-100"
-                   style="color:var(--tb-text);"
-                   onmouseover="this.style.background='var(--tb-hover)'"
-                   onmouseout="this.style.background='transparent'">
-                    <svg class="h-4 w-4 shrink-0" style="color:var(--tb-muted)"
+                   data-label="{{ mb_strtolower($link['label']) }}"
+                   :hidden="searchQuery.trim() !== '' && !$el.dataset.label.includes(searchQuery.trim().toLowerCase())"
+                   class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-100 hover:bg-(--tb-hover) focus:bg-(--tb-hover) focus:outline-none"
+                   style="color:var(--tb-text);">
+                    <svg class="h-4 w-4 shrink-0" style="color:var(--tb-muted)" aria-hidden="true"
                          fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $link['icon'] }}"/>
                     </svg>
                     {{ $link['label'] }}
-                    <svg class="ml-auto h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100" style="color:var(--tb-dim)"
-                         fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                    </svg>
                 </a>
                 @endforeach
+                <p class="px-3 py-6 text-center text-sm" style="color:var(--tb-muted)"
+                   x-show="searchQuery.trim() !== '' && ![...$refs.searchResults.querySelectorAll('a')].some(a => a.dataset.label.includes(searchQuery.trim().toLowerCase()))">
+                    {{ __('messages.no_matching_pages') }}
+                </p>
             </div>
 
             {{-- Footer --}}
             <div class="flex items-center gap-4 px-4 py-2.5"
                  style="border-top:1px solid var(--tb-border); background:var(--tb-search-bg);">
-                <span class="flex items-center gap-1.5 text-[11px]" style="color:var(--tb-dim)">
-                    <kbd class="rounded px-1.5 py-0.5 text-[10px]"
-                         style="border:1px solid var(--tb-border); background:var(--tb-hover);">↵</kbd>
-                    to open
+                <span class="flex items-center gap-1.5 text-xs" style="color:var(--tb-muted)">
+                    <kbd class="rounded px-1.5 py-0.5 text-xs"
+                         style="border:1px solid var(--tb-border); background:var(--tb-hover);">Enter</kbd>
+                    {{ __('messages.to_open') }}
                 </span>
-                <span class="flex items-center gap-1.5 text-[11px]" style="color:var(--tb-dim)">
-                    <kbd class="rounded px-1.5 py-0.5 text-[10px]"
-                         style="border:1px solid var(--tb-border); background:var(--tb-hover);">ESC</kbd>
-                    to close
+                <span class="flex items-center gap-1.5 text-xs" style="color:var(--tb-muted)">
+                    <kbd class="rounded px-1.5 py-0.5 text-xs"
+                         style="border:1px solid var(--tb-border); background:var(--tb-hover);">Esc</kbd>
+                    {{ __('messages.to_close') }}
                 </span>
             </div>
         </div>
@@ -789,46 +583,43 @@
 
     {{-- ── Flash messages ──────────────────────────────────────────── --}}
     <div id="admin-page-frame" data-admin-page-frame>
-    @if(session('success'))
-    <div class="mx-4 mt-4 flex items-start gap-3 rounded-xl border border-green-100 bg-green-50 px-4 py-3.5 sm:mx-6" role="alert">
-        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-100">
-            <svg class="h-3.5 w-3.5 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+    @php
+        $flashes = [
+            'success' => ['alert-success', 'status', 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
+            'error'   => ['alert-danger',  'alert',  'M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z'],
+            'warning' => ['alert-warning', 'alert',  'M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z'],
+        ];
+    @endphp
+    <div class="mx-auto w-full max-w-360 space-y-3 px-4 sm:px-6 lg:px-8 {{ session()->hasAny(array_keys($flashes)) || $errors->any() ? 'pt-5' : '' }}">
+        @foreach($flashes as $flashKey => [$flashClass, $flashRole, $flashIcon])
+            @if(session($flashKey))
+            <div class="alert {{ $flashClass }}" role="{{ $flashRole }}" x-data="{ show: true }" x-show="show">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $flashIcon }}"/>
+                </svg>
+                <p class="flex-1">{{ session($flashKey) }}</p>
+                <button type="button" @click="show = false" class="-m-1 rounded p-1 opacity-70 hover:opacity-100" aria-label="{{ __('messages.dismiss') }}">
+                    <svg class="h-4! w-4!" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            @endif
+        @endforeach
+        @if($errors->any())
+        <div class="alert alert-danger" role="alert">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $flashes['error'][2] }}"/>
             </svg>
+            <div class="flex-1">
+                <p class="font-semibold">{{ __('messages.fix_errors') }}</p>
+                <ul class="mt-1 list-inside list-disc space-y-0.5">
+                    @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+                </ul>
+            </div>
         </div>
-        <p class="text-sm text-green-800 pt-0.5 flex-1">{{ session('success') }}</p>
+        @endif
     </div>
-    @endif
-    @if(session('error'))
-    <div class="mx-4 mt-4 flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 px-4 py-3.5 sm:mx-6" role="alert">
-        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-100">
-            <svg class="h-3.5 w-3.5 text-red-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </div>
-        <p class="text-sm text-red-800 pt-0.5 flex-1">{{ session('error') }}</p>
-    </div>
-    @endif
-    @if(session('warning'))
-    <div class="mx-4 mt-4 flex items-start gap-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3.5 sm:mx-6" role="alert">
-        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-100">
-            <svg class="h-3.5 w-3.5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-        </div>
-        <p class="text-sm text-amber-800 pt-0.5 flex-1">{{ session('warning') }}</p>
-    </div>
-    @endif
-    @if($errors->any())
-    <div class="mx-4 mt-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3.5 sm:mx-6">
-        <p class="mb-1.5 text-sm font-semibold text-red-700">{{ __('messages.fix_errors') }}</p>
-        <ul class="space-y-0.5 text-sm text-red-600 list-disc list-inside">
-            @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-        </ul>
-    </div>
-    @endif
 
-    <main class="flex-1 px-4 py-5 sm:px-6">
+    <main class="mx-auto w-full max-w-360 flex-1 px-4 py-6 sm:px-6 lg:px-8">
         @yield('content')
     </main>
     </div>
@@ -905,6 +696,25 @@ function adminShell() {
         initTree(currentNav);
     };
 
+    // The top bar sits outside the swapped page frame, so its breadcrumb
+    // (section / page) must be replaced explicitly on every navigation.
+    const swapBreadcrumb = (nextDocument) => {
+        const current = document.querySelector('[data-admin-breadcrumb]');
+        const next = nextDocument.querySelector('[data-admin-breadcrumb]');
+
+        if (current && next) {
+            current.innerHTML = next.innerHTML;
+        }
+    };
+
+    const closeMobileMenu = () => {
+        const shell = window.Alpine?.$data?.(document.body);
+
+        if (shell) {
+            shell.sidebarOpen = false;
+        }
+    };
+
     const visit = async (url, pushState = true) => {
         controller?.abort();
         controller = new AbortController();
@@ -938,6 +748,8 @@ function adminShell() {
 
             document.title = nextDocument.title;
             swapSidebarNav(nextDocument);
+            swapBreadcrumb(nextDocument);
+            closeMobileMenu();
             currentFrame.replaceWith(nextFrame);
             initTree(nextFrame);
 

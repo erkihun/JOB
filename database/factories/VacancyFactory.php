@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories;
 
 use App\Enums\VacancyStatus;
 use App\Models\Institution;
+use App\Models\RecruitmentAnnouncement;
 use App\Models\User;
 use App\Models\Vacancy;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -27,20 +30,26 @@ class VacancyFactory extends Factory
             'qualification_requirements' => ['en' => fake()->paragraph(), 'am' => fake()->paragraph()],
             'field_of_study' => fake()->randomElement(['Computer Science', 'Accounting', 'Law', 'Engineering']),
             'minimum_experience' => 24,
-            'opening_date' => now()->subDay(),
-            'closing_date' => now()->addDays(30),
+            'announcement_id' => RecruitmentAnnouncement::factory(),
             'status' => VacancyStatus::Open,
             'published_at' => now()->subDay(),
             'created_by' => User::factory()->admin(),
         ];
     }
 
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Vacancy $vacancy): void {
+            if ($vacancy->institution_id) {
+                $vacancy->announcement->institutions()->syncWithoutDetaching([$vacancy->institution_id]);
+            }
+        });
+    }
+
     public function open(): static
     {
         return $this->state([
             'status' => VacancyStatus::Open,
-            'opening_date' => now()->subDay(),
-            'closing_date' => now()->addDays(30),
         ]);
     }
 
@@ -48,8 +57,7 @@ class VacancyFactory extends Factory
     {
         return $this->state([
             'status' => VacancyStatus::Closed,
-            'opening_date' => now()->subDays(60),
-            'closing_date' => now()->subDays(5),
+            'announcement_id' => RecruitmentAnnouncement::factory()->state(['opening_date' => now()->subDays(60), 'closing_date' => now()->subDays(5)]),
         ]);
     }
 
@@ -57,8 +65,7 @@ class VacancyFactory extends Factory
     {
         return $this->state([
             'status' => VacancyStatus::Open,
-            'opening_date' => now()->subDays(60),
-            'closing_date' => now()->subDay(),
+            'announcement_id' => RecruitmentAnnouncement::factory()->state(['opening_date' => now()->subDays(60), 'closing_date' => now()->subDay()]),
         ]);
     }
 

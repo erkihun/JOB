@@ -96,7 +96,7 @@ test('menus lang has home and login keys in amharic', function (): void {
 
     expect(__('menus.home'))->toBe('መነሻ');
     expect(__('menus.login'))->toBe('ይግቡ');
-    expect(__('menus.register'))->toBe('ይመዝገቡ');
+    expect(__('menus.register'))->toBe('መለያ ይፍጠሩ');
 });
 
 // ──────────────────────────────

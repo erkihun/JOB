@@ -11,7 +11,7 @@
         <svg class="h-4 w-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
         </svg>
-        <h1 class="text-lg font-semibold text-gray-900">{{ __('admin.institution_edit') }}</h1>
+        <h1 class="page-title">{{ __('admin.institution_edit') }}</h1>
     </div>
 
     <form method="POST" action="{{ route('admin.institutions.update', $institution) }}" class="space-y-6">

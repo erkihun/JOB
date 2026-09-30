@@ -57,9 +57,12 @@ class AssignApplicantsToScheduleAction
                 ['status' => 'invited'],
             );
 
-            $newStatus = $schedule->type === ExamInterviewType::Exam
-                ? ApplicationStatus::ShortlistedExam
-                : ApplicationStatus::ShortlistedInterview;
+            // A practical test has no stage status of its own: the application keeps its status.
+            $newStatus = match ($schedule->type) {
+                ExamInterviewType::Exam => ApplicationStatus::ShortlistedExam,
+                ExamInterviewType::Interview => ApplicationStatus::ShortlistedInterview,
+                ExamInterviewType::Practical => $application->status,
+            };
 
             if ($application->status !== $newStatus) {
                 $application->update(['status' => $newStatus]);
@@ -67,7 +70,7 @@ class AssignApplicantsToScheduleAction
 
             $this->notifications->handle(
                 applicant: $application->applicant,
-                type: $schedule->type === ExamInterviewType::Exam
+                type: $schedule->type->isExamLike()
                     ? NotificationType::ExamInvitation
                     : NotificationType::InterviewInvitation,
                 placeholders: [
@@ -81,7 +84,7 @@ class AssignApplicantsToScheduleAction
             );
 
             $this->auditLogger->handle(
-                action: $schedule->type === ExamInterviewType::Exam ? 'exam_applicant_assigned' : 'interview_applicant_assigned',
+                action: $schedule->type->value.'_applicant_assigned',
                 module: 'exam_interview',
                 recordId: $record->id,
                 newValues: [

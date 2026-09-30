@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Models\AuditLog;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 
@@ -53,7 +53,7 @@ class SettingsController extends Controller
         'codes.application.prefix', 'codes.application.format', 'codes.application.padding',
         'codes.vacancy.prefix', 'codes.vacancy.format', 'codes.vacancy.padding', 'codes.vacancy.auto',
         'codes.applicant.prefix', 'codes.applicant.format', 'codes.applicant.padding',
-        'results.exam_weight', 'results.interview_weight',
+        'results.exam_weight', 'results.interview_weight', 'results.practical_weight',
         'appearance.primary_color', 'appearance.sidebar_color', 'appearance.accent_color', 'appearance.logo_size',
     ];
 
@@ -69,93 +69,9 @@ class SettingsController extends Controller
         return view('admin.settings.index', compact('settings', 'assignableRoles'));
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(UpdateSettingsRequest $request): RedirectResponse
     {
-        // The per-role MFA field ships a blank hidden value so unchecking every
-        // role still submits the key; strip it before validation/persistence.
-        if ($request->has('security.mfa_required_roles')) {
-            $request->merge([
-                'security' => array_merge((array) $request->input('security', []), [
-                    'mfa_required_roles' => array_values(array_filter(
-                        (array) $request->input('security.mfa_required_roles', []),
-                        static fn ($role): bool => is_string($role) && $role !== '',
-                    )),
-                ]),
-            ]);
-        }
-
-        $data = $request->validate([
-            'org.name' => ['nullable', 'string', 'max:255'],
-            'org.address' => ['nullable', 'string', 'max:500'],
-            'org.phone' => ['nullable', 'string', 'max:50'],
-            'org.email' => ['nullable', 'email'],
-            'org.website' => ['nullable', 'url'],
-            'org.footer_text' => ['nullable', 'string', 'max:255'],
-            'org.facebook' => ['nullable', 'url'],
-            'org.twitter' => ['nullable', 'url'],
-            'org.linkedin' => ['nullable', 'url'],
-            'org.youtube' => ['nullable', 'url'],
-            'org.logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:1024'],
-            'org.favicon' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg,webp', 'max:512'],
-            'app.available_locales' => ['nullable', 'array', 'min:1'],
-            'app.available_locales.*' => ['string', 'in:en,am'],
-            'app.fallback_locale' => ['nullable', 'string', 'in:en,am'],
-            'app.date_format' => ['nullable', 'string', 'in:Y-m-d,d/m/Y,m/d/Y,d M Y,M d, Y'],
-            'recruitment.max_file_size_mb' => ['nullable', 'integer', 'min:1', 'max:10'],
-            'recruitment.allowed_file_types' => ['nullable', 'array', 'min:1'],
-            'recruitment.allowed_file_types.*' => ['string', 'in:pdf,jpg,jpeg,png'],
-            'recruitment.allow_registration' => ['nullable', 'boolean'],
-            'recruitment.show_archived_vacancies' => ['nullable', 'boolean'],
-            'recruitment.reference_format' => ['nullable', 'string', 'max:100'],
-            'localization.default_locale' => ['nullable', 'string', 'in:en,am'],
-            'localization.show_language_switcher' => ['nullable', 'boolean'],
-            'mail.from_name' => ['nullable', 'string', 'max:255'],
-            'mail.from_address' => ['nullable', 'email'],
-            'security.session_timeout' => ['nullable', 'integer', 'min:5', 'max:1440'],
-            'security.login_attempts' => ['nullable', 'integer', 'min:3', 'max:20'],
-            'security.mfa_enabled' => ['nullable', 'boolean'],
-            'security.mfa_required_for_admins' => ['nullable', 'boolean'],
-            'security.mfa_required_for_applicants' => ['nullable', 'boolean'],
-            'security.mfa_required_roles' => ['nullable', 'array'],
-            'security.mfa_required_roles.*' => ['string', 'exists:roles,name'],
-            'security.mfa_methods_allowed' => ['nullable', 'array', 'min:1'],
-            'security.mfa_methods_allowed.*' => ['string', 'in:totp'],
-            'security.mfa_remember_device_days' => ['nullable', 'integer', 'min:0', 'max:365'],
-            'security.mfa_issuer_name' => ['nullable', 'string', 'max:100'],
-            'security.admin_password_min_length' => ['nullable', 'integer', 'min:8', 'max:128'],
-            'security.admin_password_require_uppercase' => ['nullable', 'boolean'],
-            'security.admin_password_require_lowercase' => ['nullable', 'boolean'],
-            'security.admin_password_require_number' => ['nullable', 'boolean'],
-            'security.admin_password_require_symbol' => ['nullable', 'boolean'],
-            'security.admin_password_prevent_common_passwords' => ['nullable', 'boolean'],
-            'security.admin_password_expiry_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
-            'security.admin_password_history_count' => ['nullable', 'integer', 'min:1', 'max:24'],
-            'security.applicant_password_min_length' => ['nullable', 'integer', 'min:8', 'max:128'],
-            'security.applicant_password_require_uppercase' => ['nullable', 'boolean'],
-            'security.applicant_password_require_lowercase' => ['nullable', 'boolean'],
-            'security.applicant_password_require_number' => ['nullable', 'boolean'],
-            'security.applicant_password_require_symbol' => ['nullable', 'boolean'],
-            'security.applicant_password_prevent_common_passwords' => ['nullable', 'boolean'],
-            'security.applicant_password_expiry_days' => ['nullable', 'integer', 'min:1', 'max:3650'],
-            'security.applicant_password_history_count' => ['nullable', 'integer', 'min:1', 'max:24'],
-            // Code generation
-            'codes.application.prefix' => ['nullable', 'string', 'max:20', 'alpha_num'],
-            'codes.application.format' => ['nullable', 'string', 'max:100'],
-            'codes.application.padding' => ['nullable', 'integer', 'min:1', 'max:10'],
-            'codes.vacancy.prefix' => ['nullable', 'string', 'max:20', 'alpha_num'],
-            'codes.vacancy.format' => ['nullable', 'string', 'max:100'],
-            'codes.vacancy.padding' => ['nullable', 'integer', 'min:1', 'max:10'],
-            'codes.vacancy.auto' => ['nullable', 'boolean'],
-            'codes.applicant.prefix' => ['nullable', 'string', 'max:20', 'alpha_num'],
-            'codes.applicant.format' => ['nullable', 'string', 'max:100'],
-            'codes.applicant.padding' => ['nullable', 'integer', 'min:1', 'max:10'],
-            'results.exam_weight' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'results.interview_weight' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'appearance.primary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'appearance.sidebar_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'appearance.accent_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'appearance.logo_size' => ['nullable', 'integer', 'min:24', 'max:72'],
-        ]);
+        $data = $request->safe()->except('_section');
 
         // Handle logo upload separately to avoid overwriting its path in the loop.
         if ($request->hasFile('org.logo')) {
@@ -169,47 +85,29 @@ class SettingsController extends Controller
         Arr::forget($data, 'org.logo');
         Arr::forget($data, 'org.favicon');
 
-        if (! isset($data['app']['available_locales'])) {
-            $data['app']['available_locales'] = ['en'];
+        // A tab save updates only the supplied settings. Preserve all other tabs.
+        if (Arr::has($data, 'app.available_locales')) {
+            $available = array_values($data['app']['available_locales']);
+            foreach (['app.fallback_locale', 'localization.default_locale'] as $key) {
+                $locale = Arr::get($data, $key, Setting::get($key, 'en'));
+                Arr::set($data, $key, in_array($locale, $available, true) ? $locale : $available[0]);
+            }
         }
 
-        $availableLocales = array_values((array) $data['app']['available_locales']);
-        $data['app']['fallback_locale'] = in_array($data['app']['fallback_locale'] ?? null, $availableLocales, true)
-            ? $data['app']['fallback_locale']
-            : $availableLocales[0];
-        $data['localization']['default_locale'] = in_array($data['localization']['default_locale'] ?? null, $availableLocales, true)
-            ? $data['localization']['default_locale']
-            : $availableLocales[0];
+        DB::transaction(function () use ($data): void {
+            foreach (['app.available_locales', 'recruitment.allowed_file_types', 'security.mfa_methods_allowed', 'security.mfa_required_roles'] as $key) {
+                if (Arr::has($data, $key)) {
+                    $this->persist($key, array_values((array) Arr::get($data, $key)));
+                    Arr::forget($data, $key);
+                }
+            }
+            foreach (Arr::dot($data) as $key => $value) {
+                if (in_array($key, $this->keys, true)) {
+                    $this->persist($key, $value ?? '');
+                }
+            }
+        });
 
-        if (! isset($data['recruitment']['allowed_file_types'])) {
-            $data['recruitment']['allowed_file_types'] = ['pdf', 'jpg', 'jpeg', 'png'];
-        }
-
-        if (isset($data['security']) && ! isset($data['security']['mfa_methods_allowed'])) {
-            $data['security']['mfa_methods_allowed'] = ['totp'];
-        }
-
-        $this->persist('app.available_locales', $availableLocales);
-        $this->persist('recruitment.allowed_file_types', array_values((array) $data['recruitment']['allowed_file_types']));
-        if (isset($data['security']['mfa_methods_allowed'])) {
-            $this->persist('security.mfa_methods_allowed', array_values((array) $data['security']['mfa_methods_allowed']));
-            Arr::forget($data, 'security.mfa_methods_allowed');
-        }
-        // When the security section is submitted, persist the selected MFA roles
-        // (an empty array when none are checked, falling back to legacy toggles).
-        if (isset($data['security'])) {
-            $this->persist('security.mfa_required_roles', array_values((array) ($data['security']['mfa_required_roles'] ?? [])));
-            Arr::forget($data, 'security.mfa_required_roles');
-        }
-        Arr::forget($data, 'app.available_locales');
-        Arr::forget($data, 'recruitment.allowed_file_types');
-
-        // Flatten all nested arrays to dot notation and persist each key.
-        foreach (Arr::dot($data) as $key => $value) {
-            $this->persist($key, $value ?? '');
-        }
-
-        Cache::flush();
         $this->applyRuntimeConfiguration();
 
         if ($request->has('security')) {
@@ -220,7 +118,7 @@ class SettingsController extends Controller
             );
         }
 
-        $settingsAuditPayload = Arr::except($request->except(['_token', '_method']), ['security']);
+        $settingsAuditPayload = Arr::except($request->except(['_token', '_method', '_section', '_present']), ['security']);
         if (isset($settingsAuditPayload['org']['logo'])) {
             $settingsAuditPayload['org']['logo'] = '[uploaded]';
         }
@@ -236,7 +134,8 @@ class SettingsController extends Controller
             );
         }
 
-        return back()->with('success', __('messages.settings_saved'));
+        return back()->with('success', __('messages.settings_saved'))
+            ->with('settings_section', $request->input('_section', 'org'));
     }
 
     private function persist(string $key, mixed $value): void
@@ -272,8 +171,9 @@ class SettingsController extends Controller
             'codes.vacancy.padding' => 'integer',
             'codes.vacancy.auto' => 'boolean',
             'codes.applicant.padding' => 'integer',
-            'results.exam_weight' => 'integer',
-            'results.interview_weight' => 'integer',
+            'results.exam_weight' => 'float',
+            'results.interview_weight' => 'float',
+            'results.practical_weight' => 'float',
             'appearance.logo_size' => 'integer',
         ];
 
@@ -349,6 +249,7 @@ class SettingsController extends Controller
             'codes.applicant.padding' => 5,
             'results.exam_weight' => 60,
             'results.interview_weight' => 40,
+            'results.practical_weight' => 0,
             'appearance.primary_color' => '#1A56DB',
             'appearance.sidebar_color' => '#1E3A8A',
             'appearance.accent_color' => '#FF6B2B',

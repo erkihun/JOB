@@ -4,7 +4,7 @@
 @section('content')
 <div class="space-y-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
-        <h1 class="text-lg font-semibold text-gray-900">{{ $pageTitle }}</h1>
+        <h1 class="page-title">{{ $pageTitle }}</h1>
         <div class="flex flex-wrap gap-2">
             <a href="{{ route('admin.screening.index') }}" class="btn {{ request()->routeIs('admin.screening.index') ? 'btn-accent' : 'btn-secondary' }}">
                 {{ __('menus.screening') }}
@@ -35,15 +35,15 @@
         </div>
     </div>
 
-    <form method="GET" class="flex flex-wrap gap-2">
+    <form method="GET" class="filter-bar">
         <input
             type="text"
             name="search"
             value="{{ request('search') }}"
             placeholder="{{ __('messages.search') }}..."
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand sm:w-56"
+            class="w-full form-input sm:w-56"
         >
-        <select name="vacancy_id" class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:ring-1 focus:ring-brand">
+        <select name="vacancy_id" class="form-select">
             <option value="">{{ __('messages.all_vacancies') }}</option>
             @foreach ($vacancies as $v)
                 <option value="{{ $v->id }}" {{ request('vacancy_id') === $v->id ? 'selected' : '' }}>
@@ -57,7 +57,7 @@
         @endif
     </form>
 
-    <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+    <div class="card overflow-hidden">
         <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-100 text-xs">
             <thead class="table-header">
@@ -76,14 +76,6 @@
             <tbody class="divide-y divide-gray-100">
                 @forelse ($applications as $app)
                     @php
-                        $badgeMap = [
-                            'submitted'          => 'badge-blue',
-                            'passed_screening'   => 'badge-green',
-                            'failed_screening'   => 'badge-red',
-                            'correction_required'=> 'badge-amber',
-                        ];
-                        $badgeClass = $badgeMap[$app->status->value] ?? 'badge-gray';
-
                         $vacQual = collect([
                             $app->vacancy?->field_of_study,
                             $app->vacancy?->minimum_experience !== null
@@ -103,7 +95,7 @@
                         </td>
                         <td class="table-td">
                             <p class="font-medium text-gray-800 whitespace-nowrap">{{ $app->vacancy?->title ?? '--' }}</p>
-                            <p class="text-gray-400 font-mono">{{ $app->vacancy?->code }}</p>
+                            <p class="text-gray-600 font-mono">{{ $app->vacancy?->code }}</p>
                         </td>
                         <td class="table-td text-gray-600">
                             {{ $vacQual ?: '--' }}
@@ -115,10 +107,10 @@
                             {{ $app->applicant?->field_of_study ?? '--' }}
                         </td>
                         <td class="table-td">
-                            <span class="{{ $badgeClass }} whitespace-nowrap">{{ $app->status->getLabel() }}</span>
+                            <x-admin.status :status="$app->status" />
                         </td>
                         <td class="table-td text-right whitespace-nowrap">
-                            <a href="{{ route('admin.screening.review', $app) }}"
+                            <a href="{{ route('admin.screening.review', array_filter(['application' => $app->id, 'vacancy_id' => request('vacancy_id')])) }}"
                                class="btn btn-accent" style="padding:0.25rem 0.75rem;font-size:0.75rem;">
                                 {{ __('messages.review') }}
                             </a>
@@ -126,7 +118,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="px-4 py-10 text-center text-gray-400">{{ $emptyText }}</td>
+                        <td colspan="9" class="px-4 py-10 text-center text-gray-600">{{ $emptyText }}</td>
                     </tr>
                 @endforelse
             </tbody>

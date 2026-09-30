@@ -1,6 +1,6 @@
 @php $isEdit = isset($heroSlider); @endphp
 
-<div class="space-y-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+<div class="space-y-6 card card-body">
 
     {{-- Image upload --}}
     <div x-data="{
@@ -14,7 +14,7 @@
                     <img :src="preview" class="h-28 w-48 rounded-lg object-cover border border-gray-200">
                 </template>
                 <template x-if="!preview">
-                    <div class="flex h-28 w-48 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-400">
+                    <div class="flex h-28 w-48 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600">
                         <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                         </svg>
@@ -25,7 +25,7 @@
                 <input type="file" name="image" accept="image/jpeg,image/png,image/webp"
                        @change="onChange($event)"
                        class="block text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-brand-muted file:text-brand hover:file:bg-brand/10 cursor-pointer">
-                <p class="mt-1 text-xs text-gray-400">JPG, PNG, WebP · max 3 MB. Recommended: 1400 × 600 px.</p>
+                <p class="mt-1 text-xs text-gray-600">JPG, PNG, WebP · max 3 MB. Recommended: 1400 × 600 px.</p>
                 @error('image')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
             </div>
         </div>
@@ -97,7 +97,7 @@
             <input type="number" name="sort_order" min="0"
                    value="{{ old('sort_order', $isEdit ? $heroSlider->sort_order : 0) }}"
                    class="form-input mt-1">
-            <p class="mt-1 text-xs text-gray-400">Lower number shows first.</p>
+            <p class="mt-1 text-xs text-gray-600">Lower number shows first.</p>
         </div>
         <div class="flex items-center gap-3 pt-7">
             <input type="checkbox" name="is_active" id="is_active" value="1"

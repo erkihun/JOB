@@ -4,21 +4,28 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Vacancies\SyncVacancyRequirementsAction;
 use App\Enums\EducationLevel;
 use App\Enums\EmploymentType;
 use App\Enums\VacancyStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\SaveVacancyRequest;
 use App\Models\Institution;
+use App\Models\RecruitmentAnnouncement;
 use App\Models\Vacancy;
 use App\Services\CodeGeneratorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class VacancyController extends Controller
 {
-    public function __construct(private readonly CodeGeneratorService $codes) {}
+    public function __construct(
+        private readonly CodeGeneratorService $codes,
+        private readonly SyncVacancyRequirementsAction $syncRequirements,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -43,12 +50,13 @@ class VacancyController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         $autoCode = $this->codes->vacancyAutoGenerate();
 
         return view('admin.vacancies.create', [
-            'vacancy' => new Vacancy,
+            'vacancy' => new Vacancy(['announcement_id' => $request->integer('announcement_id') ?: null]),
+            'announcements' => RecruitmentAnnouncement::whereNotNull('opening_date')->whereNotNull('closing_date')->with('institutions')->latest()->get(),
             'statuses' => VacancyStatus::cases(),
             'educationLevels' => EducationLevel::cases(),
             'employmentTypes' => EmploymentType::cases(),
@@ -58,17 +66,22 @@ class VacancyController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(SaveVacancyRequest $request): RedirectResponse
     {
         $autoCode = $this->codes->vacancyAutoGenerate();
-        $data = $request->validate($this->rules(autoCode: $autoCode));
+        $data = $request->validated();
         $data['created_by'] = $request->user()->id;
 
         if ($autoCode) {
             $data['code'] = $this->codes->forVacancy();
         }
 
-        Vacancy::create($data);
+        $data = $this->stampPublishedAt($data, null);
+
+        DB::transaction(function () use ($data): void {
+            $vacancy = Vacancy::create(Arr::except($data, 'requirement_groups'));
+            $this->syncRequirements->handle($vacancy, $data['requirement_groups'] ?? []);
+        });
 
         return redirect()->route('admin.vacancies.index')
             ->with('success', __('messages.vacancy_created'));
@@ -76,7 +89,7 @@ class VacancyController extends Controller
 
     public function show(Vacancy $vacancy): View
     {
-        $vacancy->load('applications.applicant');
+        $vacancy->load(['applications.applicant', 'requirementGroups.requirements']);
 
         return view('admin.vacancies.show', compact('vacancy'));
     }
@@ -85,8 +98,11 @@ class VacancyController extends Controller
     {
         $autoCode = $this->codes->vacancyAutoGenerate();
 
+        $vacancy->load('requirementGroups.requirements');
+
         return view('admin.vacancies.edit', [
             'vacancy' => $vacancy,
+            'announcements' => RecruitmentAnnouncement::whereNotNull('opening_date')->whereNotNull('closing_date')->with('institutions')->latest()->get(),
             'statuses' => VacancyStatus::cases(),
             'educationLevels' => EducationLevel::cases(),
             'employmentTypes' => EmploymentType::cases(),
@@ -96,12 +112,20 @@ class VacancyController extends Controller
         ]);
     }
 
-    public function update(Request $request, Vacancy $vacancy): RedirectResponse
+    public function update(SaveVacancyRequest $request, Vacancy $vacancy): RedirectResponse
     {
-        $autoCode = $this->codes->vacancyAutoGenerate();
-        $data = $request->validate($this->rules(ignoreId: $vacancy->id, autoCode: $autoCode));
+        $data = $request->validated();
+        $data = $this->stampPublishedAt($data, $vacancy);
 
-        $vacancy->update($data);
+        DB::transaction(function () use ($vacancy, $data, $request): void {
+            $vacancy->update(Arr::except($data, 'requirement_groups'));
+
+            // Only touch requirement options when the form sent them, so older
+            // clients/integrations that don't know about options keep them intact.
+            if ($request->has('requirement_groups_submitted')) {
+                $this->syncRequirements->handle($vacancy, $data['requirement_groups'] ?? []);
+            }
+        });
 
         return redirect()->route('admin.vacancies.index')
             ->with('success', __('messages.vacancy_updated'));
@@ -115,37 +139,18 @@ class VacancyController extends Controller
             ->with('success', __('messages.vacancy_deleted'));
     }
 
-    private function rules(?string $ignoreId = null, bool $autoCode = false): array
+    /**
+     * Record when a vacancy is first opened, so public listings ("latest") order it correctly.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function stampPublishedAt(array $data, ?Vacancy $vacancy): array
     {
-        $codeRule = $autoCode
-            ? ['nullable', 'string', 'max:50']
-            : ['required', 'string', 'max:50', Rule::unique('vacancies', 'code')->ignore($ignoreId)];
+        if (($data['status'] ?? null) === VacancyStatus::Open->value && $vacancy?->published_at === null) {
+            $data['published_at'] = now();
+        }
 
-        return [
-            'institution_id' => ['nullable', 'uuid', 'exists:institutions,id'],
-            'code' => $codeRule,
-            'title' => ['required', 'array'],
-            'title.en' => ['required', 'string', 'max:255'],
-            'title.am' => ['nullable', 'string', 'max:255'],
-            'department' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'string'],
-            'employment_type' => ['nullable', 'string'],
-            'number_of_positions' => ['required', 'integer', 'min:1'],
-            'salary_grade' => ['nullable', 'string', 'max:100'],
-            'field_of_study' => ['nullable', 'string', 'max:255'],
-            'education_level' => ['nullable', 'string'],
-            'minimum_experience' => ['nullable', 'integer', 'min:0'],
-            'location' => ['required', 'array'],
-            'location.en' => ['required', 'string', 'max:255'],
-            'location.am' => ['nullable', 'string', 'max:255'],
-            'opening_date' => ['required', 'date'],
-            'closing_date' => ['required', 'date', 'after_or_equal:opening_date'],
-            'description' => ['nullable', 'array'],
-            'description.en' => ['nullable', 'string'],
-            'description.am' => ['nullable', 'string'],
-            'qualification_requirements' => ['nullable', 'array'],
-            'qualification_requirements.en' => ['nullable', 'string'],
-            'qualification_requirements.am' => ['nullable', 'string'],
-        ];
+        return $data;
     }
 }

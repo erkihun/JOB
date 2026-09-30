@@ -23,7 +23,7 @@ class CreateExamInterviewScheduleAction
         ?string $instruction,
         User $createdBy,
     ): ExamInterviewSchedule {
-        $permission = $type === ExamInterviewType::Exam ? 'exams.create' : 'interviews.create';
+        $permission = $type->isExamLike() ? 'exams.create' : 'interviews.create';
 
         if (! $createdBy->hasPermissionTo($permission)) {
             throw new AuthorizationException("User does not have [{$permission}] permission.");

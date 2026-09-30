@@ -13,6 +13,8 @@ return [
     'using_profile_data' => 'Your academic details from your profile will be used for this application.',
     'deadline_locked' => 'This application can no longer be edited. The vacancy deadline has passed.',
     'duplicate_application' => 'You have already applied to this institution for this recruitment announcement.',
+    'cannot_switch_after_shortlist' => 'You cannot move this application to another position after being shortlisted for an exam or interview.',
+    'resubmitted_for_review' => 'Your changes were saved and your application has been sent back for screening.',
     'other_institutions_note' => 'You may apply to other institutions in this announcement if eligible.',
     'recruitment_announcement' => 'Recruitment Announcement',
     'institution' => 'Institution',

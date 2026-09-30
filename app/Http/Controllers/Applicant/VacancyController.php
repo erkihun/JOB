@@ -16,8 +16,7 @@ class VacancyController extends Controller
     public function index(Request $request): View
     {
         $query = Vacancy::query()
-            ->where('status', VacancyStatus::Open)
-            ->where('closing_date', '>=', now()->toDateString());
+            ->acceptingApplications();
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search): void {
@@ -46,16 +45,16 @@ class VacancyController extends Controller
         }
 
         if ($openingDate = $request->input('opening_date')) {
-            $query->where('opening_date', '>=', $openingDate);
+            $query->whereHas('announcement', fn ($q) => $q->whereDate('opening_date', '>=', $openingDate));
         }
 
         if ($closingDate = $request->input('closing_date')) {
-            $query->where('closing_date', '<=', $closingDate);
+            $query->whereHas('announcement', fn ($q) => $q->whereDate('closing_date', '<=', $closingDate));
         }
 
         $vacancies = $query->with('institution')->latest('published_at')->paginate(12)->withQueryString();
 
-        $departments = Vacancy::where('status', VacancyStatus::Open)
+        $departments = Vacancy::acceptingApplications()
             ->distinct()->pluck('department')->sort()->values();
 
         $employmentTypes = collect(EmploymentType::cases())->mapWithKeys(
@@ -67,7 +66,7 @@ class VacancyController extends Controller
 
     public function show(Vacancy $vacancy): View
     {
-        abort_unless($vacancy->status === VacancyStatus::Open, 404);
+        abort_unless($vacancy->status === VacancyStatus::Open && $vacancy->announcement?->isPublished(), 404);
 
         $canApply = $vacancy->canAcceptApplications();
         $alreadyApplied = auth()->user()->applicant?->hasAppliedTo($vacancy) ?? false;

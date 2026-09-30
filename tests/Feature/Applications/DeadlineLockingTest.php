@@ -12,9 +12,7 @@ beforeEach(function () {
 });
 
 test('application is editable before vacancy closing date', function () {
-    $vacancy = Vacancy::factory()->open()->create([
-        'closing_date' => now()->addDays(30),
-    ]);
+    $vacancy = Vacancy::factory()->open()->create();
 
     $applicant = Applicant::factory()->create();
 
@@ -52,9 +50,7 @@ test('application is locked after vacancy closing date', function () {
 });
 
 test('manually locked application is not editable even before deadline', function () {
-    $vacancy = Vacancy::factory()->open()->create([
-        'closing_date' => now()->addDays(30),
-    ]);
+    $vacancy = Vacancy::factory()->open()->create();
 
     $applicant = Applicant::factory()->create();
 
@@ -76,9 +72,7 @@ test('manually locked application is not editable even before deadline', functio
 test('application remains editable after a screening decision while the vacancy is open', function (ApplicationStatus $status) {
     // Business rule: applications are editable until the closing date, regardless
     // of screening status. A pass/fail decision does NOT lock editing on its own.
-    $vacancy = Vacancy::factory()->open()->create([
-        'closing_date' => now()->addDays(30),
-    ]);
+    $vacancy = Vacancy::factory()->open()->create();
 
     $applicant = Applicant::factory()->create();
 
@@ -142,9 +136,7 @@ test('policy allows applicant update before deadline', function () {
 
 test('policy allows applicant update after a screening decision while the vacancy is open', function (ApplicationStatus $status) {
     // Editing stays open until the closing date even after a screening decision.
-    $vacancy = Vacancy::factory()->open()->create([
-        'closing_date' => now()->addDays(30),
-    ]);
+    $vacancy = Vacancy::factory()->open()->create();
 
     $applicant = Applicant::factory()->create();
 

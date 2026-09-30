@@ -117,6 +117,14 @@ class ExamInterviewResultController extends Controller
                 ApplicationStatus::ExamCompleted,
                 ApplicationStatus::ShortlistedInterview,
             ],
+            // Anyone past screening without a final decision can sit a practical test.
+            ExamInterviewType::Practical => [
+                ApplicationStatus::PassedScreening,
+                ApplicationStatus::ShortlistedExam,
+                ApplicationStatus::ExamCompleted,
+                ApplicationStatus::ShortlistedInterview,
+                ApplicationStatus::InterviewCompleted,
+            ],
         };
     }
 }

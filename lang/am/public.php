@@ -85,4 +85,50 @@ return [
     'no_results_title' => 'ምንም ክፍት ቦታ አልተገኘም',
     'more_filters' => 'ተጨማሪ ማጣሪያ',
     'hide_filters' => 'ማጣሪያ ደብቅ',
+
+    // Layout & accessibility
+    'skip_to_content' => 'ወደ ዋናው ይዘት ይለፉ',
+    'main_navigation' => 'ዋና ማውጫ',
+    'language' => 'ቋንቋ',
+    'menu' => 'ማውጫ',
+    'close' => 'ዝጋ',
+    'footer_tagline' => 'ይፋዊ የቅጥር መግቢያ። ክፍት የሥራ ቦታዎችን ይመልከቱ፣ በመስመር ላይ ያመልክቱ እና የማመልከቻዎን ሂደት በእያንዳንዱ ደረጃ ይከታተሉ።',
+
+    // Home
+    'stat_open_vacancies' => 'ክፍት የሥራ ቦታዎች',
+    'stat_positions' => 'ተፈላጊ የሰው ኃይል',
+    'stat_institutions' => 'ቀጣሪ ተቋማት',
+    'go_to_slide' => 'ወደ ስላይድ :number ይሂዱ',
+    'previous' => 'ቀዳሚ',
+    'next' => 'ቀጣይ',
+    'no_vacancies_hint' => 'አዳዲስ ዕድሎች በየጊዜው ይወጣሉ። ለማመልከት ዝግጁ እንዲሆኑ አሁኑኑ መለያ ይፍጠሩ።',
+    'latest_announcements' => 'የቅርብ ጊዜ ማስታወቂያዎች',
+    'view_all_announcements' => 'ሁሉንም ማስታወቂያዎች',
+    'how_it_works_desc' => 'ከምዝገባ እስከ ውጤት አራት ቀላል ደረጃዎች።',
+
+    // Vacancy listing & detail
+    'vacancies_subtitle' => 'ከችሎታዎ ጋር የሚጣጣም የሥራ ቦታ ያግኙ እና በመስመር ላይ ያመልክቱ።',
+    'map' => 'ካርታ',
+    'closed' => 'ተዘግቷል',
+    'opened_after' => 'ከዚህ ቀን በኋላ የተከፈቱ',
+    'closes_before' => 'ከዚህ ቀን በፊት የሚዘጉ',
+    'result_singular' => 'ክፍት ቦታ ተገኝቷል',
+    'result_plural' => 'ክፍት ቦታዎች ተገኝተዋል',
+    'remove_filter' => 'ማጣሪያውን አስወግድ',
+    'clear_all' => 'ሁሉንም አጽዳ',
+    'key_details' => 'ዋና ዝርዝሮች',
+    'deadline' => 'የማመልከቻ የመጨረሻ ቀን',
+    'days_left' => 'ቀናት ቀርተዋል',
+
+    // Tracking
+    'track_privacy_note' => 'መረጃዎ ማመልከቻው የእርስዎ መሆኑን ለማረጋገጥ ብቻ ይውላል።',
+    'track_help_title' => 'የማመልከቻ ቁጥሬ የት ነው?',
+    'track_help_desc' => 'ማመልከቻዎን ካስገቡ በኋላ ታይቷል፤ እንዲሁም ወደ ኢሜልዎ ተልኳል።',
+    'track_login_title' => 'መለያ አለዎት?',
+    'track_login_desc' => 'ሁሉንም ማመልከቻዎችዎን፣ ሰነዶችዎን እና ማሳወቂያዎችዎን ለማየት ይግቡ።',
+
+    // Announcements
+    'announcements_subtitle' => 'ከቅጥር ቡድኑ የሚወጡ ይፋዊ ማስታወቂያዎች፣ ውጤቶች እና መረጃዎች።',
+    'published_on' => 'የወጣበት ቀን',
+    'back_to_announcements' => 'ወደ ማስታወቂያዎች ተመለስ',
 ];

@@ -190,8 +190,9 @@
             <div class="shrink-0 flex sm:flex-col sm:items-end items-center justify-between gap-2">
                 <div class="text-xs text-gray-500">
                     {{ app()->getLocale() === 'am' ? 'ይዘጋል:' : 'Closes:' }}
-                    <span class="{{ (int) $vacancy->closing_date->diffInDays(now()) <= 3 ? 'text-red-600 font-semibold' : 'text-gray-700 font-medium' }}">
-                        {{ et_date($vacancy->closing_date, 'M d, Y') }}
+                    <span class="{{ (int) today()->diffInDays($vacancy->announcement->closing_date, false) <= 3 ? 'text-red-600 font-semibold' : 'text-gray-700 font-medium' }}">
+                        {{ __('vacancies.opening_date') }}: {{ et_date($vacancy->announcement->opening_date, 'M d, Y') }}<br>
+                        {{ __('vacancies.closing_date') }}: {{ et_date($vacancy->announcement->closing_date, 'M d, Y') }}
                     </span>
                 </div>
                 <span class="text-xs font-semibold text-blue-600 group-hover:text-blue-800">

@@ -55,11 +55,11 @@
         <div class="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 text-xs text-gray-500 space-y-1.5">
             <div class="flex justify-between gap-2">
                 <span>{{ __('vacancies.opening_date') }}</span>
-                <span class="font-semibold text-gray-700">{{ et_date($vacancy->opening_date, 'M d, Y') }}</span>
+                <span class="font-semibold text-gray-700">{{ et_date($vacancy->announcement->opening_date, 'M d, Y') }}</span>
             </div>
             <div class="flex justify-between gap-2">
                 <span>{{ __('vacancies.closing_date') }}</span>
-                <span class="font-semibold {{ $isUrgent ? 'text-red-600' : 'text-gray-700' }}">{{ et_date($vacancy->closing_date, 'M d, Y') }}</span>
+                <span class="font-semibold {{ $isUrgent ? 'text-red-600' : 'text-gray-700' }}">{{ et_date($vacancy->announcement->closing_date, 'M d, Y') }}</span>
             </div>
             @if($vacancy->number_of_positions)
             <div class="flex justify-between gap-2">

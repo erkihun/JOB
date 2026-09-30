@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\EmploymentType;
 use App\Enums\VacancyStatus;
 use App\Models\Concerns\HasOrderedUuid;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +26,8 @@ class Vacancy extends Model
         'qualification_requirements',
     ];
 
+    protected $with = ['announcement'];
+
     protected $fillable = [
         'institution_id',
         'title',
@@ -36,8 +41,7 @@ class Vacancy extends Model
         'qualification_requirements',
         'field_of_study',
         'minimum_experience',
-        'opening_date',
-        'closing_date',
+        'announcement_id',
         'status',
         'published_at',
         'created_by',
@@ -48,12 +52,26 @@ class Vacancy extends Model
         return [
             'status' => VacancyStatus::class,
             'employment_type' => EmploymentType::class,
-            'opening_date' => 'date',
-            'closing_date' => 'date',
             'published_at' => 'datetime',
             'number_of_positions' => 'integer',
             'minimum_experience' => 'integer',
         ];
+    }
+
+    public function announcement(): BelongsTo
+    {
+        // Keep historical dates available to applications and reports after archival.
+        return $this->belongsTo(RecruitmentAnnouncement::class, 'announcement_id')->withTrashed();
+    }
+
+    public function scopeAcceptingApplications(Builder $query): Builder
+    {
+        return $query->where('vacancies.status', VacancyStatus::Open)
+            ->whereHas('announcement', fn (Builder $announcement) => $announcement
+                ->whereNull('deleted_at')->where('status', 'published')
+                ->where('published_at', '<=', now())
+                ->whereDate('opening_date', '<=', today())
+                ->whereDate('closing_date', '>=', today()));
     }
 
     public function institution(): BelongsTo
@@ -71,6 +89,12 @@ class Vacancy extends Model
         return $this->hasMany(VacancyDocument::class);
     }
 
+    /** Alternative ways to qualify ("Requirement Option 1", "Option 2", …). */
+    public function requirementGroups(): HasMany
+    {
+        return $this->hasMany(VacancyRequirementGroup::class)->orderBy('sort_order');
+    }
+
     public function applications(): HasMany
     {
         return $this->hasMany(Application::class);
@@ -84,12 +108,17 @@ class Vacancy extends Model
     public function isOpen(): bool
     {
         return $this->status === VacancyStatus::Open
-            && now()->lte($this->closing_date->endOfDay());
+            && $this->announcement?->isPublished()
+            && $this->announcement->opening_date !== null
+            && $this->announcement->closing_date !== null
+            && now()->gte($this->announcement->opening_date->copy()->startOfDay())
+            && now()->lte($this->announcement->closing_date->copy()->endOfDay());
     }
 
     public function isPastDeadline(): bool
     {
-        return now()->gt($this->closing_date->endOfDay());
+        return $this->announcement?->closing_date === null
+            || now()->gt($this->announcement->closing_date->copy()->endOfDay());
     }
 
     public function canAcceptApplications(): bool

@@ -1,6 +1,6 @@
 @php $isEdit = isset($user) && $user->exists; @endphp
 
-<div class="space-y-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+<div class="space-y-6 card card-body">
 
     {{-- Profile Photo --}}
     <div x-data="{

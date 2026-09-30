@@ -8,13 +8,13 @@
     {{-- Header --}}
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h1 class="text-lg font-semibold text-gray-900">{{ __('menus.applicants') }}</h1>
+            <h1 class="page-title">{{ __('menus.applicants') }}</h1>
             <p class="text-sm text-gray-500">{{ __('messages.total') }}: {{ $applicants->total() }}</p>
         </div>
     </div>
 
     {{-- Search --}}
-    <form method="GET" action="{{ route('admin.applicants.index') }}" class="flex gap-2">
+    <form method="GET" action="{{ route('admin.applicants.index') }}" class="filter-bar">
         <input type="text" name="search" value="{{ $search }}"
                placeholder="{{ __('messages.search_applicants') }}"
                class="form-input flex-1 max-w-sm">
@@ -25,17 +25,17 @@
     </form>
 
     {{-- Table --}}
-    <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+    <div class="card overflow-hidden">
         <table class="min-w-full divide-y divide-gray-100 text-sm">
-            <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <thead class="table-header">
                 <tr>
-                    <th class="px-4 py-3 text-left">{{ __('fields.applicant_code') }}</th>
-                    <th class="px-4 py-3 text-left">{{ __('fields.full_name') }}</th>
-                    <th class="px-4 py-3 text-left">{{ __('fields.email') }}</th>
-                    <th class="px-4 py-3 text-left">{{ __('fields.phone') }}</th>
-                    <th class="px-4 py-3 text-left">{{ __('fields.gender') }}</th>
+                    <th class="table-th">{{ __('fields.applicant_code') }}</th>
+                    <th class="table-th">{{ __('fields.full_name') }}</th>
+                    <th class="table-th">{{ __('fields.email') }}</th>
+                    <th class="table-th">{{ __('fields.phone') }}</th>
+                    <th class="table-th">{{ __('fields.gender') }}</th>
                     <th class="px-4 py-3 text-center">{{ __('menus.applications') }}</th>
-                    <th class="px-4 py-3 text-left">{{ __('fields.registered_at') }}</th>
+                    <th class="table-th">{{ __('fields.registered_at') }}</th>
                     <th class="px-4 py-3"></th>
                 </tr>
             </thead>
@@ -66,12 +66,12 @@
                     <td class="px-4 py-3 text-gray-500 text-xs">{{ et_date($applicant->created_at) }}</td>
                     <td class="px-4 py-3 text-right">
                         <a href="{{ route('admin.applicants.show', $applicant) }}"
-                           class="text-xs font-medium text-brand hover:text-brand-dark">{{ __('messages.view') }}</a>
+                           class="link-action">{{ __('messages.view') }}</a>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="px-4 py-10 text-center text-sm text-gray-400">{{ __('messages.no_applicants_found') }}</td>
+                    <td colspan="8" class="px-4 py-10 text-center text-sm text-gray-600">{{ __('messages.no_applicants_found') }}</td>
                 </tr>
                 @endforelse
             </tbody>

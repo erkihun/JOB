@@ -2,8 +2,8 @@
 <div class="space-y-6">
 
     {{-- Basic Info --}}
-    <div class="rounded-xl border border-gray-200 bg-white p-6" style="box-shadow: var(--shadow-card)">
-        <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">{{ __('admin.institution_basic_info') }}</h2>
+    <div class="card card-body" style="box-shadow: var(--shadow-card)">
+        <h2 class="card-title mb-4">{{ __('admin.institution_basic_info') }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
 
             <div class="sm:col-span-2">
@@ -52,8 +52,8 @@
     </div>
 
     {{-- Contact Info --}}
-    <div class="rounded-xl border border-gray-200 bg-white p-6" style="box-shadow: var(--shadow-card)">
-        <h2 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500">{{ __('admin.institution_contact_info') }}</h2>
+    <div class="card card-body" style="box-shadow: var(--shadow-card)">
+        <h2 class="card-title mb-4">{{ __('admin.institution_contact_info') }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
 
             <div>
@@ -89,11 +89,11 @@
     </div>
 
     {{-- Location / Google Map --}}
-    <div class="rounded-xl border border-gray-200 bg-white p-6" style="box-shadow: var(--shadow-card)"
+    <div class="card card-body" style="box-shadow: var(--shadow-card)"
          x-data="mapPicker({{ old('latitude', $institution->latitude ?? 9.0054) }}, {{ old('longitude', $institution->longitude ?? 38.7636) }}, {{ ($institution->latitude && $institution->longitude) ? 'true' : 'false' }})">
 
-        <h2 class="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500">{{ __('admin.institution_location') }}</h2>
-        <p class="mb-4 text-xs text-gray-400">{{ __('admin.institution_location_hint') }}</p>
+        <h2 class="card-title mb-1">{{ __('admin.institution_location') }}</h2>
+        <p class="mb-4 text-xs text-gray-600">{{ __('admin.institution_location_hint') }}</p>
 
         {{-- Search box --}}
         <div class="mb-3 flex gap-2">
@@ -118,7 +118,7 @@
              x-ref="mapContainer">
         </div>
 
-        <p class="mt-2 text-xs text-gray-400">{{ __('admin.institution_map_click_hint') }}</p>
+        <p class="mt-2 text-xs text-gray-600">{{ __('admin.institution_map_click_hint') }}</p>
 
         {{-- Coordinate inputs (hidden visually but part of form) --}}
         <div class="mt-4 grid grid-cols-2 gap-4">

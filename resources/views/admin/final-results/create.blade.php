@@ -4,29 +4,25 @@
 
 @section('content')
 <div class="space-y-5" x-data="{
-    examScore: '{{ old('exam_score', $result?->exam_score ?? '') }}',
-    interviewScore: '{{ old('interview_score', $result?->interview_score ?? '') }}',
-    examWeight: {{ old('exam_weight', $examWeight) }},
-    interviewWeight: {{ old('interview_weight', $interviewWeight) }},
-    get finalScore() {
-        const e = parseFloat(this.examScore);
-        const i = parseFloat(this.interviewScore);
-        const ew = parseFloat(this.examWeight) || 0;
-        const iw = parseFloat(this.interviewWeight) || 0;
-        const hasE = !isNaN(e);
-        const hasI = !isNaN(i);
-        if (!hasE && !hasI) return '—';
-        let total = 0, usedWeight = 0;
-        if (hasE) { total += e * (ew / 100); usedWeight += ew; }
-        if (hasI) { total += i * (iw / 100); usedWeight += iw; }
-        if (usedWeight === 0) return '—';
-        return (total * (100 / usedWeight)).toFixed(2);
+    examScore: '{{ old('exam_score', $result?->exam_score ?? $recordedExamScore ?? '') }}',
+    interviewScore: '{{ old('interview_score', $result?->interview_score ?? $recordedInterviewScore ?? '') }}',
+    practicalScore: '{{ old('practical_score', $result?->practical_score ?? $recordedPracticalScore ?? '') }}',
+    examWeight: {{ (float) old('exam_weight', $examWeight) }},
+    interviewWeight: {{ (float) old('interview_weight', $interviewWeight) }},
+    practicalWeight: {{ (float) old('practical_weight', $practicalWeight) }},
+    get weightTotal() {
+        return Math.round(((parseFloat(this.examWeight) || 0) + (parseFloat(this.interviewWeight) || 0) + (parseFloat(this.practicalWeight) || 0)) * 100) / 100;
     },
-    syncWeights() {
-        const ew = parseFloat(this.examWeight);
-        if (!isNaN(ew)) {
-            this.interviewWeight = Math.max(0, 100 - ew);
-        }
+    // Same rule as FinalResult::computeFinalScore(): missing scores are left out
+    // and the remaining weights are scaled back up to 100.
+    get finalScore() {
+        let total = 0, used = 0;
+        [[this.examScore, this.examWeight], [this.interviewScore, this.interviewWeight], [this.practicalScore, this.practicalWeight]]
+            .forEach(([s, w]) => {
+                const score = parseFloat(s), weight = parseFloat(w) || 0;
+                if (!isNaN(score) && weight > 0) { total += score * (weight / 100); used += weight; }
+            });
+        return used === 0 ? '—' : (total * (100 / used)).toFixed(2);
     }
 }">
     <div class="flex items-center gap-3">
@@ -34,7 +30,7 @@
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </a>
         <div>
-            <h1 class="text-lg font-semibold text-gray-900">
+            <h1 class="page-title">
                 {{ $result ? __('messages.edit_result') : __('messages.add_result') }}
             </h1>
             <p class="mt-0.5 text-sm text-gray-500">
@@ -55,10 +51,9 @@
         <div class="grid gap-5 lg:grid-cols-3">
 
             {{-- Left: Applicant info --}}
-            <div class="space-y-4 rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div class="space-y-4 card card-body">
                 <div class="flex items-center gap-2">
-                    <div class="h-4 w-0.5 rounded bg-accent"></div>
-                    <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('messages.applicant') }}</h2>
+                    <h2 class="card-title">{{ __('messages.applicant') }}</h2>
                 </div>
                 <div class="space-y-2 text-sm text-gray-700">
                     <div><span class="font-medium">{{ __('fields.full_name') }}:</span> {{ $application->applicant?->full_name }}</div>
@@ -71,76 +66,64 @@
             {{-- Center & Right: Score entry --}}
             <div class="space-y-5 lg:col-span-2">
 
-                {{-- Weight settings --}}
-                <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="h-4 w-0.5 rounded bg-brand"></div>
-                        <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('messages.score_weights') }}</h2>
-                        <span class="ml-auto text-xs text-gray-400">{{ __('messages.weight_hint') }}</span>
+                {{-- Weights (defaults from Settings › Result weights) --}}
+                <div class="card card-body">
+                    <div class="mb-4 flex flex-wrap items-center gap-2">
+                        <h2 class="card-title">{{ __('messages.score_weights') }}</h2>
+                        <span class="ml-auto rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                              :class="weightTotal === 100 ? 'bg-green-50 text-green-800' : 'bg-amber-50 text-amber-900'"
+                              x-text="@js(__('messages.weights_total')).replace(':total', weightTotal)"></span>
                     </div>
-                    <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="grid gap-4 sm:grid-cols-3">
+                        @foreach([
+                            'exam' => __('messages.exam_weight'),
+                            'interview' => __('messages.interview_weight'),
+                            'practical' => __('messages.practical_weight'),
+                        ] as $part => $label)
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">
-                                {{ __('messages.exam_weight') }} (%)
-                            </label>
-                            <input type="number" name="exam_weight" x-model="examWeight"
-                                   @input="syncWeights()"
-                                   min="0" max="100" step="1"
-                                   class="form-input mt-1 @error('exam_weight') border-red-500 @enderror">
-                            @error('exam_weight')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                            <label for="{{ $part }}_weight" class="form-label">{{ $label }} (%)</label>
+                            <input type="number" id="{{ $part }}_weight" name="{{ $part }}_weight" x-model="{{ $part }}Weight"
+                                   min="0" max="100" step="0.01"
+                                   class="form-input @error($part.'_weight') form-input-error @enderror">
+                            @error($part.'_weight')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">
-                                {{ __('messages.interview_weight') }} (%)
-                            </label>
-                            <input type="number" name="interview_weight" x-model="interviewWeight"
-                                   @input="examWeight = Math.max(0, 100 - parseFloat(interviewWeight) || 0)"
-                                   min="0" max="100" step="1"
-                                   class="form-input mt-1 @error('interview_weight') border-red-500 @enderror">
-                            @error('interview_weight')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                        </div>
+                        @endforeach
                     </div>
+                    <p class="form-hint" x-show="weightTotal !== 100" x-cloak>{{ __('messages.weights_should_total') }}</p>
                 </div>
 
                 {{-- Scores --}}
-                <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="h-4 w-0.5 rounded bg-brand"></div>
-                        <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('messages.scores') }}</h2>
+                <div class="card card-body">
+                    <div class="mb-4 flex items-center gap-2">
+                        <h2 class="card-title">{{ __('messages.scores') }}</h2>
                     </div>
-                    <div class="grid gap-4 sm:grid-cols-3">
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        @foreach([
+                            'exam' => __('messages.exam_score'),
+                            'interview' => __('messages.interview_score'),
+                            'practical' => __('messages.practical_score'),
+                        ] as $part => $label)
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">
-                                {{ __('messages.exam_score') }} <span class="text-gray-400 font-normal">(0–100)</span>
-                            </label>
-                            <input type="number" name="exam_score" x-model="examScore"
-                                   min="0" max="100" step="0.01"
-                                   placeholder="—"
-                                   class="form-input mt-1 @error('exam_score') border-red-500 @enderror">
-                            @error('exam_score')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                            <label for="{{ $part }}_score" class="form-label">{{ $label }} <span class="font-normal text-gray-600">(0–100)</span></label>
+                            <input type="number" id="{{ $part }}_score" name="{{ $part }}_score" x-model="{{ $part }}Score"
+                                   min="0" max="100" step="0.01" placeholder="—"
+                                   :disabled="!(parseFloat({{ $part }}Weight) > 0)"
+                                   class="form-input @error($part.'_score') form-input-error @enderror">
+                            @error($part.'_score')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
+                        @endforeach
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">
-                                {{ __('messages.interview_score') }} <span class="text-gray-400 font-normal">(0–100)</span>
-                            </label>
-                            <input type="number" name="interview_score" x-model="interviewScore"
-                                   min="0" max="100" step="0.01"
-                                   placeholder="—"
-                                   class="form-input mt-1 @error('interview_score') border-red-500 @enderror">
-                            @error('interview_score')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('messages.final_score') }}</label>
-                            <div class="mt-1 flex h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 font-semibold text-gray-800" x-text="finalScore"></div>
+                            <p class="form-label">{{ __('messages.final_score') }}</p>
+                            <div class="flex h-10 items-center rounded-lg border border-brand/30 bg-brand-muted px-3 text-lg font-bold tabular-nums text-brand" x-text="finalScore" aria-live="polite"></div>
                         </div>
                     </div>
+                    <p class="form-hint">{{ __('messages.final_score_hint') }}</p>
                 </div>
 
                 {{-- Decision + Remarks --}}
-                <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                <div class="card card-body">
                     <div class="flex items-center gap-2 mb-4">
-                        <div class="h-4 w-0.5 rounded bg-brand"></div>
-                        <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('messages.decision') }}</h2>
+                        <h2 class="card-title">{{ __('messages.decision') }}</h2>
                     </div>
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div>

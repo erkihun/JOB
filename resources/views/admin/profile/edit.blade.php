@@ -5,7 +5,7 @@
 @section('content')
 <div class="space-y-6">
     <div>
-        <h1 class="text-xl font-bold text-gray-900">{{ __('messages.edit_profile') }}</h1>
+        <h1 class="page-title">{{ __('messages.edit_profile') }}</h1>
         <p class="mt-1 text-sm text-gray-500">{{ __('messages.edit_profile_sub') }}</p>
     </div>
 
@@ -16,7 +16,7 @@
     @endif
 
     <form method="POST" action="{{ route('admin.profile.update') }}" enctype="multipart/form-data"
-          class="max-w-xl space-y-5 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+          class="max-w-xl space-y-5 card card-body">
         @csrf
         @method('PUT')
 
@@ -145,10 +145,10 @@
     </form>
 
     {{-- Two-Factor Authentication --}}
-    <div class="max-w-xl rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+    <div class="max-w-xl card card-body">
         <div class="flex items-center justify-between">
             <div>
-                <h2 class="text-sm font-semibold text-gray-900">Two-Factor Authentication</h2>
+                <h2 class="card-title">Two-Factor Authentication</h2>
                 <p class="mt-0.5 text-xs text-gray-500">
                     @if(auth()->user()->hasTwoFactorEnabled())
                         <span class="inline-flex items-center gap-1 text-green-600">

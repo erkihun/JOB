@@ -15,6 +15,8 @@ use App\Http\Requests\Application\UpdateApplicationRequest;
 use App\Models\Application;
 use App\Models\ApplicationDocument;
 use App\Models\Vacancy;
+use App\Services\Eligibility\EligibilityProfile;
+use App\Services\Eligibility\VacancyEligibilityChecker;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -32,13 +34,13 @@ class ApplicationController extends Controller
         return view('applicant.applications.index', compact('applications'));
     }
 
-    public function create(Vacancy $vacancy): View|RedirectResponse
+    public function create(Vacancy $vacancy, VacancyEligibilityChecker $eligibilityChecker): View|RedirectResponse
     {
-        abort_unless($vacancy->status === VacancyStatus::Open, 404);
+        abort_unless($vacancy->status === VacancyStatus::Open && $vacancy->announcement?->isPublished(), 404);
 
         if (! $vacancy->canAcceptApplications()) {
             return redirect()->route('vacancies.show', $vacancy)
-                ->with('error', __('vacancies.deadline_passed'));
+                ->with('error', __($vacancy->isPastDeadline() ? 'vacancies.deadline_passed' : 'vacancies.not_accepting_applications'));
         }
 
         $applicant = auth()->user()->applicant;
@@ -62,8 +64,11 @@ class ApplicationController extends Controller
         // submitted silently from the stored values.
         $defaults = $applicant->applicationDefaults();
 
+        // Show up front whether the profile meets one of the vacancy's requirement options.
+        $eligibility = $eligibilityChecker->check($vacancy, EligibilityProfile::fromApplicant($applicant, $defaults));
+
         return view('applicant.applications.create', compact(
-            'vacancy', 'requiredDocuments', 'defaults', 'profileComplete',
+            'vacancy', 'requiredDocuments', 'defaults', 'profileComplete', 'eligibility',
         ));
     }
 
@@ -71,12 +76,13 @@ class ApplicationController extends Controller
         StoreApplicationRequest $request,
         Vacancy $vacancy,
         SubmitApplicationAction $action,
+        VacancyEligibilityChecker $eligibilityChecker,
     ): RedirectResponse {
         abort_unless($vacancy->status === VacancyStatus::Open, 422);
 
         if (! $vacancy->canAcceptApplications()) {
             return redirect()->route('vacancies.show', $vacancy)
-                ->with('error', __('vacancies.deadline_passed'));
+                ->with('error', __($vacancy->isPastDeadline() ? 'vacancies.deadline_passed' : 'vacancies.not_accepting_applications'));
         }
 
         $applicant = auth()->user()->applicant;
@@ -84,6 +90,16 @@ class ApplicationController extends Controller
         if ($applicant->hasAppliedTo($vacancy)) {
             return redirect()->route('applicant.applications.index')
                 ->with('error', __('applications.duplicate_application'));
+        }
+
+        // The applicant must satisfy at least one of the vacancy's requirement options.
+        $eligibility = $eligibilityChecker->check(
+            $vacancy,
+            EligibilityProfile::fromApplicant($applicant, $request->safe()->only(['field_of_study', 'graduation_date', 'cgpa'])),
+        );
+
+        if (! $eligibility->eligible) {
+            return back()->withInput()->withErrors(['eligibility' => $eligibility->reasonText()]);
         }
 
         $application = $action->handle(
@@ -121,8 +137,7 @@ class ApplicationController extends Controller
         // included; positions already applied to remain selectable but are rejected
         // on submit with the duplicate message.
         $openVacancies = Vacancy::with('institution')
-            ->where('status', VacancyStatus::Open)
-            ->where('closing_date', '>=', now()->toDateString())
+            ->acceptingApplications()
             ->orderBy('title->en')
             ->get();
 
@@ -134,10 +149,15 @@ class ApplicationController extends Controller
         Application $application,
         UpdateApplicationAction $action,
     ): RedirectResponse {
-        $action->handle($application, $request->validated());
+        $previousStatus = $application->status;
+        $updated = $action->handle($application, $request->validated());
+
+        $message = $updated->status !== $previousStatus
+            ? __('applications.resubmitted_for_review')
+            : __('applications.application_updated');
 
         return redirect()->route('applicant.applications.show', $application)
-            ->with('success', __('applications.application_updated'));
+            ->with('success', $message);
     }
 
     public function replaceDocument(

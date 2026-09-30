@@ -129,7 +129,7 @@ test('notification type labels are localized in english', function () {
 test('vacancy status labels are localized in amharic', function () {
     app()->setLocale('am');
 
-    expect(VacancyStatus::Open->label())->toBe('ክፍት');
+    expect(VacancyStatus::Open->label())->toBe('ለማመልከቻ ክፍት');
     expect(VacancyStatus::Draft->label())->toBe('ረቂቅ');
     expect(VacancyStatus::Closed->label())->toBe('ተዘግቷል');
 });
@@ -137,8 +137,8 @@ test('vacancy status labels are localized in amharic', function () {
 test('application status labels are localized in amharic', function () {
     app()->setLocale('am');
 
-    expect(ApplicationStatus::Submitted->label())->toBe('ተልኳል');
-    expect(ApplicationStatus::Selected->label())->toBe('ተምርጧል');
+    expect(ApplicationStatus::Submitted->label())->toBe('ቀርቧል');
+    expect(ApplicationStatus::Selected->label())->toBe('ተመርጧል');
 });
 
 test('screening decision labels are localized in amharic', function () {
@@ -146,7 +146,7 @@ test('screening decision labels are localized in amharic', function () {
 
     expect(ScreeningDecision::Passed->label())->toBe('አልፏል');
     expect(ScreeningDecision::Failed->label())->toBe('አላለፈም');
-    expect(ScreeningDecision::Pending->label())->toBe('በጥበቃ ላይ');
+    expect(ScreeningDecision::Pending->label())->toBe('በመጠባበቅ ላይ');
 });
 
 test('user status labels are localized in amharic', function () {

@@ -94,6 +94,7 @@ class Setting extends Model
         return match ($type) {
             'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
             'integer' => (int) $value,
+            'float' => (float) $value,
             'json' => json_decode($value, true) ?: [],
             default => $value,
         };

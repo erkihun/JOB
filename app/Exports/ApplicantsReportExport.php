@@ -44,7 +44,7 @@ class ApplicantsReportExport implements FromCollection, WithHeadings
     protected function rows(): Collection
     {
         $query = Application::query()
-            ->with(['applicant', 'vacancy'])
+            ->with(['applicant', 'vacancy.announcement'])
             ->when(isset($this->filters['vacancy_id']), fn ($q) => $q->where('vacancy_id', $this->filters['vacancy_id']))
             ->when(isset($this->filters['status']), fn ($q) => $q->where('status', $this->filters['status']));
 
@@ -63,10 +63,16 @@ class ApplicantsReportExport implements FromCollection, WithHeadings
                 $application->cgpa ?? '',
                 $application->status?->value ?? '',
                 $application->submitted_at?->format('Y-m-d H:i:s') ?? '',
+                ...$this->additionalColumns($application),
             ];
         }
 
         return collect($rows);
+    }
+
+    protected function additionalColumns(Application $application): array
+    {
+        return [];
     }
 
     private function buildCsv(array $headers, array $rows): string

@@ -2,8 +2,8 @@
 @section('title', __('menus.roles'))
 @section('content')
 <div class="space-y-5">
-    <h1 class="text-lg font-semibold text-gray-900">{{ __('menus.roles') }}</h1>
-    <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+    <h1 class="page-title">{{ __('menus.roles') }}</h1>
+    <div class="card overflow-hidden">
         <table class="min-w-full divide-y divide-gray-100 text-sm">
             <thead class="table-header">
                 <tr>
@@ -24,7 +24,7 @@
                         <span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">{{ $role->users_count }}</span>
                     </td>
                     <td class="table-td text-right">
-                        <a href="{{ route('admin.roles.edit', $role) }}" class="text-xs font-medium text-brand hover:text-brand-dark">{{ __('messages.edit_permissions') }}</a>
+                        <a href="{{ route('admin.roles.edit', $role) }}" class="link-action">{{ __('messages.edit_permissions') }}</a>
                     </td>
                 </tr>
                 @endforeach

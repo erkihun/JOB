@@ -5,7 +5,7 @@
 <div class="space-y-5">
 
     <div class="flex items-center justify-between">
-        <h1 class="text-xl font-bold text-gray-900">{{ __('menus.hero_slider') }}</h1>
+        <h1 class="page-title">{{ __('menus.hero_slider') }}</h1>
         <a href="{{ route('admin.hero-sliders.create') }}" class="btn btn-primary">
             + {{ __('messages.add') }}
         </a>
@@ -17,15 +17,15 @@
         </div>
     @endif
 
-    <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+    <div class="card overflow-hidden">
         <table class="min-w-full divide-y divide-gray-100">
-            <thead class="bg-gray-50">
+            <thead class="table-header">
                 <tr>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('messages.title') }}</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('messages.image') }}</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('messages.order') }}</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('vacancies.status') }}</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('messages.actions') }}</th>
+                    <th class="table-th">{{ __('messages.title') }}</th>
+                    <th class="table-th">{{ __('messages.image') }}</th>
+                    <th class="table-th">{{ __('messages.order') }}</th>
+                    <th class="table-th">{{ __('vacancies.status') }}</th>
+                    <th class="table-th">{{ __('messages.actions') }}</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
@@ -36,7 +36,7 @@
                             {{ $slider->getTranslation('title', 'en', false) ?: '—' }}
                         </p>
                         @if($slider->getTranslation('title', 'am', false))
-                            <p class="text-xs text-gray-400">{{ $slider->getTranslation('title', 'am', false) }}</p>
+                            <p class="text-xs text-gray-600">{{ $slider->getTranslation('title', 'am', false) }}</p>
                         @endif
                     </td>
                     <td class="px-4 py-3">
@@ -44,7 +44,7 @@
                             <img src="{{ Storage::url($slider->image_path) }}"
                                  class="h-12 w-20 rounded-md object-cover border border-gray-200" alt="">
                         @else
-                            <span class="text-xs text-gray-400">—</span>
+                            <span class="text-xs text-gray-600">—</span>
                         @endif
                     </td>
                     <td class="px-4 py-3 text-sm text-gray-500">{{ $slider->sort_order }}</td>
@@ -58,18 +58,18 @@
                     <td class="px-4 py-3">
                         <div class="flex items-center gap-2">
                             <a href="{{ route('admin.hero-sliders.edit', $slider) }}"
-                               class="text-xs font-medium text-brand hover:underline">{{ __('messages.edit') }}</a>
+                               class="link-action">{{ __('messages.edit') }}</a>
                             <form method="POST" action="{{ route('admin.hero-sliders.destroy', $slider) }}"
                                   onsubmit="return confirm('{{ __('messages.confirm_delete') }}')">
                                 @csrf @method('DELETE')
-                                <button class="text-xs font-medium text-red-500 hover:underline">{{ __('messages.delete') }}</button>
+                                <button class="link-danger">{{ __('messages.delete') }}</button>
                             </form>
                         </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="px-4 py-10 text-center text-sm text-gray-400">{{ __('messages.no_records') }}</td>
+                    <td colspan="5" class="px-4 py-10 text-center text-sm text-gray-600">{{ __('messages.no_records') }}</td>
                 </tr>
                 @endforelse
             </tbody>

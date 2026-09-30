@@ -1,6 +1,6 @@
 @php $isEdit = isset($announcement); @endphp
 
-<div class="space-y-5 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+<div class="space-y-5 card card-body">
 
     {{-- Subject --}}
     <div>
@@ -10,6 +10,40 @@
                class="form-input mt-1 @error('subject') form-input-error @enderror">
         @error('subject')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
     </div>
+
+    <div>
+        <label for="code" class="block text-sm font-medium text-gray-700">{{ __('vacancies.announcement_code') }} <span class="text-red-500">*</span></label>
+        <input id="code" name="code" required maxlength="100" value="{{ old('code', $announcement->code ?? '') }}" class="form-input mt-1">
+        @error('code')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2">
+        @foreach(['opening_date', 'closing_date'] as $dateField)
+            @if(app()->getLocale() === 'am')
+                <x-ethiopian-datepicker :name="$dateField" :label="__('vacancies.'.$dateField)" :value="old($dateField, isset($announcement) ? $announcement->{$dateField}?->format('Y-m-d') : '')" required />
+            @else
+                <div>
+                    <label for="{{ $dateField }}" class="block text-sm font-medium text-gray-700">{{ __('vacancies.'.$dateField) }} <span class="text-red-500">*</span></label>
+                    <input type="date" id="{{ $dateField }}" name="{{ $dateField }}" required value="{{ old($dateField, isset($announcement) ? $announcement->{$dateField}?->format('Y-m-d') : '') }}" class="form-input mt-1">
+                    @error($dateField)<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+            @endif
+        @endforeach
+    </div>
+    <div>
+        <label for="institution_ids" class="block text-sm font-medium text-gray-700">{{ __('vacancies.announcement_institutions') }}</label>
+        <select id="institution_ids" name="institution_ids[]" multiple class="form-select mt-1">
+            @foreach($institutions as $institution)
+                <option value="{{ $institution->id }}" @selected(in_array($institution->id, old('institution_ids', isset($announcement) ? $announcement->institutions->modelKeys() : [])))>{{ $institution->name }}</option>
+            @endforeach
+        </select>
+        @error('institution_ids')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+        @error('institution_ids.*')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+    </div>
+    @if($isEdit)
+        @include('admin.announcements._vacancies')
+    @else
+        <p class="text-sm text-gray-500">{{ __('vacancies.save_announcement_first') }}</p>
+    @endif
 
     {{-- Status --}}
     @php $currentStatus = old('status', $announcement->status ?? 'draft'); @endphp
@@ -69,7 +103,7 @@
             <input type="time" name="_pub_time" value="{{ $pubTime }}"
                    class="form-input mt-1">
         </div>
-        <p class="text-xs text-gray-400">{{ __('messages.leave_blank_draft') }}</p>
+        <p class="text-xs text-gray-600">{{ __('messages.leave_blank_draft') }}</p>
     </div>
     @else
     <div class="max-w-xs">
@@ -77,13 +111,13 @@
         <input type="datetime-local" name="published_at"
                value="{{ old('published_at', isset($announcement) && $announcement->published_at ? $announcement->published_at->format('Y-m-d\TH:i') : '') }}"
                class="form-input mt-1">
-        <p class="mt-1 text-xs text-gray-400">{{ __('messages.leave_blank_draft') }}</p>
+        <p class="mt-1 text-xs text-gray-600">{{ __('messages.leave_blank_draft') }}</p>
     </div>
     @endif
 
     {{-- Content (TinyMCE) --}}
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.content') }} <span class="text-red-500">*</span></label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('messages.content') }}</label>
         <textarea name="content" id="tinymce-content"
                   class="@error('content') form-input-error @enderror">{{ old('content', $announcement->content ?? '') }}</textarea>
         @error('content')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror

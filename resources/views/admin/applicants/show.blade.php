@@ -2,7 +2,7 @@
 @section('title', $applicant->full_name ?: __('menus.applicants'))
 @section('breadcrumb')
     <a href="{{ route('admin.applicants.index') }}" class="hover:text-brand">{{ __('menus.applicants') }}</a>
-    <span class="mx-1 text-gray-400">/</span> {{ $applicant->full_name ?: $applicant->email }}
+    <span class="mx-1 text-gray-600">/</span> {{ $applicant->full_name ?: $applicant->email }}
 @endsection
 
 @section('content')
@@ -22,7 +22,7 @@
             </div>
         @endif
         <div class="flex-1 min-w-0">
-            <h1 class="text-xl font-bold text-gray-900">{{ $applicant->full_name ?: '—' }}</h1>
+            <h1 class="page-title">{{ $applicant->full_name ?: '—' }}</h1>
             <p class="text-sm text-gray-500">{{ $applicant->email }}</p>
             <div class="mt-2 flex flex-wrap gap-2">
                 @if($applicant->applicant_code)
@@ -41,10 +41,9 @@
     <div class="grid gap-5 lg:grid-cols-2">
 
         {{-- Personal Information --}}
-        <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 bg-gray-50 px-5 py-3 flex items-center gap-2">
-                <div class="h-4 w-0.5 rounded bg-accent"></div>
-                <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('applicant.personal_info') }}</h2>
+                <h2 class="card-title">{{ __('applicant.personal_info') }}</h2>
             </div>
             @php
                 $rows = [
@@ -69,10 +68,9 @@
         </div>
 
         {{-- Contact Information --}}
-        <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 bg-gray-50 px-5 py-3 flex items-center gap-2">
-                <div class="h-4 w-0.5 rounded bg-accent"></div>
-                <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('applicant.contact_info') }}</h2>
+                <h2 class="card-title">{{ __('applicant.contact_info') }}</h2>
             </div>
             @php
                 $rows = [
@@ -91,10 +89,9 @@
         </div>
 
         {{-- Education --}}
-        <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 bg-gray-50 px-5 py-3 flex items-center gap-2">
-                <div class="h-4 w-0.5 rounded bg-accent"></div>
-                <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('applicant.education') }}</h2>
+                <h2 class="card-title">{{ __('applicant.education') }}</h2>
             </div>
             @php
                 $rows = [
@@ -114,10 +111,9 @@
         </div>
 
         {{-- Work Experience --}}
-        <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div class="card overflow-hidden">
             <div class="border-b border-gray-100 bg-gray-50 px-5 py-3 flex items-center gap-2">
-                <div class="h-4 w-0.5 rounded bg-accent"></div>
-                <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('applicant.work_experience') }}</h2>
+                <h2 class="card-title">{{ __('applicant.work_experience') }}</h2>
             </div>
             @php
                 $exp = '';
@@ -144,18 +140,17 @@
 
     {{-- Applications --}}
     @if($applicant->applications->count())
-    <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+    <div class="card overflow-hidden">
         <div class="border-b border-gray-100 bg-gray-50 px-5 py-3 flex items-center gap-2">
-            <div class="h-4 w-0.5 rounded bg-accent"></div>
-            <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('menus.applications') }}</h2>
+            <h2 class="card-title">{{ __('menus.applications') }}</h2>
         </div>
         <table class="min-w-full divide-y divide-gray-50 text-sm">
-            <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <thead class="table-header">
                 <tr>
-                    <th class="px-5 py-2.5 text-left">{{ __('fields.reference_number') }}</th>
-                    <th class="px-5 py-2.5 text-left">{{ __('menus.vacancies') }}</th>
-                    <th class="px-5 py-2.5 text-left">{{ __('fields.status') }}</th>
-                    <th class="px-5 py-2.5 text-left">{{ __('fields.submitted_at') }}</th>
+                    <th class="table-th">{{ __('fields.reference_number') }}</th>
+                    <th class="table-th">{{ __('menus.vacancies') }}</th>
+                    <th class="table-th">{{ __('fields.status') }}</th>
+                    <th class="table-th">{{ __('fields.submitted_at') }}</th>
                     <th class="px-5 py-2.5"></th>
                 </tr>
             </thead>
@@ -175,7 +170,7 @@
                     <td class="px-5 py-3 text-gray-500 text-xs">{{ et_date($application->submitted_at) }}</td>
                     <td class="px-5 py-3 text-right">
                         <a href="{{ route('admin.applications.show', $application) }}"
-                           class="text-xs font-medium text-brand hover:text-brand-dark">{{ __('messages.view') }}</a>
+                           class="link-action">{{ __('messages.view') }}</a>
                     </td>
                 </tr>
                 @endforeach
@@ -186,12 +181,11 @@
 
     {{-- Profile Documents --}}
     @if($applicant->profileDocuments->count())
-    <div class="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+    <div class="card overflow-hidden"
          x-data="{ previewUrl: '', previewName: '', open: false, loading: false }">
 
         <div class="border-b border-gray-100 bg-gray-50 px-5 py-3 flex items-center gap-2">
-            <div class="h-4 w-0.5 rounded bg-accent"></div>
-            <h2 class="text-xs font-bold uppercase tracking-widest text-gray-600">{{ __('menus.documents') }}</h2>
+            <h2 class="card-title">{{ __('menus.documents') }}</h2>
         </div>
 
         <div class="divide-y divide-gray-50">
@@ -204,7 +198,7 @@
                     </svg>
                     <div class="min-w-0">
                         <p class="text-sm font-medium text-gray-900 truncate">{{ $doc->original_name }}</p>
-                        <p class="text-xs text-gray-400">{{ number_format($doc->file_size / 1024, 1) }} KB</p>
+                        <p class="text-xs text-gray-600">{{ number_format($doc->file_size / 1024, 1) }} KB</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4 shrink-0 ml-4">
