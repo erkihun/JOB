@@ -3,517 +3,541 @@
 @section('title', __('applicant.register_heading'))
 
 @section('content')
-<div class="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
-<div class="mx-auto max-w-7xl" x-data="registrationForm()" x-cloak>
+@php
+    $orgName  = \App\Models\Setting::get('org.name', config('app.name'));
+    $orgPhone = \App\Models\Setting::get('org.phone', '');
+    $orgEmail = \App\Models\Setting::get('org.email', '');
+    $maxMb    = (int) \App\Models\Setting::get('recruitment.max_file_size_mb', 2);
+    $docTypes = array_values(array_map('strtolower', (array) \App\Models\Setting::get('recruitment.allowed_file_types', ['pdf', 'jpg', 'jpeg', 'png'])));
+    $docTypesLabel = implode(', ', array_map('strtoupper', array_unique(array_map(fn ($t) => $t === 'jpeg' ? 'jpg' : $t, $docTypes))));
 
-    {{-- Page heading --}}
-    <div class="mb-8 text-center">
-        @php $orgLogo = \App\Models\Setting::get('org.logo', ''); @endphp
-        @if($orgLogo)
-            <img src="{{ Storage::url($orgLogo) }}" alt="{{ \App\Models\Setting::get('org.name') }}"
-                 class="mx-auto mb-4 h-12 w-auto object-contain">
-        @endif
-        <h1 class="text-2xl font-bold text-gray-900">{{ __('applicant.register_heading') }}</h1>
-        <p class="mt-1 text-sm text-gray-500">{{ __('applicant.register_subheading') }}</p>
-        <p class="mt-1 text-sm text-gray-500">
-            {{ __('applicant.already_have_account') }}
-            <a href="{{ route('login') }}" class="font-medium text-blue-600 hover:text-blue-500">
-                {{ __('applicant.sign_in_link') }}
-            </a>
-        </p>
-    </div>
+    $steps = [
+        1 => ['label' => __('applicant.step_1_heading'), 'desc' => __('applicant.step_1_desc'), 'icon' => 'user'],
+        2 => ['label' => __('applicant.step_2_heading'), 'desc' => __('applicant.step_2_desc'), 'icon' => 'academic'],
+        3 => ['label' => __('applicant.step_3_heading'), 'desc' => __('applicant.step_3_desc'), 'icon' => 'briefcase'],
+        4 => ['label' => __('applicant.step_4_heading'), 'desc' => __('applicant.step_4_desc'), 'icon' => 'mail'],
+        5 => ['label' => __('applicant.step_5_heading'), 'desc' => __('applicant.step_5_desc'), 'icon' => 'paperclip'],
+        6 => ['label' => __('applicant.step_6_heading'), 'desc' => __('applicant.step_6_desc'), 'icon' => 'check-circle'],
+    ];
 
-    {{-- Progress bar --}}
-    <div class="mb-8"
-         role="progressbar"
-         aria-valuemin="1"
-         aria-valuemax="6"
-         :aria-valuenow="step"
-         :aria-label="'{{ __('applicant.step_progress_label') }}'">
-        <div class="flex items-center justify-between mb-2">
-            @php
-                $steps = [
-                    __('applicant.step_personal'),
-                    __('applicant.step_education'),
-                    __('applicant.step_work'),
-                    __('applicant.step_contact'),
-                    __('applicant.step_documents'),
-                    __('applicant.step_review'),
-                ];
-            @endphp
-            @foreach($steps as $i => $label)
-            <div class="flex flex-col items-center flex-1">
-                <div class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all"
-                     :aria-current="step === {{ $i + 1 }} ? 'step' : false"
-                     :class="step > {{ $i + 1 }}
-                        ? 'bg-green-500 text-white'
-                        : step === {{ $i + 1 }}
-                            ? 'bg-blue-600 text-white ring-4 ring-blue-100'
-                            : 'bg-gray-200 text-gray-500'">
-                    <template x-if="step > {{ $i + 1 }}">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                        </svg>
-                    </template>
-                    <template x-if="step <= {{ $i + 1 }}">
-                        <span>{{ $i + 1 }}</span>
-                    </template>
-                </div>
-                <span class="mt-1 hidden text-xs sm:block"
-                      :class="step >= {{ $i + 1 }} ? 'text-blue-600 font-medium' : 'text-gray-400'">
-                    {{ $label }}
-                </span>
-            </div>
-            @if($i < count($steps) - 1)
-            <div class="h-0.5 flex-1 mt-[-16px] mx-1 transition-all"
-                 :class="step > {{ $i + 1 }} ? 'bg-green-400' : 'bg-gray-200'"></div>
-            @endif
-            @endforeach
-        </div>
-        <p class="text-center text-xs text-gray-400 mt-1">
-            {{ str_replace([':current', ':total'], ['', count($steps)], __('applicant.step_of')) }}
-            <span x-text="step"></span> / {{ count($steps) }}
-        </p>
-    </div>
-
-    @php
-        $errorStep = 1;
-        if ($errors->any()) {
-            if ($errors->hasAny(['phone','email','password','password_confirmation','preferred_locale'])) {
-                $errorStep = 4;
-            } elseif ($errors->hasAny(['documents','profile_photo'])) {
-                $errorStep = 5;
-            } elseif ($errors->hasAny(['work_experience_years','work_experience_months','current_employer','current_position','work_experience_summary'])) {
-                $errorStep = 3;
-            } elseif ($errors->hasAny(['university_name','field_of_study','graduation_year','gpa','education_level'])) {
-                $errorStep = 2;
-            }
+    $errorStep = 1;
+    if ($errors->any()) {
+        if ($errors->hasAny(['phone','email','password','password_confirmation','preferred_locale'])) {
+            $errorStep = 4;
+        } elseif ($errors->hasAny(['documents','profile_photo'])) {
+            $errorStep = 5;
+        } elseif ($errors->hasAny(['work_experience_years','work_experience_months','current_employer','current_position','work_experience_summary'])) {
+            $errorStep = 3;
+        } elseif ($errors->hasAny(['university_name','field_of_study','graduation_year','gpa','education_level'])) {
+            $errorStep = 2;
         }
-    @endphp
+    }
 
-    {{-- Validation errors (server-side) --}}
-    @if($errors->any())
-    <div id="reg-error-summary"
-         role="alert"
-         tabindex="-1"
-         x-init="$el.focus()"
-         class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-        <p class="font-semibold mb-1">{{ __('applicant.fix_errors_heading') }}</p>
-        <ul class="list-disc list-inside space-y-0.5">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-    @endif
+    $input  = 'mt-1.5 h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-base text-gray-900 transition placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20';
+    $label  = 'block text-sm font-semibold text-gray-800';
+    $req    = '<span class="text-red-600" aria-hidden="true">*</span>';
+    $optTag = '<span class="ml-1 text-xs font-medium text-gray-500">('.e(__('applicant.optional')).')</span>';
+    $err    = 'mt-1.5 text-sm text-red-600';
+@endphp
 
-    <form method="POST" action="{{ route('applicant.register') }}"
-          enctype="multipart/form-data" class="space-y-0" novalidate>
-        @csrf
+{{-- ── Title band ── --}}
+<x-public.page-header :title="__('applicant.register_heading')"
+                      :subtitle="__('applicant.register_subheading')"
+                      :crumbs="[['label' => __('public.create_account')]]"
+                      width="max-w-6xl">
+    <p class="mt-3 text-[15px] text-gray-700">
+        {{ __('applicant.already_have_account') }}
+        <a href="{{ route('login') }}" class="font-bold text-brand hover:underline">{{ __('applicant.sign_in_link') }}</a>
+    </p>
+</x-public.page-header>
 
-        {{-- ─────────────────────────────────────────────────────────────────
-             STEP 1 · Personal Information
-        ───────────────────────────────────────────────────────────────────── --}}
-        <div x-show="step === 1" class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div class="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 rounded-t-2xl">
-                <h2 class="font-semibold text-gray-800">{{ __('applicant.step_1_heading') }}</h2>
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8" x-data="registrationForm()" x-cloak>
+    <div class="lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start lg:gap-10">
+
+        {{-- ── Sidebar: steps + what you need ── --}}
+        <aside class="hidden lg:sticky lg:top-24 lg:block">
+            <nav aria-label="{{ __('applicant.step_progress_label') }}">
+                <ol class="space-y-1">
+                    @foreach($steps as $n => $s)
+                    <li>
+                        <button type="button" @click="goToStep({{ $n }})"
+                                :disabled="{{ $n }} > maxStep"
+                                :aria-current="step === {{ $n }} ? 'step' : false"
+                                class="group flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition disabled:cursor-default"
+                                :class="step === {{ $n }} ? 'bg-white ring-1 ring-gray-200' : ({{ $n }} <= maxStep ? 'hover:bg-white/70' : '')">
+                            <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-extrabold transition"
+                                  :class="step === {{ $n }} ? 'bg-brand text-white' : ({{ $n }} < maxStep || ({{ $n }} < step) ? 'bg-brand-muted text-brand-dark' : 'bg-gray-200 text-gray-600')">
+                                <template x-if="{{ $n }} < step"><x-public.icon name="check" class="h-4 w-4" /></template>
+                                <template x-if="{{ $n }} >= step"><span>{{ $n }}</span></template>
+                            </span>
+                            <span class="min-w-0">
+                                <span class="block text-[15px] font-bold" :class="step === {{ $n }} ? 'text-gray-900' : 'text-gray-700'">{{ $s['label'] }}</span>
+                                <span class="block text-[13px] leading-snug text-gray-500">{{ $s['desc'] }}</span>
+                            </span>
+                        </button>
+                    </li>
+                    @endforeach
+                </ol>
+            </nav>
+
+            <div class="mt-6 rounded-2xl border border-gray-200 bg-white p-5">
+                <h2 class="text-[15px] font-extrabold text-gray-900">{{ __('applicant.before_you_start') }}</h2>
+                <ul class="mt-3 space-y-2.5 text-sm text-gray-700">
+                    <li class="flex gap-2.5"><x-public.icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-brand" />{{ __('applicant.need_national_id') }}</li>
+                    <li class="flex gap-2.5"><x-public.icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-brand" />{{ __('applicant.need_contact') }}</li>
+                    <li class="flex gap-2.5"><x-public.icon name="check" class="mt-0.5 h-4 w-4 shrink-0 text-brand" />{{ __('applicant.need_document', ['types' => $docTypesLabel, 'size' => $maxMb]) }}</li>
+                </ul>
+                <p class="mt-4 flex items-center gap-2 border-t border-gray-100 pt-3 text-sm text-gray-600">
+                    <x-public.icon name="clock" class="h-4 w-4 text-gray-400" />
+                    {{ __('applicant.takes_minutes') }}
+                </p>
             </div>
-            <div class="p-6 space-y-5">
 
-                <div class="space-y-4">
-                    <div class="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-                        {{ __('applicant.profile_photo_notice') }}
-                    </div>
-                    <div class="grid gap-4 sm:grid-cols-3">
-                        <x-reg-field name="first_name" :label="__('fields.first_name')" required/>
-                        <x-reg-field name="middle_name" :label="__('fields.middle_name')" required/>
-                        <x-reg-field name="last_name" :label="__('fields.last_name')" required/>
-                    </div>
-                    <input type="hidden" name="full_name" :value="fullName || '{{ old('full_name') }}'">
+            @if($orgPhone || $orgEmail)
+            <div class="mt-4 px-1 text-sm text-gray-600">
+                <p class="font-bold text-gray-800">{{ __('applicant.need_help') }}</p>
+                @if($orgPhone)<p class="mt-1"><a href="tel:{{ preg_replace('/[^0-9+]/', '', $orgPhone) }}" class="text-brand hover:underline">{{ $orgPhone }}</a></p>@endif
+                @if($orgEmail)<p class="mt-0.5 break-all"><a href="mailto:{{ $orgEmail }}" class="text-brand hover:underline">{{ $orgEmail }}</a></p>@endif
+            </div>
+            @endif
+        </aside>
+
+        {{-- ── Form column ── --}}
+        <div class="min-w-0">
+
+            {{-- Mobile progress --}}
+            <div class="mb-5 lg:hidden" role="progressbar" aria-valuemin="1" aria-valuemax="6" :aria-valuenow="step"
+                 aria-label="{{ __('applicant.step_progress_label') }}">
+                <div class="mb-2 flex items-baseline justify-between gap-3 text-sm">
+                    <span class="font-bold text-gray-900" x-text="stepLabels[step]"></span>
+                    <span class="text-gray-600">{{ __('applicant.step_short') }} <span x-text="step"></span>/6</span>
                 </div>
-                <div class="grid gap-4 sm:grid-cols-2">
-                    {{-- Gender --}}
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">{{ __('fields.gender') }} <span class="text-red-500">*</span></label>
-                        <select name="gender"
-                                @change="validateField('gender', $event.target.value)"
-                                :class="(touched['gender'] ? !!fieldErrors['gender'] : {{ $errors->has('gender') ? 'true' : 'false' }}) ? 'border-red-400' : 'border-gray-300'"
-                                class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                            <option value="">-- {{ __('fields.gender') }} --</option>
-                            <option value="male"   {{ old('gender') === 'male'   ? 'selected' : '' }}>{{ __('statuses.gender.male') }}</option>
-                            <option value="female" {{ old('gender') === 'female' ? 'selected' : '' }}>{{ __('statuses.gender.female') }}</option>
-                        </select>
-                        @if($errors->has('gender'))
-                        <p x-show="!touched['gender']" class="mt-1 text-xs text-red-600">{{ $errors->first('gender') }}</p>
-                        @endif
-                        <p x-show="touched['gender'] && !!fieldErrors['gender']" x-text="fieldErrors['gender'] || ''" class="mt-1 text-xs text-red-600"></p>
-                    </div>
-                    <div>
-                        @if(app()->getLocale() === 'am')
-                            {{-- Amharic: Ethiopian calendar picker (submits a hidden Gregorian YYYY-MM-DD) --}}
-                            <x-ethiopian-datepicker
-                                name="date_of_birth"
-                                :label="__('fields.date_of_birth')"
-                                required
-                            />
-                        @else
-                            {{-- English: native Gregorian date input --}}
-                            <x-reg-field
-                                name="date_of_birth"
-                                :label="__('fields.date_of_birth')"
-                                type="date"
-                                required
-                            />
-                        @endif
-                        <p x-show="touched['date_of_birth'] && !!fieldErrors['date_of_birth']"
-                           x-text="fieldErrors['date_of_birth'] || ''"
-                           class="mt-1 text-xs text-red-600"></p>
-                    </div>
-                    <x-reg-field name="nationality" :label="__('fields.nationality')"/>
-                    <x-reg-field
-                        name="national_id"
-                        :label="__('fields.national_id')"
-                        required
-                        inputmode="numeric"
-                        maxlength="19"
-                        placeholder="1234 5678 9012 3456"
-                        @input="formatNationalId($event.target)"
-                    />
+                <div class="h-2 overflow-hidden rounded-full bg-gray-200">
+                    <div class="h-full rounded-full bg-brand transition-all duration-300" :style="`width: ${Math.round(step / 6 * 100)}%`"></div>
                 </div>
+            </div>
 
-                {{-- Disability status --}}
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
-                    <p class="text-sm font-medium text-gray-700">{{ __('fields.disability_status') }} <span class="text-red-500">*</span></p>
-                    <div class="flex gap-6">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="disability_status" value="1"
-                                   x-model="disabilityStatus"
-                                   {{ old('disability_status') === '1' ? 'checked' : '' }}
-                                   class="h-4 w-4 text-blue-600">
-                            <span class="text-sm">{{ __('applicant.disability_yes') }}</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="disability_status" value="0"
-                                   x-model="disabilityStatus"
-                                   {{ old('disability_status', '0') === '0' ? 'checked' : '' }}
-                                   class="h-4 w-4 text-blue-600">
-                            <span class="text-sm">{{ __('applicant.disability_no') }}</span>
-                        </label>
-                    </div>
-                    @error('disability_status')<p class="text-xs text-red-600">{{ $message }}</p>@enderror
+            {{-- Validation errors (server-side) --}}
+            @if($errors->any())
+            <div id="reg-error-summary" role="alert" tabindex="-1" x-init="$el.focus()"
+                 class="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                <p class="mb-1 flex items-center gap-2 font-bold"><x-public.icon name="alert" class="h-4 w-4" />{{ __('applicant.fix_errors_heading') }}</p>
+                <ul class="list-inside list-disc space-y-0.5">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
 
-                    {{-- Disability type — shown only when status is yes --}}
-                    <div x-show="disabilityStatus === '1'" x-transition class="pt-1">
-                        <label class="block text-sm font-medium text-gray-700">
-                            {{ __('fields.disability_type') }} <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" name="disability_type"
-                               value="{{ old('disability_type') }}"
-                               placeholder="{{ __('applicant.disability_type_hint') }}"
-                               @blur="validateField('disability_type', $event.target.value)"
-                               @input="if(touched['disability_type']) validateField('disability_type', $event.target.value)"
-                               :class="(touched['disability_type'] ? !!fieldErrors['disability_type'] : {{ $errors->has('disability_type') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
-                               class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        @if($errors->has('disability_type'))
-                        <p x-show="!touched['disability_type']" class="mt-1 text-xs text-red-600">{{ $errors->first('disability_type') }}</p>
-                        @endif
-                        <p x-show="touched['disability_type'] && !!fieldErrors['disability_type']" x-text="fieldErrors['disability_type'] || ''" class="mt-1 text-xs text-red-600"></p>
+            <form method="POST" action="{{ route('applicant.register') }}" enctype="multipart/form-data" novalidate
+                  class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                @csrf
+
+                {{-- Step header (shared) --}}
+                <div class="border-b border-gray-100 px-5 pb-5 pt-6 sm:px-8">
+                    <p class="text-[13px] font-extrabold uppercase tracking-wider text-brand">
+                        {{ __('applicant.step_short') }} <span x-text="step"></span> {{ __('applicant.of') }} 6
+                    </p>
+                    @foreach($steps as $n => $s)
+                    <div x-show="step === {{ $n }}" @if($n !== $errorStep) style="display:none" @endif>
+                        <h2 class="mt-1 text-2xl font-extrabold tracking-tight text-gray-900">{{ $s['label'] }}</h2>
+                        <p class="mt-1 text-[15px] text-gray-600">{{ $s['desc'] }}</p>
                     </div>
+                    @endforeach
                 </div>
 
-            </div>
-            @include('applicant.auth._reg_nav', ['step' => 1])
-        </div>
+                {{-- ─────────────── STEP 1 · Personal ─────────────── --}}
+                <div x-show="step === 1">
+                    <div class="space-y-6 px-5 py-6 sm:px-8">
+                        <div class="grid gap-4 sm:grid-cols-3">
+                            <x-reg-field name="first_name" :label="__('fields.first_name')" required autocomplete="given-name"/>
+                            <x-reg-field name="middle_name" :label="__('fields.middle_name')" required autocomplete="additional-name"/>
+                            <x-reg-field name="last_name" :label="__('fields.last_name')" required autocomplete="family-name"/>
+                        </div>
+                        <input type="hidden" name="full_name" :value="fullName || '{{ old('full_name') }}'">
 
-        {{-- ─────────────────────────────────────────────────────────────────
-             STEP 2 · Education
-        ───────────────────────────────────────────────────────────────────── --}}
-        <div x-show="step === 2" class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div class="border-b border-gray-100 bg-gradient-to-r from-green-50 to-teal-50 px-6 py-4 rounded-t-2xl">
-                <h2 class="font-semibold text-gray-800">{{ __('applicant.step_2_heading') }}</h2>
-            </div>
-            <div class="p-6 space-y-4">
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <x-reg-field name="university_name" :label="__('fields.university_name')" class="sm:col-span-2"/>
-
-                    <x-reg-field name="field_of_study" :label="__('fields.field_of_study')"/>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">{{ __('fields.education_level') }}</label>
-                        <select name="education_level"
-                                class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('education_level') border-red-400 @enderror">
-                            <option value="">— {{ __('fields.education_level') }} —</option>
-                            @foreach(\App\Enums\EducationLevel::cases() as $level)
-                            <option value="{{ $level->value }}" {{ old('education_level') === $level->value ? 'selected' : '' }}>
-                                {{ $level->getLabel() }}
-                            </option>
-                            @endforeach
-                        </select>
-                        @error('education_level')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">{{ __('fields.graduation_year') }}</label>
-                        <select name="graduation_year"
-                                class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('graduation_year') border-red-400 @enderror">
-                            <option value="">— {{ __('fields.graduation_year') }} —</option>
-                            @for($y = now()->year + 2; $y >= 1960; $y--)
-                            <option value="{{ $y }}" {{ (string) old('graduation_year') === (string) $y ? 'selected' : '' }}>{{ $y }}</option>
-                            @endfor
-                        </select>
-                        @error('graduation_year')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">
-                            {{ __('fields.gpa') }}
-                            <span class="text-gray-400 font-normal text-xs">(0.00 – 4.00)</span>
-                        </label>
-                        <input type="number" name="gpa" step="0.01" min="0" max="4"
-                               value="{{ old('gpa') }}"
-                               placeholder="e.g. 3.50"
-                               class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 @error('gpa') border-red-400 @enderror">
-                        @error('gpa')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                    </div>
-                </div>
-
-            </div>
-            @include('applicant.auth._reg_nav', ['step' => 2])
-        </div>
-
-        {{-- ─────────────────────────────────────────────────────────────────
-             STEP 3 · Work Experience
-        ───────────────────────────────────────────────────────────────────── --}}
-        <div x-show="step === 3" class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div class="border-b border-gray-100 bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 rounded-t-2xl">
-                <h2 class="font-semibold text-gray-800">{{ __('applicant.step_3_heading') }}</h2>
-            </div>
-            <div class="p-6 space-y-4">
-
-                <div class="max-w-xs">
-                    <label class="block text-sm font-medium text-gray-700">{{ __('fields.work_experience_years') }}</label>
-                    <input type="number" name="work_experience_years" min="0"
-                           x-model.number="workYears"
-                           value="{{ old('work_experience_years', 0) }}"
-                           @blur="validateField('work_experience_years', $event.target.value)"
-                           :class="(touched['work_experience_years'] ? !!fieldErrors['work_experience_years'] : {{ $errors->has('work_experience_years') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
-                           class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                    @if($errors->has('work_experience_years'))
-                    <p x-show="!touched['work_experience_years']" class="mt-1 text-xs text-red-600">{{ $errors->first('work_experience_years') }}</p>
-                    @endif
-                    <p x-show="touched['work_experience_years'] && !!fieldErrors['work_experience_years']" x-text="fieldErrors['work_experience_years'] || ''" class="mt-1 text-xs text-red-600"></p>
-                </div>
-
-                <div x-show="workYears > 0" x-transition class="space-y-4">
-                    <div class="max-w-xs">
-                        <label class="block text-sm font-medium text-gray-700">{{ __('fields.work_experience_months') }} <span class="text-gray-400 text-xs">(0–11)</span></label>
-                        <input type="number" name="work_experience_months" min="0" max="11"
-                               value="{{ old('work_experience_months', 0) }}"
-                               @blur="validateField('work_experience_months', $event.target.value)"
-                               :class="(touched['work_experience_months'] ? !!fieldErrors['work_experience_months'] : {{ $errors->has('work_experience_months') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
-                               class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        @if($errors->has('work_experience_months'))
-                        <p x-show="!touched['work_experience_months']" class="mt-1 text-xs text-red-600">{{ $errors->first('work_experience_months') }}</p>
-                        @endif
-                        <p x-show="touched['work_experience_months'] && !!fieldErrors['work_experience_months']" x-text="fieldErrors['work_experience_months'] || ''" class="mt-1 text-xs text-red-600"></p>
-                    </div>
-
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <x-reg-field name="current_employer" :label="__('fields.current_employer')"/>
-                        <x-reg-field name="current_position" :label="__('fields.current_position')"/>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">
-                            {{ __('fields.work_experience_summary') }}
-                            <span class="text-gray-400 font-normal text-xs">({{ __('applicant.optional') }})</span>
-                        </label>
-                        <textarea name="work_experience_summary" rows="4"
-                                  class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">{{ old('work_experience_summary') }}</textarea>
-                        @error('work_experience_summary')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                    </div>
-                </div>
-
-            </div>
-            @include('applicant.auth._reg_nav', ['step' => 3])
-        </div>
-
-        {{-- ─────────────────────────────────────────────────────────────────
-             STEP 4 · Contact & Account
-        ───────────────────────────────────────────────────────────────────── --}}
-        <div x-show="step === 4" class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div class="border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 rounded-t-2xl">
-                <h2 class="font-semibold text-gray-800">{{ __('applicant.step_4_heading') }}</h2>
-            </div>
-            <div class="p-6 space-y-5">
-
-                <input type="hidden" name="preferred_locale" value="{{ old('preferred_locale', app()->getLocale()) }}">
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <x-reg-field
-                        name="phone"
-                        :label="__('fields.phone')"
-                        required
-                        type="tel"
-                        inputmode="tel"
-                        maxlength="17"
-                        placeholder="0911 234 567"
-                        @input="formatPhone($event.target)"
-                    />
-                    <x-reg-field
-                        name="alternative_phone"
-                        :label="__('fields.alternative_phone')"
-                        type="tel"
-                        inputmode="tel"
-                        maxlength="17"
-                        placeholder="0911 234 567"
-                        @input="formatPhone($event.target)"
-                    />
-                    <x-reg-field name="email"             :label="__('fields.email')"             required type="email"/>
-                </div>
-
-                <hr class="border-gray-100">
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700">
-                            {{ __('fields.password') }} <span class="text-red-500">*</span>
-                        </label>
-                        <input type="password" id="password" name="password" autocomplete="new-password"
-                               @blur="validateField('password', $event.target.value)"
-                               @input="if(touched['password']) validateField('password', $event.target.value)"
-                               :class="(touched['password'] ? !!fieldErrors['password'] : {{ $errors->has('password') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
-                               class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        <p class="mt-1 text-xs text-gray-400">Min 8 chars, upper+lower+number+symbol.</p>
-                        @if($errors->has('password'))
-                        <p x-show="!touched['password']" class="mt-1 text-xs text-red-600">{{ $errors->first('password') }}</p>
-                        @endif
-                        <p x-show="touched['password'] && !!fieldErrors['password']" x-text="fieldErrors['password'] || ''" class="mt-1 text-xs text-red-600"></p>
-                    </div>
-                    <div>
-                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700">
-                            {{ __('fields.password_confirmation') }} <span class="text-red-500">*</span>
-                        </label>
-                        <input type="password" id="password_confirmation" name="password_confirmation"
-                               autocomplete="new-password"
-                               @blur="validateField('password_confirmation', $event.target.value)"
-                               @input="if(touched['password_confirmation']) validateField('password_confirmation', $event.target.value)"
-                               :class="(touched['password_confirmation'] ? !!fieldErrors['password_confirmation'] : false) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
-                               class="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-                        <p x-show="touched['password_confirmation'] && !!fieldErrors['password_confirmation']" x-text="fieldErrors['password_confirmation'] || ''" class="mt-1 text-xs text-red-600"></p>
-                    </div>
-                </div>
-
-            </div>
-            @include('applicant.auth._reg_nav', ['step' => 4])
-        </div>
-
-        {{-- ─────────────────────────────────────────────────────────────────
-             STEP 5 · Documents
-        ───────────────────────────────────────────────────────────────────── --}}
-        <div x-show="step === 5" class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div class="border-b border-gray-100 bg-gradient-to-r from-teal-50 to-cyan-50 px-6 py-4 rounded-t-2xl">
-                <h2 class="font-semibold text-gray-800">{{ __('applicant.step_5_heading') }}</h2>
-                <p class="text-xs text-gray-500 mt-0.5">{{ __('applicant.doc_combined_hint') }}</p>
-            </div>
-            <div class="p-6">
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-5 space-y-3">
-                    <div class="flex items-start gap-3">
-                        <svg class="h-8 w-8 shrink-0 text-red-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                        <div class="flex-1">
-                            <label class="block text-sm font-medium text-gray-700">
-                                {{ __('documents.type_documents') }} <span class="text-red-500">*</span>
-                            </label>
-                            <p class="mt-0.5 text-xs text-gray-500">{{ __('applicant.doc_combined_hint') }}</p>
-                            <input type="file" name="documents" accept=".pdf,.jpg,.jpeg,.png" required
-                                   @change="onDocumentChange($event)"
-                                   class="mt-2 block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100">
-                            <div x-show="docFileName"
-                                 class="mt-2 flex items-center gap-1.5 rounded-md bg-green-50 border border-green-200 px-3 py-1.5 text-xs text-green-700">
-                                <svg class="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                                <span x-text="docFileName"></span>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="gender" class="{{ $label }}">{{ __('fields.gender') }} {!! $req !!}</label>
+                                <select id="gender" name="gender"
+                                        @change="validateField('gender', $event.target.value)"
+                                        :class="(touched['gender'] ? !!fieldErrors['gender'] : {{ $errors->has('gender') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : ''"
+                                        class="{{ $input }}">
+                                    <option value="">{{ __('applicant.select_placeholder') }}</option>
+                                    <option value="male"   @selected(old('gender') === 'male')>{{ __('statuses.gender.male') }}</option>
+                                    <option value="female" @selected(old('gender') === 'female')>{{ __('statuses.gender.female') }}</option>
+                                </select>
+                                @if($errors->has('gender'))
+                                <p x-show="!touched['gender']" class="{{ $err }}">{{ $errors->first('gender') }}</p>
+                                @endif
+                                <p x-show="touched['gender'] && !!fieldErrors['gender']" x-text="fieldErrors['gender'] || ''" class="{{ $err }}"></p>
                             </div>
-                            @if($errors->has('documents'))
-                            <p x-show="!touched['documents']" class="mt-1 text-xs text-red-600">{{ $errors->first('documents') }}</p>
-                            @endif
-                            <p x-show="touched['documents'] && !!fieldErrors['documents']" x-text="fieldErrors['documents'] || ''" class="mt-1 text-xs text-red-600"></p>
+                            <div>
+                                @if(app()->getLocale() === 'am')
+                                    {{-- Amharic: Ethiopian calendar picker (submits a hidden Gregorian YYYY-MM-DD) --}}
+                                    <x-ethiopian-datepicker name="date_of_birth" :label="__('fields.date_of_birth')" required />
+                                @else
+                                    <x-reg-field name="date_of_birth" :label="__('fields.date_of_birth')" type="date" required max="{{ now()->subYears(15)->toDateString() }}" />
+                                @endif
+                                <p x-show="touched['date_of_birth'] && !!fieldErrors['date_of_birth']"
+                                   x-text="fieldErrors['date_of_birth'] || ''" class="{{ $err }}"></p>
+                            </div>
+                            <x-reg-field name="national_id" :label="__('fields.national_id')" required
+                                         inputmode="numeric" maxlength="19" placeholder="1234 5678 9012 3456"
+                                         :hint="__('applicant.national_id_hint')"
+                                         @input="formatNationalId($event.target)"/>
+                            <x-reg-field name="nationality" :label="__('fields.nationality').' '.$optTag" :placeholder="__('applicant.nationality_placeholder')"/>
+                        </div>
+
+                        {{-- Disability status --}}
+                        <fieldset class="rounded-xl border border-gray-200 p-4 sm:p-5">
+                            <legend class="px-1 text-sm font-semibold text-gray-800">{{ __('fields.disability_status') }} {!! $req !!}</legend>
+                            <div class="mt-1 grid gap-3 sm:grid-cols-2">
+                                @foreach(['0' => __('applicant.disability_no'), '1' => __('applicant.disability_yes')] as $val => $text)
+                                <label class="flex h-12 cursor-pointer items-center gap-3 rounded-xl border px-4 text-[15px] font-semibold transition"
+                                       :class="disabilityStatus === '{{ $val }}' ? 'border-brand bg-brand-muted text-brand-dark' : 'border-gray-300 text-gray-700 hover:border-gray-400'">
+                                    <input type="radio" name="disability_status" value="{{ $val }}" x-model="disabilityStatus"
+                                           @checked(old('disability_status', '0') === $val) class="h-[18px] w-[18px] border-gray-400 text-brand focus:ring-brand">
+                                    {{ $text }}
+                                </label>
+                                @endforeach
+                            </div>
+                            @error('disability_status')<p class="{{ $err }}">{{ $message }}</p>@enderror
+
+                            <div x-show="disabilityStatus === '1'" x-transition class="mt-4">
+                                <label for="disability_type" class="{{ $label }}">{{ __('fields.disability_type') }} {!! $req !!}</label>
+                                <input type="text" id="disability_type" name="disability_type" value="{{ old('disability_type') }}"
+                                       placeholder="{{ __('applicant.disability_type_hint') }}"
+                                       @blur="validateField('disability_type', $event.target.value)"
+                                       @input="if(touched['disability_type']) validateField('disability_type', $event.target.value)"
+                                       :class="(touched['disability_type'] ? !!fieldErrors['disability_type'] : {{ $errors->has('disability_type') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : ''"
+                                       class="{{ $input }}">
+                                @if($errors->has('disability_type'))
+                                <p x-show="!touched['disability_type']" class="{{ $err }}">{{ $errors->first('disability_type') }}</p>
+                                @endif
+                                <p x-show="touched['disability_type'] && !!fieldErrors['disability_type']" x-text="fieldErrors['disability_type'] || ''" class="{{ $err }}"></p>
+                                <p class="mt-1.5 text-sm text-gray-500">{{ __('applicant.disability_privacy') }}</p>
+                            </div>
+                        </fieldset>
+
+                        <p class="flex items-start gap-2 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                            <x-public.icon name="info" class="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                            {{ __('applicant.profile_photo_notice') }}
+                        </p>
+                    </div>
+                    @include('applicant.auth._reg_nav', ['step' => 1])
+                </div>
+
+                {{-- ─────────────── STEP 2 · Education ─────────────── --}}
+                <div x-show="step === 2" style="display:none">
+                    <div class="grid gap-4 px-5 py-6 sm:grid-cols-2 sm:px-8">
+                        <div>
+                            <label for="education_level" class="{{ $label }}">{{ __('fields.education_level') }}</label>
+                            <select id="education_level" name="education_level" class="{{ $input }} @error('education_level') border-red-400 @enderror">
+                                <option value="">{{ __('applicant.select_placeholder') }}</option>
+                                @foreach(\App\Enums\EducationLevel::cases() as $level)
+                                <option value="{{ $level->value }}" @selected(old('education_level') === $level->value)>{{ $level->getLabel() }}</option>
+                                @endforeach
+                            </select>
+                            @error('education_level')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                        </div>
+                        <x-reg-field name="field_of_study" :label="__('fields.field_of_study')" :placeholder="__('applicant.field_of_study_placeholder')"/>
+                        <x-reg-field name="university_name" :label="__('fields.university_name')" class="sm:col-span-2"/>
+                        <div>
+                            <label for="graduation_year" class="{{ $label }}">{{ __('fields.graduation_year') }}</label>
+                            <select id="graduation_year" name="graduation_year" class="{{ $input }} @error('graduation_year') border-red-400 @enderror">
+                                <option value="">{{ __('applicant.select_placeholder') }}</option>
+                                @for($y = now()->year; $y >= 1960; $y--)
+                                <option value="{{ $y }}" @selected((string) old('graduation_year') === (string) $y)>{{ $y }}</option>
+                                @endfor
+                            </select>
+                            @error('graduation_year')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="gpa" class="{{ $label }}">{{ __('fields.gpa') }} <span class="ml-1 text-xs font-medium text-gray-500">(0.00 – 4.00)</span></label>
+                            <input type="number" id="gpa" name="gpa" step="0.01" min="0" max="4" inputmode="decimal"
+                                   value="{{ old('gpa') }}" placeholder="3.50"
+                                   @blur="validateField('gpa', $event.target.value)"
+                                   :class="touched['gpa'] && fieldErrors['gpa'] ? 'border-red-400 bg-red-50' : ''"
+                                   class="{{ $input }} @error('gpa') border-red-400 @enderror">
+                            @error('gpa')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                            <p x-show="touched['gpa'] && !!fieldErrors['gpa']" x-text="fieldErrors['gpa'] || ''" class="{{ $err }}"></p>
+                        </div>
+                        <p class="text-sm text-gray-500 sm:col-span-2">{{ __('applicant.education_later_hint') }}</p>
+                    </div>
+                    @include('applicant.auth._reg_nav', ['step' => 2])
+                </div>
+
+                {{-- ─────────────── STEP 3 · Work experience ─────────────── --}}
+                <div x-show="step === 3" style="display:none">
+                    <div class="space-y-5 px-5 py-6 sm:px-8">
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="work_experience_years" class="{{ $label }}">{{ __('fields.work_experience_years') }}</label>
+                                <input type="number" id="work_experience_years" name="work_experience_years" min="0" inputmode="numeric"
+                                       x-model.number="workYears" value="{{ old('work_experience_years', 0) }}"
+                                       @blur="validateField('work_experience_years', $event.target.value)"
+                                       :class="(touched['work_experience_years'] ? !!fieldErrors['work_experience_years'] : {{ $errors->has('work_experience_years') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : ''"
+                                       class="{{ $input }}">
+                                @if($errors->has('work_experience_years'))
+                                <p x-show="!touched['work_experience_years']" class="{{ $err }}">{{ $errors->first('work_experience_years') }}</p>
+                                @endif
+                                <p x-show="touched['work_experience_years'] && !!fieldErrors['work_experience_years']" x-text="fieldErrors['work_experience_years'] || ''" class="{{ $err }}"></p>
+                            </div>
+                            <div x-show="workYears > 0" x-transition>
+                                <label for="work_experience_months" class="{{ $label }}">{{ __('fields.work_experience_months') }} <span class="ml-1 text-xs font-medium text-gray-500">(0–11)</span></label>
+                                <input type="number" id="work_experience_months" name="work_experience_months" min="0" max="11" inputmode="numeric"
+                                       value="{{ old('work_experience_months', 0) }}"
+                                       @blur="validateField('work_experience_months', $event.target.value)"
+                                       :class="(touched['work_experience_months'] ? !!fieldErrors['work_experience_months'] : {{ $errors->has('work_experience_months') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : ''"
+                                       class="{{ $input }}">
+                                @if($errors->has('work_experience_months'))
+                                <p x-show="!touched['work_experience_months']" class="{{ $err }}">{{ $errors->first('work_experience_months') }}</p>
+                                @endif
+                                <p x-show="touched['work_experience_months'] && !!fieldErrors['work_experience_months']" x-text="fieldErrors['work_experience_months'] || ''" class="{{ $err }}"></p>
+                            </div>
+                        </div>
+
+                        <p x-show="!(workYears > 0)" class="flex items-start gap-2 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                            <x-public.icon name="info" class="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+                            {{ __('applicant.no_experience_hint') }}
+                        </p>
+
+                        <div x-show="workYears > 0" x-transition class="space-y-4">
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <x-reg-field name="current_employer" :label="__('fields.current_employer')"/>
+                                <x-reg-field name="current_position" :label="__('fields.current_position')"/>
+                            </div>
+                            <div>
+                                <label for="work_experience_summary" class="{{ $label }}">{{ __('fields.work_experience_summary') }} {!! $optTag !!}</label>
+                                <textarea id="work_experience_summary" name="work_experience_summary" rows="4" maxlength="2000"
+                                          placeholder="{{ __('applicant.work_summary_placeholder') }}"
+                                          class="mt-1.5 w-full rounded-xl border border-gray-300 px-4 py-3 text-base text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">{{ old('work_experience_summary') }}</textarea>
+                                @error('work_experience_summary')<p class="{{ $err }}">{{ $message }}</p>@enderror
+                            </div>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-400">PDF, JPG, or PNG &middot; max 2 MB</p>
+                    @include('applicant.auth._reg_nav', ['step' => 3])
                 </div>
-            </div>
-            @include('applicant.auth._reg_nav', ['step' => 5])
+
+                {{-- ─────────────── STEP 4 · Contact & account ─────────────── --}}
+                <div x-show="step === 4" style="display:none">
+                    <div class="space-y-6 px-5 py-6 sm:px-8">
+                        <input type="hidden" name="preferred_locale" value="{{ old('preferred_locale', app()->getLocale()) }}">
+
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <x-reg-field name="phone" :label="__('fields.phone')" required type="tel" inputmode="tel" maxlength="17"
+                                         placeholder="0911 234 567" autocomplete="tel" :hint="__('applicant.phone_hint')"
+                                         @input="formatPhone($event.target)"/>
+                            <x-reg-field name="alternative_phone" :label="__('fields.alternative_phone').' '.$optTag" type="tel" inputmode="tel" maxlength="17"
+                                         placeholder="0911 234 567" @input="formatPhone($event.target)"/>
+                            <x-reg-field name="email" :label="__('fields.email')" required type="email" autocomplete="email"
+                                         placeholder="name@example.com" class="sm:col-span-2" :hint="__('applicant.email_hint')"/>
+                        </div>
+
+                        <div class="border-t border-gray-100 pt-6">
+                            <h3 class="text-base font-extrabold text-gray-900">{{ __('applicant.create_password') }}</h3>
+                            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label for="password" class="{{ $label }}">{{ __('fields.password') }} {!! $req !!}</label>
+                                    <div class="relative">
+                                        <input :type="showPassword ? 'text' : 'password'" id="password" name="password" autocomplete="new-password"
+                                               @blur="validateField('password', $event.target.value)"
+                                               @input="password = $event.target.value; if(touched['password']) validateField('password', $event.target.value)"
+                                               :class="(touched['password'] ? !!fieldErrors['password'] : {{ $errors->has('password') ? 'true' : 'false' }}) ? 'border-red-400 bg-red-50' : ''"
+                                               class="{{ $input }} pr-20">
+                                        <button type="button" @click="showPassword = !showPassword"
+                                                class="absolute right-2 top-1/2 mt-[3px] h-9 -translate-y-1/2 rounded-lg px-3 text-sm font-bold text-brand hover:bg-brand-muted"
+                                                :aria-pressed="showPassword.toString()"
+                                                x-text="showPassword ? @js(__('applicant.hide')) : @js(__('applicant.show'))">{{ __('applicant.show') }}</button>
+                                    </div>
+                                    @if($errors->has('password'))
+                                    <p x-show="!touched['password']" class="{{ $err }}">{{ $errors->first('password') }}</p>
+                                    @endif
+                                    <p x-show="touched['password'] && !!fieldErrors['password']" x-text="fieldErrors['password'] || ''" class="{{ $err }}"></p>
+                                </div>
+                                <div>
+                                    <label for="password_confirmation" class="{{ $label }}">{{ __('fields.password_confirmation') }} {!! $req !!}</label>
+                                    <input :type="showPassword ? 'text' : 'password'" id="password_confirmation" name="password_confirmation" autocomplete="new-password"
+                                           @blur="validateField('password_confirmation', $event.target.value)"
+                                           @input="if(touched['password_confirmation']) validateField('password_confirmation', $event.target.value)"
+                                           :class="(touched['password_confirmation'] ? !!fieldErrors['password_confirmation'] : false) ? 'border-red-400 bg-red-50' : ''"
+                                           class="{{ $input }}">
+                                    <p x-show="touched['password_confirmation'] && !!fieldErrors['password_confirmation']" x-text="fieldErrors['password_confirmation'] || ''" class="{{ $err }}"></p>
+                                </div>
+                            </div>
+
+                            {{-- Live password checklist --}}
+                            <div class="mt-4 rounded-xl bg-gray-50 p-4">
+                                <div class="mb-3 flex items-center gap-3">
+                                    <div class="grid flex-1 grid-cols-5 gap-1.5" aria-hidden="true">
+                                        <template x-for="i in 5" :key="i">
+                                            <span class="h-1.5 rounded-full transition" :class="i <= passwordScore ? (passwordScore >= 5 ? 'bg-green-600' : (passwordScore >= 3 ? 'bg-amber-500' : 'bg-red-500')) : 'bg-gray-200'"></span>
+                                        </template>
+                                    </div>
+                                    <span class="w-20 text-right text-sm font-bold" :class="passwordScore >= 5 ? 'text-green-700' : (passwordScore >= 3 ? 'text-amber-700' : 'text-gray-500')"
+                                          x-text="passwordScore >= 5 ? @js(__('applicant.pw_strong')) : (passwordScore >= 3 ? @js(__('applicant.pw_fair')) : @js(__('applicant.pw_weak')))"></span>
+                                </div>
+                                <ul class="grid gap-1.5 text-sm sm:grid-cols-2">
+                                    @foreach(['len' => __('applicant.pw_rule_length'), 'lower' => __('applicant.pw_rule_lower'), 'upper' => __('applicant.pw_rule_upper'), 'number' => __('applicant.pw_rule_number'), 'symbol' => __('applicant.pw_rule_symbol')] as $rule => $text)
+                                    <li class="flex items-center gap-2" :class="passwordRules.{{ $rule }} ? 'text-green-700' : 'text-gray-600'">
+                                        <span class="flex h-4 w-4 items-center justify-center rounded-full" :class="passwordRules.{{ $rule }} ? 'bg-green-600 text-white' : 'border border-gray-400'">
+                                            <x-public.icon name="check" class="h-3 w-3" x-show="passwordRules.{{ $rule }}" />
+                                        </span>
+                                        {{ $text }}
+                                    </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    @include('applicant.auth._reg_nav', ['step' => 4])
+                </div>
+
+                {{-- ─────────────── STEP 5 · Documents ─────────────── --}}
+                <div x-show="step === 5" style="display:none">
+                    <div class="space-y-4 px-5 py-6 sm:px-8">
+                        <label for="documents"
+                               @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false"
+                               @drop.prevent="dragging = false; if ($event.dataTransfer.files.length) { $refs.docs.files = $event.dataTransfer.files; onDocumentChange({ target: $refs.docs }) }"
+                               class="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition focus-within:ring-2 focus-within:ring-brand/30"
+                               :class="touched['documents'] && fieldErrors['documents'] ? 'border-red-300 bg-red-50' : (dragging ? 'border-brand bg-brand-muted' : (docFileName ? 'border-green-300 bg-green-50' : 'border-gray-300 bg-gray-50 hover:border-brand/50'))">
+                            <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-brand ring-1 ring-gray-200">
+                                <x-public.icon name="paperclip" class="h-7 w-7" x-show="!docFileName" />
+                                <x-public.icon name="check-circle" class="h-7 w-7 text-green-600" x-show="docFileName" />
+                            </span>
+                            <span x-show="!docFileName">
+                                <span class="block text-base font-bold text-gray-900">{{ __('applicant.upload_drop') }} <span class="text-brand underline">{{ __('applicant.upload_browse') }}</span></span>
+                                <span class="mt-1 block text-sm text-gray-600">{{ __('applicant.upload_limits', ['types' => $docTypesLabel, 'size' => $maxMb]) }}</span>
+                            </span>
+                            <span x-show="docFileName" class="min-w-0">
+                                <span class="block max-w-full truncate text-base font-bold text-gray-900" x-text="docFileName"></span>
+                                <span class="mt-1 block text-sm text-gray-600"><span x-text="docFileSize"></span> · <span class="font-bold text-brand underline">{{ __('applicant.upload_replace') }}</span></span>
+                            </span>
+                            <input type="file" id="documents" name="documents" x-ref="docs" class="sr-only"
+                                   accept="{{ implode(',', array_map(fn ($t) => '.'.$t, $docTypes)) }}"
+                                   @change="onDocumentChange($event)">
+                        </label>
+                        @if($errors->has('documents'))
+                        <p x-show="!touched['documents']" class="{{ $err }}">{{ $errors->first('documents') }}</p>
+                        @endif
+                        <p x-show="touched['documents'] && !!fieldErrors['documents']" x-text="fieldErrors['documents'] || ''" class="{{ $err }}"></p>
+
+                        <div class="rounded-xl bg-gray-50 p-4 text-sm text-gray-700">
+                            <p class="font-bold text-gray-900">{{ __('applicant.doc_what_to_include') }}</p>
+                            <p class="mt-1">{{ __('applicant.doc_include_list') }}</p>
+                        </div>
+                    </div>
+                    @include('applicant.auth._reg_nav', ['step' => 5])
+                </div>
+
+                {{-- ─────────────── STEP 6 · Review ─────────────── --}}
+                <div x-show="step === 6" style="display:none">
+                    <div class="space-y-4 px-5 py-6 sm:px-8">
+                        <p class="text-[15px] text-gray-700">{{ __('applicant.review_intro') }}</p>
+
+                        @foreach([
+                            1 => [__('applicant.step_1_heading'), [
+                                [__('fields.full_name'), 'fullName'],
+                                [__('fields.date_of_birth'), 'formatDobForReview(dateOfBirth)'],
+                                [__('fields.gender'), 'genderLabel'],
+                                [__('fields.national_id'), 'nationalId'],
+                            ]],
+                            2 => [__('applicant.step_2_heading'), [
+                                [__('fields.education_level'), 'educationLabel'],
+                                [__('fields.field_of_study'), 'fieldOfStudy'],
+                            ]],
+                            4 => [__('applicant.step_4_heading'), [
+                                [__('fields.phone'), 'phone'],
+                                [__('fields.email'), 'email'],
+                            ]],
+                            5 => [__('applicant.step_5_heading'), [
+                                [__('documents.type_documents'), 'docFileName'],
+                            ]],
+                        ] as $target => [$heading, $rows])
+                        <section class="rounded-xl border border-gray-200">
+                            <div class="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-2.5">
+                                <h3 class="text-[15px] font-extrabold text-gray-900">{{ $heading }}</h3>
+                                <button type="button" @click="goToStep({{ $target }})" class="rounded-lg px-2 py-1 text-sm font-bold text-brand hover:bg-brand-muted">{{ __('applicant.edit') }}</button>
+                            </div>
+                            <dl class="grid gap-x-6 gap-y-3 px-4 py-3 sm:grid-cols-2">
+                                @foreach($rows as [$rowLabel, $expr])
+                                <div>
+                                    <dt class="text-[13px] font-semibold text-gray-500">{{ $rowLabel }}</dt>
+                                    <dd class="mt-0.5 break-words text-[15px] font-semibold text-gray-900" x-text="({{ $expr }}) || '—'"></dd>
+                                </div>
+                                @endforeach
+                            </dl>
+                        </section>
+                        @endforeach
+
+                        <label class="flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3.5 text-[15px] transition"
+                               :class="confirmed ? 'border-brand bg-brand-muted' : 'border-gray-300'">
+                            <input type="checkbox" x-model="confirmed" class="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-400 text-brand focus:ring-brand">
+                            <span class="text-gray-800">{{ __('applicant.confirm_accurate', ['org' => $orgName]) }}</span>
+                        </label>
+                    </div>
+                    <div class="flex items-center justify-between gap-3 border-t border-gray-100 bg-gray-50/70 px-5 py-4 sm:px-8">
+                        <button type="button" @click="prevStep()"
+                                class="inline-flex h-12 items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 text-[15px] font-bold text-gray-800 transition hover:bg-gray-50">
+                            <x-public.icon name="arrow-left" class="h-4 w-4" />
+                            {{ __('applicant.step_back') }}
+                        </button>
+                        <button type="submit" :disabled="!confirmed || submitting" @click="submitting = confirmed"
+                                class="inline-flex h-12 items-center gap-2 rounded-xl bg-accent-dark px-6 text-[15px] font-extrabold text-white transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50">
+                            <span x-show="!submitting">{{ __('applicant.register_button') }}</span>
+                            <span x-show="submitting" x-cloak>{{ __('applicant.submitting') }}</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <p class="mt-6 flex items-center justify-center gap-2 text-sm text-gray-600">
+                <x-public.icon name="lock" class="h-4 w-4 text-gray-400" />
+                {{ __('applicant.data_secure_note') }}
+            </p>
         </div>
-        <div x-show="step === 6" class="rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <div class="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-green-50 px-6 py-4 rounded-t-2xl">
-                <h2 class="font-semibold text-gray-800">{{ __('applicant.step_6_heading') }}</h2>
-                <p class="text-xs text-gray-500 mt-0.5">{{ __('applicant.register_subheading') }}</p>
-            </div>
-            <div class="p-6 space-y-4">
-                <div class="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">
-                    <p>{{ __('applicant.review_intro') }}</p>
-                </div>
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('fields.full_name') }}</p>
-                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="fullName || '-'"></p>
-                    </div>
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('fields.date_of_birth') }}</p>
-                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="formatDobForReview(dateOfBirth) || '-'"></p>
-                    </div>
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('fields.national_id') }}</p>
-                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="nationalId || '-'"></p>
-                    </div>
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('fields.phone') }}</p>
-                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="phone || '-'"></p>
-                    </div>
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('fields.email') }}</p>
-                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="email || '-'"></p>
-                    </div>
-                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                        <p class="text-xs font-semibold uppercase text-gray-500">{{ __('documents.type_documents') }}</p>
-                        <p class="mt-1 text-sm font-medium text-gray-900" x-text="docFileName || 'Required document selected on step 5'"></p>
-                    </div>
-                </div>
-            </div>
-            <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
-                <button type="button" @click="prevStep()"
-                        class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
-                    {{ __('applicant.step_back') }}
-                </button>
-                <button type="submit"
-                        class="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
-                    {{ __('applicant.register_button') }}
-                </button>
-            </div>
-        </div>
-
-    </form>
-
-    <p class="mt-6 text-center text-sm text-gray-500">
-        <a href="{{ route('vacancies.index') }}" class="text-blue-600 hover:text-blue-500">
-            {{ __('applicant.back_to_jobs') }}
-        </a>
-    </p>
-
-</div>
+    </div>
 </div>
 
 <script>
 function registrationForm() {
+    const msg = @js([
+        'required'         => __('applicant.v_required'),
+        'max100'           => __('applicant.v_max', ['max' => 100]),
+        'max255'           => __('applicant.v_max', ['max' => 255]),
+        'max2000'          => __('applicant.v_max', ['max' => 2000]),
+        'nationalId'       => __('applicant.v_national_id'),
+        'gender'           => __('applicant.v_gender'),
+        'disabilityType'   => __('applicant.v_disability_type'),
+        'gpa'              => __('applicant.v_gpa'),
+        'gradYear'         => __('applicant.v_grad_year'),
+        'nonNegative'      => __('applicant.v_non_negative'),
+        'months'           => __('applicant.v_months'),
+        'phone'            => __('applicant.v_phone'),
+        'email'            => __('applicant.v_email'),
+        'password'         => __('applicant.v_password'),
+        'passwordMismatch' => __('applicant.v_password_mismatch'),
+        'passwordConfirm'  => __('applicant.v_password_confirm'),
+        'dob'              => __('applicant.v_dob'),
+        'docType'          => __('applicant.v_doc_type', ['types' => $docTypesLabel]),
+        'docSize'          => __('applicant.v_doc_size', ['size' => $maxMb]),
+        'docMissing'       => __('applicant.v_doc_missing'),
+    ]);
+    const labels = @js([
+        'gender'    => ['male' => __('statuses.gender.male'), 'female' => __('statuses.gender.female')],
+        'education' => collect(\App\Enums\EducationLevel::cases())->mapWithKeys(fn ($l) => [$l->value => $l->getLabel()]),
+        'steps'     => collect($steps)->map(fn ($s) => $s['label']),
+    ]);
+    const docTypes = @js($docTypes);
+    const maxBytes = {{ $maxMb }} * 1024 * 1024;
+
     return {
         step: {{ $errorStep }},
+        maxStep: {{ $errorStep }},
         totalSteps: 6,
+        stepLabels: labels.steps,
         disabilityStatus: '{{ old('disability_status', '0') }}',
         workYears: {{ (int) old('work_experience_years', 0) }},
         firstName: '{{ addslashes(old('first_name', '')) }}',
@@ -523,7 +547,16 @@ function registrationForm() {
         nationalId: '{{ addslashes(old('national_id', '')) }}',
         phone: '{{ addslashes(old('phone', '')) }}',
         email: '{{ addslashes(old('email', '')) }}',
+        genderLabel: '',
+        educationLabel: '',
+        fieldOfStudy: '',
+        password: '',
+        showPassword: false,
+        confirmed: false,
+        submitting: false,
+        dragging: false,
         docFileName: @if($errors->any() && session('reg_temp_docs_name'))'{{ addslashes(session('reg_temp_docs_name')) }}'@else null @endif,
+        docFileSize: '',
         fieldErrors: {},
         touched: {},
         _timers: {},
@@ -533,21 +566,32 @@ function registrationForm() {
                 .map(s => s.trim()).filter(Boolean).join(' ');
         },
 
+        get passwordRules() {
+            const v = this.password;
+            return { len: v.length >= 8, lower: /[a-z]/.test(v), upper: /[A-Z]/.test(v), number: /[0-9]/.test(v), symbol: /[^a-zA-Z0-9]/.test(v) };
+        },
+        get passwordScore() { return Object.values(this.passwordRules).filter(Boolean).length; },
+
         onDocumentChange(event) {
             const file = event.target.files[0];
-            if (!file) { this.docFileName = null; return; }
+            if (!file) { this.docFileName = null; this.docFileSize = ''; return; }
             this.validateFile('documents', file);
             this.docFileName = file.name;
+            this.docFileSize = file.size >= 1048576 ? (file.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(file.size / 1024)) + ' KB';
         },
 
         syncReviewFields() {
-            this.firstName   = document.querySelector('[name="first_name"]')?.value  ?? this.firstName;
-            this.middleName  = document.querySelector('[name="middle_name"]')?.value ?? this.middleName;
-            this.lastName    = document.querySelector('[name="last_name"]')?.value   ?? this.lastName;
-            this.dateOfBirth = document.querySelector('[name="date_of_birth"]')?.value ?? '';
-            this.nationalId  = document.querySelector('[name="national_id"]')?.value.replace(/\s/g, '') ?? '';
-            this.phone       = document.querySelector('[name="phone"]')?.value ?? '';
-            this.email       = document.querySelector('[name="email"]')?.value ?? '';
+            const val = (n) => document.querySelector(`[name="${n}"]`)?.value ?? '';
+            this.firstName      = val('first_name')  || this.firstName;
+            this.middleName     = val('middle_name') || this.middleName;
+            this.lastName       = val('last_name')   || this.lastName;
+            this.dateOfBirth    = val('date_of_birth');
+            this.nationalId     = val('national_id').replace(/\s/g, '');
+            this.phone          = val('phone');
+            this.email          = val('email');
+            this.genderLabel    = labels.gender[val('gender')] ?? '';
+            this.educationLabel = labels.education[val('education_level')] ?? '';
+            this.fieldOfStudy   = val('field_of_study');
         },
 
         // ── DOB display ──────────────────────────────────────────────────────
@@ -597,12 +641,10 @@ function registrationForm() {
 
         validateFile(field, file) {
             this.touched[field] = true;
-            const mb2 = 2 * 1024 * 1024;
+            const ext = (file.name.split('.').pop() || '').toLowerCase();
             let err = '';
-            if (field === 'documents') {
-                if (!['application/pdf','image/jpeg','image/jpg','image/png'].includes(file.type)) err = 'Only PDF, JPG, or PNG files are accepted.';
-                else if (file.size > mb2) err = 'Document must be under 2 MB.';
-            }
+            if (!docTypes.includes(ext)) err = msg.docType;
+            else if (file.size > maxBytes) err = msg.docSize;
             this.fieldErrors[field] = err;
         },
 
@@ -610,79 +652,73 @@ function registrationForm() {
             this.touched[field] = true;
             const v = (value ?? '').toString().trim();
             let err = '';
+            // Mirrors the server rule (normalised to +2519XXXXXXXX).
+            const ethiopianMobile = /^(09\d{8}|2519\d{8}|\+2519\d{8}|9\d{8})$/;
 
             switch (field) {
                 case 'first_name':
-                case 'last_name':
-                    if (!v) err = 'This field is required.';
-                    else if (v.length > 100) err = 'Max 100 characters.';
-                    break;
                 case 'middle_name':
-                    if (!v) err = 'This field is required.';
-                    else if (v.length > 100) err = 'Max 100 characters.';
+                case 'last_name':
+                    if (!v) err = msg.required;
+                    else if (v.length > 100) err = msg.max100;
                     break;
                 case 'national_id':
-                    const nationalDigits = v.replace(/\D/g, '');
-                    if (!v) err = 'National ID is required.';
-                    else if (nationalDigits.length !== 16) err = 'National ID must be exactly 16 digits.';
+                    if (!v) err = msg.required;
+                    else if (v.replace(/\D/g, '').length !== 16) err = msg.nationalId;
                     break;
                 case 'gender':
-                    if (!v) err = 'Please select your gender.';
+                    if (!v) err = msg.gender;
                     break;
                 case 'disability_type':
-                    if (this.disabilityStatus === '1' && !v) err = 'Please describe your disability type.';
-                    else if (v.length > 255) err = 'Max 255 characters.';
+                    if (this.disabilityStatus === '1' && !v) err = msg.disabilityType;
+                    else if (v.length > 255) err = msg.max255;
                     break;
                 case 'nationality':
                 case 'university_name':
                 case 'field_of_study':
                 case 'current_employer':
                 case 'current_position':
-                    if (v.length > 255) err = 'Max 255 characters.';
+                    if (v.length > 255) err = msg.max255;
                     break;
                 case 'work_experience_summary':
-                    if (v.length > 2000) err = 'Max 2000 characters.';
+                    if (v.length > 2000) err = msg.max2000;
                     break;
                 case 'gpa':
-                    if (v !== '' && (isNaN(+v) || +v < 0 || +v > 4)) err = 'GPA must be between 0.00 and 4.00.';
+                    if (v !== '' && (isNaN(+v) || +v < 0 || +v > 4)) err = msg.gpa;
                     break;
                 case 'graduation_year':
-                    if (v !== '' && (isNaN(+v) || +v < 1950 || +v > {{ now()->year }})) err = 'Enter a valid graduation year.';
+                    if (v !== '' && (isNaN(+v) || +v < 1950 || +v > {{ now()->year }})) err = msg.gradYear;
                     break;
                 case 'work_experience_years':
-                    if (v !== '' && (isNaN(+v) || +v < 0)) err = 'Must be 0 or more.';
+                    if (v !== '' && (isNaN(+v) || +v < 0)) err = msg.nonNegative;
                     break;
                 case 'work_experience_months':
-                    if (v !== '' && (isNaN(+v) || +v < 0 || +v > 11)) err = 'Must be between 0 and 11.';
+                    if (v !== '' && (isNaN(+v) || +v < 0 || +v > 11)) err = msg.months;
                     break;
                 case 'phone':
-                    const phoneDigits = v.replace(/\D/g, '');
-                    if (!v) err = 'Phone number is required.';
-                    else if (!/^(09\d{8}|2519\d{8}|\+2519\d{8}|9\d{8})$/.test(v.replace(/\s+/g, ''))) err = 'Use a valid Ethiopian mobile number.';
+                    if (!v) err = msg.required;
+                    else if (!ethiopianMobile.test(v.replace(/\s+/g, ''))) err = msg.phone;
                     break;
                 case 'alternative_phone':
-                    if (v && !/^(09\d{8}|2519\d{8}|\+2519\d{8}|9\d{8})$/.test(v.replace(/\s+/g, ''))) err = 'Use a valid Ethiopian mobile number.';
+                    if (v && !ethiopianMobile.test(v.replace(/\s+/g, ''))) err = msg.phone;
                     break;
                 case 'email':
-                    if (!v) err = 'Email address is required.';
-                    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) err = 'Enter a valid email address.';
+                    if (!v) err = msg.required;
+                    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) err = msg.email;
                     break;
                 case 'password':
-                    if (!v) err = 'Password is required.';
-                    else if (v.length < 8) err = 'At least 8 characters required.';
-                    else if (!/[a-z]/.test(v)) err = 'Must include a lowercase letter.';
-                    else if (!/[A-Z]/.test(v)) err = 'Must include an uppercase letter.';
-                    else if (!/[0-9]/.test(v)) err = 'Must include a number.';
-                    else if (!/[^a-zA-Z0-9]/.test(v)) err = 'Must include a symbol (e.g. !@#$).';
+                    this.password = value ?? '';
+                    if (!v) err = msg.required;
+                    else if (this.passwordScore < 5) err = msg.password;
                     if (this.touched['password_confirmation']) {
                         const c = document.getElementById('password_confirmation')?.value ?? '';
-                        this.fieldErrors['password_confirmation'] = (c && c !== v) ? 'Passwords do not match.' : '';
+                        this.fieldErrors['password_confirmation'] = (c && c !== v) ? msg.passwordMismatch : '';
                     }
                     break;
                 case 'password_confirmation': {
                     const p = document.getElementById('password')?.value ?? '';
-                    if (!v) err = 'Please confirm your password.';
-                    else if (v !== p) err = 'Passwords do not match.';
+                    if (!v) err = msg.passwordConfirm;
+                    else if (v !== p) err = msg.passwordMismatch;
                     break;
                 }
             }
@@ -710,11 +746,12 @@ function registrationForm() {
             const required = {
                 1: ['first_name', 'middle_name', 'last_name', 'national_id', 'gender'],
                 4: ['phone', 'email', 'password', 'password_confirmation'],
-                5: ['documents'],
             };
             const optional = {
-                2: ['gpa', 'graduation_year'],
+                1: ['nationality'],
+                2: ['gpa', 'graduation_year', 'university_name', 'field_of_study'],
                 3: ['work_experience_years', 'work_experience_months'],
+                4: ['alternative_phone'],
             };
 
             let ok = true;
@@ -731,16 +768,11 @@ function registrationForm() {
 
             if (n === 1) {
                 // DOB is a Gregorian YYYY-MM-DD value — either the native date input
-                // (en) or the Ethiopian picker's hidden field (am). Validate it the
-                // same way for both locales.
+                // (en) or the Ethiopian picker's hidden field (am).
                 const dob = document.querySelector('[name="date_of_birth"]')?.value ?? '';
-                if (!dob) {
-                    this.fieldErrors['date_of_birth'] = 'Date of birth is required.';
-                    this.touched['date_of_birth'] = true;
-                    ok = false;
-                } else {
-                    this.fieldErrors['date_of_birth'] = '';
-                }
+                this.touched['date_of_birth'] = true;
+                this.fieldErrors['date_of_birth'] = dob ? '' : msg.dob;
+                if (!dob) ok = false;
 
                 if (this.disabilityStatus === '1') {
                     const el = document.querySelector('[name="disability_type"]');
@@ -752,8 +784,10 @@ function registrationForm() {
             if (n === 5) {
                 const el = document.querySelector('[name="documents"]');
                 if (!el?.files?.length && !this.docFileName) {
-                    this.fieldErrors['documents'] = 'Required document is missing.';
+                    this.fieldErrors['documents'] = msg.docMissing;
                     this.touched['documents'] = true;
+                    ok = false;
+                } else if (this.fieldErrors['documents']) {
                     ok = false;
                 }
             }
@@ -761,27 +795,35 @@ function registrationForm() {
             return ok;
         },
 
-        nextStep() {
-            if (!this.validateStep(this.step)) {
-                this.$nextTick(() => {
-                    const firstError = [...document.querySelectorAll('[x-show]')]
-                        .find(el => el.textContent && el.offsetParent !== null && el.classList.contains('text-red-600'));
-                    const target = firstError ?? document.querySelector('.text-red-600:not([x-show])');
-                    target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    // Focus the first invalid input so keyboard/screen-reader users land on it.
-                    document.querySelector('.border-red-400, [aria-invalid="true"]')?.focus?.();
-                });
-                return;
-            }
-            if (this.step < this.totalSteps) {
-                this.step++;
-                if (this.step === 6) this.$nextTick(() => this.syncReviewFields());
-            }
-            window.scrollTo(0, 0);
+        focusFirstError() {
+            this.$nextTick(() => {
+                const bad = document.querySelector('form [aria-invalid="true"], form .border-red-400, form .border-red-300');
+                bad?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                bad?.focus?.();
+            });
         },
-        prevStep() { if (this.step > 1) this.step--; window.scrollTo(0, 0); },
+
+        show(n) {
+            this.step = n;
+            this.maxStep = Math.max(this.maxStep, n);
+            if (n === 6) this.$nextTick(() => this.syncReviewFields());
+            this.$nextTick(() => this.$root.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        },
+
+        nextStep() {
+            if (!this.validateStep(this.step)) { this.focusFirstError(); return; }
+            if (this.step < this.totalSteps) this.show(this.step + 1);
+        },
+        prevStep() { if (this.step > 1) this.show(this.step - 1); },
+
+        // Jump via the sidebar / review "Edit": backwards freely, forwards only
+        // to steps already reached and only when the current step is valid.
+        goToStep(n) {
+            if (n === this.step || n > this.maxStep) return;
+            if (n > this.step && !this.validateStep(this.step)) { this.focusFirstError(); return; }
+            this.show(n);
+        },
     };
 }
 </script>
-
 @endsection

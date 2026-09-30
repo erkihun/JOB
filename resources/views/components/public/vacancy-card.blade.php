@@ -4,109 +4,81 @@
 ])
 
 @php
-    $locale     = app()->getLocale();
+    $locale      = app()->getLocale();
     $title       = $vacancy->getTranslation('title', $locale, false) ?: $vacancy->getTranslation('title', 'en', false);
     $loc         = $vacancy->getTranslation('location', $locale, false) ?: $vacancy->getTranslation('location', 'en', false);
     $desc        = $vacancy->getTranslation('description', $locale, false) ?: $vacancy->getTranslation('description', 'en', false);
-    $descExcerpt = $desc ? Str::limit(trim(strip_tags($desc)), 140) : null;
-    $daysLeft    = (int) today()->diffInDays($vacancy->announcement->closing_date, false);
+    $descExcerpt = $desc ? Str::limit(trim(strip_tags($desc)), 170) : null;
+    $closing     = $vacancy->announcement->closing_date;
+    $daysLeft    = (int) today()->diffInDays($closing, false);
     $isPast      = $daysLeft < 0;
     $isUrgent    = ! $isPast && $daysLeft <= 6;
     $institution = $vacancy->institution;
     $hasMap      = $institution && $institution->latitude && $institution->longitude;
+    $url         = route('vacancies.show', $vacancy);
 @endphp
 
-<article {{ $attributes->merge(['class' => 'group relative flex flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition hover:border-brand/40 hover:shadow-card-hover focus-within:ring-2 focus-within:ring-brand/40']) }}
+{{-- Search-result card: what / where / key facts on the left, deadline + action on the right. --}}
+<article {{ $attributes->merge(['class' => 'group relative flex flex-col gap-5 rounded-2xl border border-gray-200 bg-white p-5 transition hover:border-brand/50 hover:shadow-card-hover focus-within:ring-2 focus-within:ring-brand/40 sm:flex-row sm:p-6']) }}
          x-data="{ mapOpen: false }">
 
-    {{-- Header: institution mark + employment type --}}
-    <div class="flex items-start justify-between gap-3">
-        <div class="flex min-w-0 items-center gap-3">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-muted text-brand">
-                <x-public.icon name="building" class="h-5 w-5" />
-            </span>
-            <div class="min-w-0">
-                @if($institution)
-                <p class="truncate text-xs font-semibold text-gray-700" title="{{ $institution->name }}">{{ $institution->displayName() }}</p>
-                @endif
-                @if($vacancy->code)
-                <p class="font-mono text-[11px] text-gray-400">{{ $vacancy->code }}</p>
-                @endif
-            </div>
-        </div>
-        @if($vacancy->employment_type)
-        <span class="shrink-0 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-700">
-            {{ $vacancy->employment_type->label() }}
-        </span>
+    <div class="flex min-w-0 flex-1 flex-col gap-2.5">
+        <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-600">
+            @if($vacancy->department)<span class="font-semibold text-gray-700">{{ $vacancy->department }}</span>@endif
+            @if($institution)<span class="truncate" title="{{ $institution->name }}">{{ $institution->displayName() }}</span>@endif
+            @if($vacancy->code)<span class="font-mono text-[13px] text-gray-500">{{ $vacancy->code }}</span>@endif
+        </p>
+
+        <{{ $headingTag }} class="text-xl font-extrabold leading-snug text-gray-900">
+            <a href="{{ $url }}" class="text-brand-dark after:absolute after:inset-0 after:rounded-2xl hover:underline focus:outline-none">{{ $title }}</a>
+        </{{ $headingTag }}>
+
+        @if($descExcerpt)
+        <p class="line-clamp-2 text-[15px] leading-relaxed text-gray-600">{{ $descExcerpt }}</p>
         @endif
+
+        <ul class="mt-1 flex flex-wrap items-center gap-2 text-[13px] font-semibold text-gray-700">
+            @if($loc)
+            <li class="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1">
+                <x-public.icon name="map-pin" class="h-3.5 w-3.5 text-gray-500" />
+                {{ $loc }}
+                @if($hasMap)
+                <button type="button" @click="mapOpen = true"
+                        class="relative z-10 ml-1 rounded font-bold text-brand hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+                    {{ __('public.map') }}
+                </button>
+                @endif
+            </li>
+            @endif
+            @if($vacancy->employment_type)
+            <li class="rounded-md bg-gray-100 px-2.5 py-1">{{ $vacancy->employment_type->label() }}</li>
+            @endif
+            @if($vacancy->number_of_positions)
+            <li class="rounded-md bg-gray-100 px-2.5 py-1">{{ trans_choice('public.positions_count', $vacancy->number_of_positions, ['count' => $vacancy->number_of_positions]) }}</li>
+            @endif
+            @if($vacancy->field_of_study)
+            <li class="max-w-56 truncate rounded-md bg-gray-100 px-2.5 py-1">{{ $vacancy->field_of_study }}</li>
+            @endif
+        </ul>
     </div>
 
-    {{-- Title (stretched link makes the whole card clickable) --}}
-    <{{ $headingTag }} class="mt-4 text-base font-bold leading-snug text-gray-900 group-hover:text-brand">
-        <a href="{{ route('vacancies.show', $vacancy) }}" class="after:absolute after:inset-0 after:rounded-2xl focus:outline-none">
-            {{ $title }}
-        </a>
-    </{{ $headingTag }}>
-
-    {{-- Meta --}}
-    <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-gray-500">
-        @if($vacancy->department)
-        <li class="inline-flex items-center gap-1.5">
-            <x-public.icon name="office" class="h-3.5 w-3.5 text-gray-400" />
-            {{ Str::limit($vacancy->department, 28) }}
-        </li>
-        @endif
-        @if($loc)
-        <li class="inline-flex items-center gap-1.5">
-            <x-public.icon name="map-pin" class="h-3.5 w-3.5 text-gray-400" />
-            {{ $loc }}
-            @if($hasMap)
-            <button type="button" @click="mapOpen = true"
-                    class="relative z-10 rounded font-semibold text-brand hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand">
-                {{ __('public.map') }}
-            </button>
+    <div class="flex shrink-0 items-center justify-between gap-4 border-t border-gray-100 pt-4 sm:w-48 sm:flex-col sm:items-end sm:justify-between sm:border-0 sm:pt-0">
+        <div class="sm:text-right">
+            @if($isPast)
+                <span class="inline-flex rounded-full bg-red-50 px-3 py-1 text-sm font-bold text-red-700">{{ __('public.closed') }}</span>
+            @elseif($daysLeft === 0)
+                <span class="inline-flex rounded-full bg-accent-muted px-3 py-1 text-sm font-bold text-accent-dark">{{ __('public.closes_today') }}</span>
+            @else
+                <span class="inline-flex rounded-full px-3 py-1 text-sm font-bold {{ $isUrgent ? 'bg-accent-muted text-accent-dark' : 'bg-brand-muted text-brand-dark' }}">
+                    {{ trans_choice('public.days_left_count', $daysLeft, ['count' => $daysLeft]) }}
+                </span>
             @endif
-        </li>
-        @endif
-        @if($vacancy->number_of_positions)
-        <li class="inline-flex items-center gap-1.5">
-            <x-public.icon name="users" class="h-3.5 w-3.5 text-gray-400" />
-            {{ $vacancy->number_of_positions }} {{ __('public.positions') }}
-        </li>
-        @endif
-    </ul>
-
-    @if($descExcerpt)
-    <p class="mt-3 line-clamp-2 text-sm leading-relaxed text-gray-500">{{ $descExcerpt }}</p>
-    @endif
-
-    <dl class="mt-4 space-y-1 text-xs text-gray-500">
-        <div class="flex flex-wrap justify-between gap-2"><dt>{{ __('vacancies.opening_date') }}</dt><dd class="font-semibold text-gray-700">{{ et_date($vacancy->announcement->opening_date, 'M d, Y') }}</dd></div>
-        <div class="flex flex-wrap justify-between gap-2"><dt>{{ __('vacancies.closing_date') }}</dt><dd class="font-semibold text-gray-700">{{ et_date($vacancy->announcement->closing_date, 'M d, Y') }}</dd></div>
-    </dl>
-    {{-- Footer --}}
-    <div class="mt-auto pt-5"></div>
-    <div class="flex items-center justify-between gap-3 border-t border-gray-100 pt-4">
-        @if($isPast)
-            <span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">
-                <x-public.icon name="x-circle" class="h-3.5 w-3.5" />
-                {{ __('public.closed') }}
-            </span>
-        @elseif($isUrgent)
-            <span class="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
-                <x-public.icon name="clock" class="h-3.5 w-3.5" />
-                {{ $daysLeft === 0 ? __('public.closes_today') : __('public.closes_in_days', ['days' => $daysLeft]) }}
-            </span>
-        @else
-            <span class="inline-flex items-center gap-1.5 text-xs text-gray-500">
-                <x-public.icon name="calendar" class="h-3.5 w-3.5 text-gray-400" />
-                {{ __('public.closes') }} <span class="font-semibold text-gray-700">{{ et_date($vacancy->announcement->closing_date, 'M d, Y') }}</span>
-            </span>
-        @endif
-
-        <span class="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-brand">
-            {{ __('vacancies.view_details') }}
-            <x-public.icon name="arrow-right" class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+            <p class="mt-1.5 text-[13px] text-gray-500">{{ __('public.closes') }} {{ et_date($closing, 'M d, Y') }}</p>
+            <p class="sr-only">{{ __('vacancies.opening_date') }} {{ et_date($vacancy->announcement->opening_date, 'M d, Y') }}</p>
+        </div>
+        <span class="relative inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl bg-brand px-4 text-[15px] font-bold text-white transition group-hover:bg-brand-dark" aria-hidden="true">
+            {{ __('public.view_and_apply') }}
+            <x-public.icon name="arrow-right" class="h-4 w-4" />
         </span>
     </div>
 
@@ -127,7 +99,7 @@
                         @endif
                     </div>
                     <button type="button" @click="mapOpen = false"
-                            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                             aria-label="{{ __('public.close') }}">
                         <x-public.icon name="x" />
                     </button>
@@ -140,7 +112,7 @@
                 <div class="flex justify-end border-t border-gray-100 px-4 py-2.5">
                     <a href="https://www.google.com/maps?q={{ $institution->latitude }},{{ $institution->longitude }}"
                        target="_blank" rel="noopener noreferrer"
-                       class="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline">
+                       class="inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
                         {{ __('admin.institution_open_in_maps') }}
                         <x-public.icon name="external" class="h-3.5 w-3.5" />
                     </a>

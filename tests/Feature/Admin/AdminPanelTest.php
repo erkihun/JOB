@@ -210,8 +210,12 @@ test('admin route list contains expected admin routes', function (): void {
 test('app css self-hosts abyssinica sil for amharic', function (): void {
     $css = file_get_contents(resource_path('css/app.css'));
 
-    expect($css)->toContain('Abyssinica SIL')
-        ->toContain('Noto Serif Ethiopic');
+    // Self-hosted, limited to Ethiopic code points, and first in every font stack
+    // so all Amharic text renders in Abyssinica SIL across admin, applicant and public.
+    expect($css)->toContain("url('/fonts/abyssinica/AbyssinicaSIL-Regular.woff2')")
+        ->toContain('unicode-range: U+1200-137F')
+        ->toContain("--font-sans: 'Abyssinica SIL'")
+        ->toContain("--font-public: 'Abyssinica SIL'");
 });
 
 test('authorized admin can preview applicant profile document inline', function (): void {

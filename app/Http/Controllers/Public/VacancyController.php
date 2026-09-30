@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Public;
 use App\Enums\EmploymentType;
 use App\Enums\VacancyStatus;
 use App\Http\Controllers\Controller;
+use App\Models\RecruitmentAnnouncement;
 use App\Models\Vacancy;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -28,8 +29,10 @@ class VacancyController extends Controller
             });
         }
 
-        if ($department = $request->input('department')) {
-            $query->where('department', $department);
+        // One or several departments (checkbox list), or a single value from links.
+        $departmentFilter = array_values(array_filter((array) $request->input('department', []), 'filled'));
+        if ($departmentFilter !== []) {
+            $query->whereIn('department', $departmentFilter);
         }
 
         if ($fieldOfStudy = $request->input('field_of_study')) {
@@ -55,20 +58,46 @@ class VacancyController extends Controller
             $query->whereHas('announcement', fn ($q) => $q->whereDate('closing_date', '<=', $closingDate));
         }
 
-        $vacancies = $query->with('institution')->latest('published_at')->paginate(12)->withQueryString();
+        if (in_array($closingWithin = (int) $request->input('closing_within'), [7, 30], true)) {
+            $query->whereHas('announcement', fn ($q) => $q->whereDate('closing_date', '<=', today()->addDays($closingWithin)));
+        }
 
+        $closingDateSort = RecruitmentAnnouncement::select('closing_date')
+            ->whereColumn('recruitment_announcements.id', 'vacancies.announcement_id');
+
+        match ($request->input('sort')) {
+            'closing' => $query->orderBy($closingDateSort),
+            'positions' => $query->orderByDesc('number_of_positions'),
+            default => $query->latest('published_at'),
+        };
+
+        $vacancies = $query->with(['institution', 'announcement'])->paginate(12)->withQueryString();
+
+        // Facet counts are taken over all open vacancies so every option stays visible.
         $departments = Vacancy::acceptingApplications()
-            ->whereNotNull('department')
-            ->distinct()
-            ->pluck('department')
-            ->sort()
-            ->values();
+            ->whereNotNull('department')->where('department', '!=', '')
+            ->selectRaw('department, count(*) as total')
+            ->groupBy('department')
+            ->orderBy('department')
+            ->pluck('total', 'department');
+
+        $typeCounts = Vacancy::acceptingApplications()
+            ->selectRaw('employment_type, count(*) as total')
+            ->groupBy('employment_type')
+            ->pluck('total', 'employment_type');
 
         $employmentTypes = collect(EmploymentType::cases())->mapWithKeys(
             fn (EmploymentType $e) => [$e->value => $e->label()]
         );
 
-        return view('public.vacancies.index', compact('vacancies', 'departments', 'employmentTypes'));
+        $totals = [
+            'vacancies' => Vacancy::acceptingApplications()->count(),
+            'positions' => (int) Vacancy::acceptingApplications()->sum('number_of_positions'),
+        ];
+
+        return view('public.vacancies.index', compact(
+            'vacancies', 'departments', 'departmentFilter', 'employmentTypes', 'typeCounts', 'totals',
+        ));
     }
 
     public function show(Vacancy $vacancy): View

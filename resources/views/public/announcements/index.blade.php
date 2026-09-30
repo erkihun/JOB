@@ -20,7 +20,7 @@
         <ol class="space-y-4">
             @foreach($announcements as $ann)
             <li>
-                <article class="group relative flex gap-5 rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition hover:border-brand/40 hover:shadow-card-hover sm:p-6 scroll-animate"
+                <article class="group relative flex gap-5 rounded-2xl border border-gray-200 bg-white p-5 transition hover:border-brand/50 hover:shadow-card-hover sm:p-6"
                          data-delay="{{ ($loop->index % 3) + 1 }}">
                     {{-- Date block --}}
                     @if($ann->published_at)
@@ -41,10 +41,10 @@
                                 {{ $ann->subject }}
                             </a>
                         </h2>
-                        <p class="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-600">
+                        <p class="mt-2 line-clamp-2 text-[15px] leading-relaxed text-gray-700">
                             {{ Str::limit(trim(html_entity_decode(strip_tags($ann->content))), 260) }}
                         </p>
-                        <span class="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand">
+                        <span class="mt-3 inline-flex items-center gap-1 text-[15px] font-bold text-brand">
                             {{ __('public.read_more') }}
                             <x-public.icon name="arrow-right" class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
                         </span>

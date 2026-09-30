@@ -3,10 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <style>
+    /* Abyssinica SIL for Amharic (it also covers Latin); regular file doubles as bold. */
+    @font-face { font-family: 'Abyssinica SIL'; font-weight: normal; src: url('{{ public_path('fonts/abyssinica/AbyssinicaSIL-Regular.ttf') }}') format('truetype'); }
+    @font-face { font-family: 'Abyssinica SIL'; font-weight: bold; src: url('{{ public_path('fonts/abyssinica/AbyssinicaSIL-Regular.ttf') }}') format('truetype'); }
     @page { size: A4 landscape; margin: 0; }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Ebrima, DejaVu Sans, sans-serif; font-size: 8.5px; color: #1f2937;
+    body { font-family: 'Abyssinica SIL', Ebrima, DejaVu Sans, sans-serif; font-size: 8.5px; color: #1f2937;
            padding: 14mm 20mm 12mm 20mm; }
 
     /* ── Header ─────────────────────────────────────────────── */
@@ -26,14 +29,14 @@
 
     thead tr { background-color: #1d4ed8; }
     thead th { color: #ffffff; padding: 6px 7px; text-align: left;
-               font-family: Ebrima, DejaVu Sans, sans-serif;
+               font-family: 'Abyssinica SIL', Ebrima, DejaVu Sans, sans-serif;
                font-size: 7.5px; font-weight: bold;
                text-transform: uppercase; letter-spacing: 0.03em; }
 
     tbody tr:nth-child(even) { background-color: #eff6ff; }
     tbody tr:nth-child(odd)  { background-color: #ffffff; }
     tbody td { padding: 6px 7px; border-bottom: 1px solid #e5e7eb; vertical-align: top;
-               font-family: Ebrima, DejaVu Sans, sans-serif; }
+               font-family: 'Abyssinica SIL', Ebrima, DejaVu Sans, sans-serif; }
 
     .mono  { font-size: 7.5px; color: #3b82f6; }
     .muted { color: #9ca3af; font-size: 7.5px; }

@@ -45,6 +45,10 @@
         return $out;
     };
 @endphp
+@if(app()->getLocale() === 'am')
+{{-- Amharic pages: fetch Abyssinica SIL up front so text never flashes in a fallback font. --}}
+<link rel="preload" href="{{ asset('fonts/abyssinica/AbyssinicaSIL-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
+@endif
 <script>document.documentElement.classList.toggle('sidebar-light', {{ $sidebarIsLight ? 'true' : 'false' }});</script>
 <style>
     :root {
@@ -56,6 +60,8 @@
         --color-accent-dark: color-mix(in srgb, var(--color-accent) 80%, black);
         --color-brand-muted: color-mix(in srgb, var(--color-brand) 12%, white);
         --color-accent-muted: color-mix(in srgb, var(--color-accent) 12%, white);
+        --color-ink: color-mix(in srgb, var(--color-brand) 26%, #061114);
+        --color-ink-soft: color-mix(in srgb, var(--color-brand) 34%, #0c1c20);
 
         {!! $palette('blue', '--color-brand') !!}
         {!! $palette('indigo', '--color-brand') !!}

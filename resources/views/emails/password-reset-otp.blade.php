@@ -11,6 +11,14 @@
     </noscript>
     <![endif]-->
     <style>
+        /* Abyssinica SIL for Amharic where the mail client supports web fonts;
+           Nyala / Ebrima are the installed Ethiopic fallbacks on Windows/Outlook. */
+        @font-face {
+            font-family: 'Abyssinica SIL';
+            src: url('{{ asset('fonts/abyssinica/AbyssinicaSIL-Regular.woff2') }}') format('woff2'),
+                 url('{{ asset('fonts/abyssinica/AbyssinicaSIL-Regular.woff') }}') format('woff');
+            unicode-range: U+1200-137F, U+1380-139F, U+2D80-2DDF, U+AB00-AB2F;
+        }
         body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
         img  { border: 0; outline: none; text-decoration: none; }
         body { margin: 0 !important; padding: 0 !important; background-color: #f0f4f8; }
@@ -21,7 +29,7 @@
         }
     </style>
 </head>
-<body style="margin:0; padding:0; background-color:#f0f4f8; font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+<body style="margin:0; padding:0; background-color:#f0f4f8; font-family:'Abyssinica SIL','Segoe UI',Helvetica,Arial,Nyala,Ebrima,sans-serif;">
 
 <!-- Hidden inbox preview text -->
 <div style="display:none; font-size:1px; color:#f0f4f8; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
@@ -49,7 +57,7 @@
                                     background:rgba(255,255,255,.18); border:2px solid rgba(255,255,255,.35);
                                     font-size:20px; font-weight:800; color:#ffffff; line-height:56px;
                                     text-align:center; margin-bottom:16px;
-                                    font-family:'Segoe UI',Arial,sans-serif;">
+                                    font-family:'Abyssinica SIL','Segoe UI',Arial,Nyala,Ebrima,sans-serif;">
                             {{ mb_strtoupper(mb_substr($orgName, 0, 2)) }}
                         </div>
 

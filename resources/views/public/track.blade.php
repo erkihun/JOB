@@ -16,7 +16,7 @@
 
     {{-- Lookup form --}}
     <form method="POST" action="{{ route('track.search') }}"
-          class="relative z-10 -mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-lg shadow-gray-900/5 sm:p-6"
+          class="relative z-10 mt-8 rounded-2xl border border-gray-200 bg-white p-5 sm:p-6"
           x-data="{ busy: false }" @submit="busy = true">
         @csrf
         <div class="grid gap-4 sm:grid-cols-2">
@@ -27,7 +27,7 @@
                 <div class="relative">
                     <x-public.icon name="hashtag" class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input type="text" id="reference_number" name="reference_number" required
-                           value="{{ old('reference_number', isset($application) ? $application->reference_number : '') }}"
+                           value="{{ old('reference_number', isset($application) ? $application->reference_number : request('reference_number', '')) }}"
                            placeholder="APP-2024-000001" autocomplete="off" spellcheck="false"
                            @error('reference_number') aria-invalid="true" aria-describedby="reference_number_error" @enderror
                            class="{{ $inputClass }} font-mono uppercase placeholder:normal-case @error('reference_number') border-red-300 focus:border-red-500 focus:ring-red-500/20 @else border-gray-200 focus:border-brand focus:ring-brand/20 @enderror">

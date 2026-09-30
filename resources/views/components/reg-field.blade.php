@@ -12,9 +12,9 @@
 @php $hasServerError = $errors->has($name); @endphp
 
 <div class="{{ $class }}">
-    <label for="{{ $name }}" class="block text-sm font-medium text-gray-700">
+    <label for="{{ $name }}" class="block text-sm font-semibold text-gray-800">
         {!! $label !!}
-        @if($required) <span class="text-red-500">*</span> @endif
+        @if($required) <span class="text-red-600" aria-hidden="true">*</span> @endif
     </label>
     <input
         type="{{ $type }}"
@@ -32,17 +32,17 @@
         @endunless
         :class="(touched['{{ $name }}'] ? !!fieldErrors['{{ $name }}'] : {{ $hasServerError ? 'true' : 'false' }})
             ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'"
-        class="mt-1 w-full rounded-md border px-3 py-2 text-sm shadow-sm transition focus:outline-none focus:ring-1 focus:ring-blue-500"
+        class="mt-1.5 h-12 w-full rounded-xl border px-4 text-base text-gray-900 transition placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
     >
     @if($hint)
-    <p id="{{ $name }}-hint" class="mt-1 text-xs text-gray-400">{{ $hint }}</p>
+    <p id="{{ $name }}-hint" class="mt-1.5 text-sm text-gray-500">{{ $hint }}</p>
     @endif
     <p id="{{ $name }}-error">
         @if($hasServerError)
-        <span x-show="!touched['{{ $name }}']" class="mt-1 block text-xs text-red-600">{{ $errors->first($name) }}</span>
+        <span x-show="!touched['{{ $name }}']" class="mt-1.5 block text-sm text-red-600">{{ $errors->first($name) }}</span>
         @endif
         <span x-show="touched['{{ $name }}'] && !!fieldErrors['{{ $name }}']"
            x-text="fieldErrors['{{ $name }}'] || ''"
-           class="mt-1 block text-xs text-red-600"></span>
+           class="mt-1.5 block text-sm text-red-600"></span>
     </p>
 </div>

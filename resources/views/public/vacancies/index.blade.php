@@ -5,167 +5,231 @@
 
 @section('content')
 @php
-    $advancedKeys = ['location', 'field_of_study', 'opening_date', 'closing_date'];
+    $selectedDepartments = $departmentFilter ?? [];
     $filterLabels = [
         'search'          => __('public.search'),
-        'department'      => __('vacancies.department'),
-        'employment_type' => __('vacancies.employment_type'),
         'location'        => __('vacancies.location'),
+        'employment_type' => __('vacancies.employment_type'),
         'field_of_study'  => __('vacancies.field_of_study'),
-        'opening_date'    => __('vacancies.opening_date'),
-        'closing_date'    => __('vacancies.closing_date'),
+        'closing_within'  => __('public.closing_date_filter'),
+        'opening_date'    => __('public.opened_after'),
+        'closing_date'    => __('public.closes_before'),
     ];
     $activeFilters = collect($filterLabels)
         ->filter(fn ($label, $key) => filled(request($key)))
         ->map(fn ($label, $key) => [
             'label' => $label,
-            'value' => $key === 'employment_type' ? ($employmentTypes[request($key)] ?? request($key)) : request($key),
-            'url'   => route('vacancies.index', request()->except([$key, 'page'])),
+            'value' => match ($key) {
+                'employment_type' => $employmentTypes[request($key)] ?? request($key),
+                'closing_within'  => __('public.within_days', ['days' => (int) request($key)]),
+                default           => request($key),
+            },
+            'url' => route('vacancies.index', request()->except([$key, 'page'])),
+        ])->values();
+    foreach ($selectedDepartments as $dept) {
+        $activeFilters->push([
+            'label' => __('vacancies.department'),
+            'value' => $dept,
+            'url'   => route('vacancies.index', array_merge(request()->except(['department', 'page']), ['department' => array_values(array_diff($selectedDepartments, [$dept]))])),
         ]);
-    $inputClass = 'h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 shadow-sm transition placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20';
-    $labelClass = 'mb-1.5 block text-xs font-semibold text-gray-600';
+    }
+    $inputClass = 'h-12 w-full rounded-xl border border-gray-300 bg-white px-4 text-base text-gray-900 transition placeholder:text-gray-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20';
+    $legendClass = 'mb-3 text-[15px] font-extrabold text-gray-900';
+    $optionClass = 'flex cursor-pointer items-center gap-3 rounded-lg py-1.5 text-[15px] text-gray-700 hover:text-gray-900';
+    $boxClass = 'h-[18px] w-[18px] shrink-0 border-gray-400 text-brand focus:ring-brand';
+    $sort = request('sort', 'newest');
 @endphp
 
 <x-public.page-header :title="__('vacancies.job_vacancies')"
-                      :subtitle="__('public.vacancies_subtitle')"
-                      :crumbs="[['label' => __('vacancies.job_vacancies')]]" />
+                      :crumbs="[['label' => __('vacancies.job_vacancies')]]">
+    <p class="mt-2 text-base text-gray-600">
+        {{ trans_choice('public.vacancies_count', $totals['vacancies'], ['count' => number_format($totals['vacancies'])]) }}
+        · {{ trans_choice('public.positions_count', $totals['positions'], ['count' => number_format($totals['positions'])]) }}
+    </p>
 
-<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    {{-- What / where search --}}
+    <form method="GET" action="{{ route('vacancies.index') }}" role="search"
+          class="mt-6 grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1.2fr)_auto] sm:items-end">
+        @foreach(request()->except(['search', 'location', 'page']) as $key => $value)
+            @foreach((array) $value as $v)
+                <input type="hidden" name="{{ is_array($value) ? $key.'[]' : $key }}" value="{{ $v }}">
+            @endforeach
+        @endforeach
+        <div>
+            <label for="search" class="mb-1.5 block text-sm font-bold text-gray-700">{{ __('public.what') }}</label>
+            <div class="relative">
+                <x-public.icon name="search" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
+                <input type="search" id="search" name="search" value="{{ request('search') }}"
+                       placeholder="{{ __('public.hero_search_placeholder') }}" class="{{ $inputClass }} pl-12">
+            </div>
+        </div>
+        <div>
+            <label for="location" class="mb-1.5 block text-sm font-bold text-gray-700">{{ __('public.where') }}</label>
+            <div class="relative">
+                <x-public.icon name="map-pin" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
+                <input type="text" id="location" name="location" value="{{ request('location') }}"
+                       placeholder="{{ __('public.location_placeholder') }}" class="{{ $inputClass }} pl-12">
+            </div>
+        </div>
+        <button type="submit"
+                class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-accent-dark px-8 text-base font-extrabold text-white transition hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">
+            {{ __('public.search') }}
+        </button>
+    </form>
+</x-public.page-header>
 
-    {{-- ── Filter panel ── --}}
-    <div class="relative z-10 -mt-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-lg shadow-gray-900/5 sm:p-5"
-         x-data="{ advanced: {{ collect($advancedKeys)->contains(fn ($k) => filled(request($k))) ? 'true' : 'false' }} }">
-        <form method="GET" action="{{ route('vacancies.index') }}" role="search">
-            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-12">
-                <div class="sm:col-span-2 lg:col-span-5">
-                    <label for="search" class="{{ $labelClass }}">{{ __('public.search') }}</label>
-                    <div class="relative">
-                        <x-public.icon name="search" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                        <input type="search" id="search" name="search" value="{{ request('search') }}"
-                               placeholder="{{ __('public.hero_search_placeholder') }}"
-                               class="{{ $inputClass }} pl-10">
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8" x-data="{ filtersOpen: false }">
+    <div class="lg:grid lg:grid-cols-[17.5rem_minmax(0,1fr)] lg:items-start lg:gap-8">
+
+        {{-- ── Filters (sidebar on desktop, slide-over on mobile) ── --}}
+        <div x-show="filtersOpen" x-cloak @click="filtersOpen = false" class="fixed inset-0 z-50 bg-gray-950/50 lg:hidden"></div>
+        <aside id="vacancy-filters" aria-label="{{ __('public.filters') }}"
+               class="fixed inset-y-0 left-0 z-50 w-80 max-w-[88vw] -translate-x-full overflow-y-auto bg-white p-5 shadow-2xl transition-transform lg:static lg:z-auto lg:w-auto lg:max-w-none lg:translate-x-0 lg:rounded-2xl lg:border lg:border-gray-200 lg:shadow-none"
+               :class="filtersOpen && 'translate-x-0'">
+            <form method="GET" action="{{ route('vacancies.index') }}" x-ref="filters">
+                @foreach(['search', 'location', 'sort'] as $keep)
+                    @if(filled(request($keep)))<input type="hidden" name="{{ $keep }}" value="{{ request($keep) }}">@endif
+                @endforeach
+
+                <div class="-mt-1 mb-2 flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h2 class="text-lg font-extrabold text-gray-900">{{ __('public.filters') }}</h2>
+                    <div class="flex items-center gap-2">
+                        @if($activeFilters->isNotEmpty())
+                        <a href="{{ route('vacancies.index') }}" class="text-sm font-bold text-brand hover:underline">{{ __('public.clear_all') }}</a>
+                        @endif
+                        <button type="button" @click="filtersOpen = false" class="flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 lg:hidden">
+                            <x-public.icon name="x" class="h-5 w-5" />
+                            <span class="sr-only">{{ __('public.close') }}</span>
+                        </button>
                     </div>
                 </div>
 
-                <div class="lg:col-span-3">
-                    <label for="department" class="{{ $labelClass }}">{{ __('vacancies.department') }}</label>
-                    <select id="department" name="department" class="{{ $inputClass }}">
-                        <option value="">{{ __('public.all_departments') }}</option>
-                        @foreach($departments as $dept)
-                        <option value="{{ $dept }}" @selected(request('department') === $dept)>{{ $dept }}</option>
+                <fieldset class="border-b border-gray-100 py-4">
+                    <legend class="{{ $legendClass }}">{{ __('vacancies.employment_type') }}</legend>
+                    <label class="{{ $optionClass }}">
+                        <input type="radio" name="employment_type" value="" class="{{ $boxClass }}" @checked(blank(request('employment_type'))) @change="$refs.filters.requestSubmit()">
+                        <span class="flex-1">{{ __('public.all_types') }}</span>
+                    </label>
+                    @foreach($employmentTypes as $value => $label)
+                        @php $count = (int) ($typeCounts[$value] ?? 0); @endphp
+                        @continue($count === 0 && request('employment_type') !== $value)
+                        <label class="{{ $optionClass }}">
+                            <input type="radio" name="employment_type" value="{{ $value }}" class="{{ $boxClass }}" @checked(request('employment_type') === $value) @change="$refs.filters.requestSubmit()">
+                            <span class="flex-1">{{ $label }}</span>
+                            <span class="text-sm text-gray-500">{{ $count }}</span>
+                        </label>
+                    @endforeach
+                </fieldset>
+
+                @if($departments->isNotEmpty())
+                <fieldset class="border-b border-gray-100 py-4">
+                    <legend class="{{ $legendClass }}">{{ __('vacancies.department') }}</legend>
+                    <div class="max-h-72 space-y-0.5 overflow-y-auto pr-1">
+                        @foreach($departments as $dept => $count)
+                        <label class="{{ $optionClass }}">
+                            <input type="checkbox" name="department[]" value="{{ $dept }}" class="{{ $boxClass }} rounded" @checked(in_array($dept, $selectedDepartments, true)) @change="$refs.filters.requestSubmit()">
+                            <span class="flex-1">{{ $dept }}</span>
+                            <span class="text-sm text-gray-500">{{ $count }}</span>
+                        </label>
                         @endforeach
-                    </select>
-                </div>
+                    </div>
+                </fieldset>
+                @endif
 
-                <div class="lg:col-span-2">
-                    <label for="employment_type" class="{{ $labelClass }}">{{ __('vacancies.employment_type') }}</label>
-                    <select id="employment_type" name="employment_type" class="{{ $inputClass }}">
-                        <option value="">{{ __('public.all_types') }}</option>
-                        @foreach($employmentTypes as $value => $label)
-                        <option value="{{ $value }}" @selected(request('employment_type') === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                <fieldset class="border-b border-gray-100 py-4">
+                    <legend class="{{ $legendClass }}">{{ __('public.closing_date_filter') }}</legend>
+                    @foreach(['' => __('public.any_time'), '7' => __('public.within_days', ['days' => 7]), '30' => __('public.within_days', ['days' => 30])] as $value => $label)
+                    <label class="{{ $optionClass }}">
+                        <input type="radio" name="closing_within" value="{{ $value }}" class="{{ $boxClass }}" @checked((string) request('closing_within', '') === (string) $value) @change="$refs.filters.requestSubmit()">
+                        <span>{{ $label }}</span>
+                    </label>
+                    @endforeach
+                </fieldset>
 
-                <div class="flex items-end sm:col-span-2 lg:col-span-2">
-                    <button type="submit"
-                            class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2">
-                        <x-public.icon name="search" />
-                        {{ __('public.search') }}
-                    </button>
-                </div>
-            </div>
-
-            {{-- Advanced filters --}}
-            <div x-show="advanced" x-cloak
-                 x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                 id="advanced-filters"
-                 class="mt-4 grid gap-3 border-t border-gray-100 pt-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                    <label for="location" class="{{ $labelClass }}">{{ __('vacancies.location') }}</label>
-                    <input type="text" id="location" name="location" value="{{ request('location') }}"
-                           placeholder="{{ __('public.location_placeholder') }}" class="{{ $inputClass }}">
-                </div>
-                <div>
-                    <label for="field_of_study" class="{{ $labelClass }}">{{ __('vacancies.field_of_study') }}</label>
+                <div class="py-4">
+                    <label for="field_of_study" class="{{ $legendClass }} block">{{ __('vacancies.field_of_study') }}</label>
                     <input type="text" id="field_of_study" name="field_of_study" value="{{ request('field_of_study') }}"
-                           placeholder="{{ __('public.field_placeholder') }}" class="{{ $inputClass }}">
+                           placeholder="{{ __('public.field_placeholder') }}" class="h-11 w-full rounded-xl border border-gray-300 px-3 text-[15px] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                 </div>
-                <div>
-                    <label for="opening_date" class="{{ $labelClass }}">{{ __('public.opened_after') }}</label>
-                    <input type="date" id="opening_date" name="opening_date" value="{{ request('opening_date') }}" class="{{ $inputClass }}">
-                </div>
-                <div>
-                    <label for="closing_date" class="{{ $labelClass }}">{{ __('public.closes_before') }}</label>
-                    <input type="date" id="closing_date" name="closing_date" value="{{ request('closing_date') }}" class="{{ $inputClass }}">
-                </div>
-            </div>
 
-            <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-                <button type="button" @click="advanced = !advanced"
-                        :aria-expanded="advanced.toString()" aria-controls="advanced-filters"
-                        class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-semibold text-brand transition hover:bg-brand-muted">
-                    <x-public.icon name="filter" class="h-3.5 w-3.5" />
-                    <span x-text="advanced ? @js(__('public.hide_filters')) : @js(__('public.more_filters'))">{{ __('public.more_filters') }}</span>
-                    <x-public.icon name="chevron-down" class="h-3.5 w-3.5 transition-transform" x-bind:class="advanced && 'rotate-180'" />
+                <button type="submit" class="inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand text-[15px] font-bold text-white transition hover:bg-brand-dark">
+                    {{ __('public.apply_filters') }}
                 </button>
+            </form>
+        </aside>
+
+        {{-- ── Results ── --}}
+        <div class="min-w-0">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <p class="mr-1 text-base text-gray-700" aria-live="polite">
+                        <strong class="text-gray-900">{{ trans_choice('public.vacancies_count', $vacancies->total(), ['count' => number_format($vacancies->total())]) }}</strong>
+                        {{ $activeFilters->isNotEmpty() ? __('public.match_your_search') : '' }}
+                    </p>
+                    @foreach($activeFilters as $filter)
+                    <a href="{{ $filter['url'] }}" title="{{ __('public.remove_filter') }}"
+                       class="inline-flex items-center gap-1.5 rounded-full bg-brand-muted py-1 pl-3 pr-2 text-sm font-bold text-brand-dark transition hover:bg-brand/15">
+                        <span class="sr-only">{{ $filter['label'] }}:</span>
+                        <span class="max-w-48 truncate">{{ $filter['value'] }}</span>
+                        <x-public.icon name="x" class="h-3.5 w-3.5" />
+                    </a>
+                    @endforeach
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" @click="filtersOpen = true" aria-controls="vacancy-filters"
+                            class="inline-flex h-11 items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 text-[15px] font-bold text-gray-900 lg:hidden">
+                        <x-public.icon name="filter" class="h-4 w-4" />
+                        {{ __('public.filters') }}
+                        @if($activeFilters->isNotEmpty())<span class="rounded-full bg-brand px-1.5 text-xs text-white">{{ $activeFilters->count() }}</span>@endif
+                    </button>
+                    <form method="GET" action="{{ route('vacancies.index') }}" class="flex items-center gap-2">
+                        @foreach(request()->except(['sort', 'page']) as $key => $value)
+                            @foreach((array) $value as $v)
+                                <input type="hidden" name="{{ is_array($value) ? $key.'[]' : $key }}" value="{{ $v }}">
+                            @endforeach
+                        @endforeach
+                        <label for="sort" class="hidden text-[15px] text-gray-700 sm:block">{{ __('public.sort_by') }}</label>
+                        <select id="sort" name="sort" onchange="this.form.requestSubmit()"
+                                class="h-11 rounded-xl border border-gray-300 bg-white pl-3 pr-9 text-[15px] font-semibold text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
+                            <option value="newest" @selected($sort === 'newest')>{{ __('public.sort_newest') }}</option>
+                            <option value="closing" @selected($sort === 'closing')>{{ __('public.sort_closing') }}</option>
+                            <option value="positions" @selected($sort === 'positions')>{{ __('public.sort_positions') }}</option>
+                        </select>
+                        <noscript><button type="submit" class="h-11 rounded-xl border border-gray-300 px-3 text-sm font-bold">{{ __('public.apply_filters') }}</button></noscript>
+                    </form>
+                </div>
             </div>
-        </form>
-    </div>
 
-    {{-- ── Results header ── --}}
-    <div class="mb-5 mt-8 flex flex-wrap items-center justify-between gap-3">
-        <p class="text-sm text-gray-600" aria-live="polite">
-            <span class="font-bold text-gray-900">{{ number_format($vacancies->total()) }}</span>
-            {{ $vacancies->total() === 1 ? __('public.result_singular') : __('public.result_plural') }}
-        </p>
+            @if($vacancies->isEmpty())
+                <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
+                    <span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-gray-500">
+                        <x-public.icon name="search" class="h-7 w-7" stroke="1.5" />
+                    </span>
+                    <h2 class="font-bold text-gray-900">{{ __('public.no_results_title') }}</h2>
+                    <p class="mt-1 text-[15px] text-gray-600">{{ __('public.no_results') }}</p>
+                    @if($activeFilters->isNotEmpty())
+                    <a href="{{ route('vacancies.index') }}"
+                       class="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-brand px-5 text-sm font-bold text-white transition hover:bg-brand-dark">
+                        <x-public.icon name="refresh" class="h-4 w-4" />
+                        {{ __('public.clear_all') }}
+                    </a>
+                    @endif
+                </div>
+            @else
+                <div class="space-y-4">
+                    @foreach($vacancies as $vacancy)
+                        <x-public.vacancy-card :vacancy="$vacancy" heading-tag="h2" />
+                    @endforeach
+                </div>
 
-        @if($activeFilters->isNotEmpty())
-        <div class="flex flex-wrap items-center gap-2">
-            @foreach($activeFilters as $filter)
-            <a href="{{ $filter['url'] }}"
-               class="group inline-flex items-center gap-1.5 rounded-full border border-brand/20 bg-brand-muted py-1 pl-3 pr-2 text-xs font-medium text-brand transition hover:border-brand/40"
-               title="{{ __('public.remove_filter') }}">
-                <span class="text-brand/70">{{ $filter['label'] }}:</span>
-                <span class="max-w-40 truncate font-semibold">{{ $filter['value'] }}</span>
-                <x-public.icon name="x" class="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
-            </a>
-            @endforeach
-            <a href="{{ route('vacancies.index') }}" class="px-1 text-xs font-semibold text-gray-500 underline-offset-2 hover:text-gray-900 hover:underline">
-                {{ __('public.clear_all') }}
-            </a>
+                @if($vacancies->hasPages())
+                <div class="mt-8">
+                    {{ $vacancies->links() }}
+                </div>
+                @endif
+            @endif
         </div>
-        @endif
     </div>
-
-    {{-- ── Results ── --}}
-    @if($vacancies->isEmpty())
-    <div class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-16 text-center">
-        <span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-gray-400">
-            <x-public.icon name="search" class="h-7 w-7" stroke="1.5" />
-        </span>
-        <h2 class="font-semibold text-gray-900">{{ __('public.no_results_title') }}</h2>
-        <p class="mt-1 text-sm text-gray-500">{{ __('public.no_results') }}</p>
-        @if($activeFilters->isNotEmpty())
-        <a href="{{ route('vacancies.index') }}"
-           class="mt-6 inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark">
-            <x-public.icon name="refresh" />
-            {{ __('public.clear_all') }}
-        </a>
-        @endif
-    </div>
-    @else
-    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        @foreach($vacancies as $vacancy)
-            <x-public.vacancy-card :vacancy="$vacancy" heading-tag="h2" class="scroll-animate" data-delay="{{ ($loop->index % 3) + 1 }}" />
-        @endforeach
-    </div>
-
-    @if($vacancies->hasPages())
-    <div class="mt-10">
-        {{ $vacancies->links() }}
-    </div>
-    @endif
-    @endif
 </div>
 @endsection

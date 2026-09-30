@@ -27,7 +27,9 @@ it('amharic public layout uses the locale font marker', function (): void {
         ->get('/')
         ->assertOk()
         ->assertSee('locale-am', false)
-        ->assertDontSee('Abyssinica', false);
+        // The font is declared in app.css; the layout only preloads the self-hosted file.
+        ->assertSee('rel="preload" href="'.asset('fonts/abyssinica/AbyssinicaSIL-Regular.woff2').'"', false)
+        ->assertDontSee("font-family: 'Abyssinica", false);
 });
 
 it('vacancy listing page loads', function (): void {

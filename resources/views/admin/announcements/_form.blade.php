@@ -147,7 +147,9 @@ tinymce.init({
         'undo redo | blocks | bold italic underline | forecolor backcolor | ' +
         'alignleft aligncenter alignright alignjustify | ' +
         'bullist numlist outdent indent | link image table | code fullscreen',
-    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }',
+    // Same typefaces as the public page: Abyssinica SIL for Amharic, sans for Latin.
+    content_style: "@font-face { font-family: 'Abyssinica SIL'; src: url('{{ asset('fonts/abyssinica/AbyssinicaSIL-Regular.woff2') }}') format('woff2'); font-weight: 400 800; unicode-range: U+1200-137F, U+1380-139F, U+2D80-2DDF, U+AB00-AB2F; } "
+        + "body { font-family: 'Abyssinica SIL', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; line-height: 1.6; }",
     branding: false,
     promotion: false,
     // Sync editor content back to the hidden textarea before the form submits,

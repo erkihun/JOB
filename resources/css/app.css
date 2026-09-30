@@ -1,13 +1,19 @@
 @import 'tailwindcss';
 
-/* Abyssinica SIL — self-hosted, used for Amharic (lang="am") */
+/* Abyssinica SIL — self-hosted, the typeface for ALL Amharic (Ethiopic) text.
+   unicode-range limits it to Ethiopic code points, so it can lead every font stack:
+   Amharic characters always render in Abyssinica SIL (in any locale, including
+   Amharic data shown on English pages), Latin text keeps the UI sans font.
+   Only a Regular weight exists; it is registered for 400–800 so bold Amharic uses
+   the real outlines (lightly synthesised) instead of falling back to another font. */
 @font-face {
     font-family: 'Abyssinica SIL';
     src: url('/fonts/abyssinica/AbyssinicaSIL-Regular.woff2') format('woff2'),
          url('/fonts/abyssinica/AbyssinicaSIL-Regular.woff')  format('woff');
-    font-weight: 400;
+    font-weight: 400 800;
     font-style:  normal;
     font-display: swap;
+    unicode-range: U+1200-137F, U+1380-139F, U+2D80-2DDF, U+AB00-AB2F, U+1E7E0-1E7FF;
 }
 @plugin '@tailwindcss/typography';
 @custom-variant dark (&:where(.dark, .dark *));
@@ -18,9 +24,10 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Abyssinica SIL', 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-serif-am: 'Abyssinica SIL', 'Noto Serif Ethiopic', 'Noto Serif', Georgia, serif;
+    --font-serif-am: 'Abyssinica SIL', 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-public: 'Abyssinica SIL', 'Public Sans', ui-sans-serif, system-ui, sans-serif;
 
     /* ── Brand Colors ──────────────────────────────── */
     --color-brand:        #1A56DB;
@@ -31,6 +38,9 @@
     --color-accent-dark:  #e55a1c;
     --color-brand-muted:  #EBF5FF;
     --color-accent-muted: #FFF4ED;
+    /* Always-dark surface for the public hero/footer (derived from brand in admin-theme). */
+    --color-ink:          #0B2A30;
+    --color-ink-soft:     #123A40;
 
     /* ── Blue-tinted shadows ───────────────────────── */
     --shadow-card:       0 1px 3px 0 rgba(26,86,219,.08), 0 1px 2px -1px rgba(26,86,219,.05);
@@ -44,6 +54,12 @@ html[lang='am'] body,
 .lang-am,
 .locale-am {
     font-family: var(--font-serif-am);
+}
+
+/* Public site: Abyssinica SIL for Amharic, Public Sans for Latin. */
+html body.public-site,
+html[lang='am'] body.public-site {
+    font-family: var(--font-public);
 }
 
 html[lang='am'] input,

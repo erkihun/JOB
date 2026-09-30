@@ -20,8 +20,23 @@ class HomeController extends Controller
             ->acceptingApplications();
 
         $vacancies = (clone $openVacancies)
-            ->with('institution')
+            ->with(['institution', 'announcement'])
             ->latest('published_at')
+            ->limit(6)
+            ->get();
+
+        // Deadlines first: the most useful thing to see before scrolling.
+        $closingSoon = (clone $openVacancies)
+            ->with(['institution', 'announcement'])
+            ->orderBy(RecruitmentAnnouncement::select('closing_date')->whereColumn('recruitment_announcements.id', 'vacancies.announcement_id'))
+            ->limit(3)
+            ->get();
+
+        $departments = (clone $openVacancies)
+            ->whereNotNull('department')->where('department', '!=', '')
+            ->selectRaw('department, count(*) as vacancies_count, coalesce(sum(number_of_positions), 0) as positions_count')
+            ->groupBy('department')
+            ->orderByDesc('vacancies_count')->orderBy('department')
             ->limit(6)
             ->get();
 
@@ -37,6 +52,6 @@ class HomeController extends Controller
             ->limit(3)
             ->get();
 
-        return view('public.home', compact('sliders', 'vacancies', 'announcements', 'stats'));
+        return view('public.home', compact('sliders', 'vacancies', 'closingSoon', 'departments', 'announcements', 'stats'));
     }
 }
