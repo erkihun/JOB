@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Exams\CreateExamInterviewScheduleAction;
 use App\Enums\ExamInterviewType;
 use App\Http\Controllers\Controller;
 use App\Models\ExamInterviewSchedule;
 use App\Models\Vacancy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -66,17 +67,28 @@ class ScheduleController extends Controller
         return view('admin.schedules.create', compact('schedule', 'vacancies', 'types'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, CreateExamInterviewScheduleAction $action): RedirectResponse
     {
         $data = $request->validate($this->rules(creating: true));
 
         // One schedule per chosen vacancy (same date, time and venue), all or nothing.
+        // Every one is checked against its recruitment timeline by the action.
         $vacancyIds = array_values(array_unique($data['vacancy_ids'] ?? [$data['vacancy_id']]));
         $attributes = Arr::except($data, ['vacancy_ids', 'vacancy_id']);
 
-        DB::transaction(function () use ($vacancyIds, $attributes): void {
-            foreach ($vacancyIds as $vacancyId) {
-                ExamInterviewSchedule::create($attributes + ['vacancy_id' => $vacancyId, 'created_by' => auth()->id()]);
+        DB::transaction(function () use ($vacancyIds, $attributes, $action, $request): void {
+            foreach (Vacancy::whereIn('id', $vacancyIds)->get() as $vacancy) {
+                $action->handle(
+                    vacancy: $vacancy,
+                    title: $attributes['title'],
+                    type: ExamInterviewType::from($attributes['type']),
+                    date: $attributes['date'],
+                    startTime: $attributes['start_time'],
+                    endTime: $attributes['end_time'] ?? null,
+                    venue: $attributes['venue'],
+                    instruction: $attributes['instruction'] ?? null,
+                    createdBy: $request->user(),
+                );
             }
         });
 
@@ -94,18 +106,18 @@ class ScheduleController extends Controller
         return view('admin.schedules.edit', compact('schedule', 'vacancies', 'types'));
     }
 
-    public function update(Request $request, ExamInterviewSchedule $schedule): RedirectResponse
+    public function update(Request $request, ExamInterviewSchedule $schedule, CreateExamInterviewScheduleAction $action): RedirectResponse
     {
         $data = $request->validate($this->rules());
-        $schedule->update($data);
+        $action->update($schedule, $data, $request->user());
 
         return redirect()->route('admin.schedules.index')
             ->with('success', __('messages.schedule_updated'));
     }
 
-    public function destroy(ExamInterviewSchedule $schedule): RedirectResponse
+    public function destroy(Request $request, ExamInterviewSchedule $schedule, CreateExamInterviewScheduleAction $action): RedirectResponse
     {
-        $schedule->delete();
+        $action->cancel($schedule, $request->user());
 
         return redirect()->route('admin.schedules.index')
             ->with('success', __('messages.schedule_deleted'));

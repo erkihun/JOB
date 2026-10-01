@@ -7,11 +7,14 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Audit\LogAuditAction;
 use App\Enums\ApplicationStatus;
 use App\Enums\ExamInterviewType;
+use App\Exceptions\RecruitmentRuleException;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\FinalResult;
 use App\Models\Setting;
 use App\Models\Vacancy;
+use App\Services\Recruitment\RecruitmentStateMachine;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +37,11 @@ class FinalResultController extends Controller
         'not_selected' => ApplicationStatus::NotSelected,
     ];
 
-    public function __construct(private readonly LogAuditAction $auditLogger) {}
+    public function __construct(
+        private readonly LogAuditAction $auditLogger,
+        private readonly RecruitmentTimelineService $timeline,
+        private readonly RecruitmentStateMachine $stateMachine,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -164,8 +171,16 @@ class FinalResultController extends Controller
         $data['recorded_by'] = auth()->id();
 
         DB::transaction(function () use ($application, $data): void {
+            $application->setRawAttributes(Application::whereKey($application->id)->lockForUpdate()->firstOrFail()->getAttributes(), true);
             $previous = $application->finalResult;
             $previousStatus = $application->status;
+
+            // The recruitment must be past its application period and not yet
+            // finalized, and the decision must follow the completed stages.
+            if ($key = $this->timeline->finalResultViolation($application)) {
+                throw RecruitmentRuleException::because($key, 'decision');
+            }
+            $this->stateMachine->assertApplicationTransition($application, self::DECISION_STATUS[$data['decision']], 'decision');
 
             $application->finalResult()->updateOrCreate(
                 ['application_id' => $application->id],

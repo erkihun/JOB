@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Actions\Applications;
 
+use App\Actions\Audit\LogAuditAction;
 use App\Enums\ApplicationStatus;
 use App\Models\Applicant;
 use App\Models\Application;
 use App\Models\Vacancy;
+use App\Services\Recruitment\ApplicationSnapshotService;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +20,9 @@ class SubmitApplicationAction
 {
     public function __construct(
         private readonly UploadApplicationDocumentAction $uploadAction,
+        private readonly RecruitmentTimelineService $timeline,
+        private readonly ApplicationSnapshotService $snapshots,
+        private readonly LogAuditAction $auditLogger,
     ) {}
 
     /**
@@ -34,12 +40,10 @@ class SubmitApplicationAction
         return DB::transaction(function () use ($applicant, $vacancy, $data, $files): Application {
             $vacancy->refresh();
             $vacancy->setRelation('announcement', $vacancy->announcement()->lockForUpdate()->first());
-            // Re-verify deadline inside the transaction so the check and insert are atomic.
-            if (! $vacancy->canAcceptApplications()) {
-                throw ValidationException::withMessages([
-                    'vacancy' => [__($vacancy->isPastDeadline() ? 'vacancies.deadline_passed' : 'vacancies.not_accepting_applications')],
-                ]);
-            }
+            // Re-verify the window inside the transaction, against the row-locked parent
+            // announcement, so a request that started before the deadline but commits
+            // after it (or races a status change) is still rejected.
+            $this->timeline->assertCanSubmitApplication($vacancy);
 
             try {
                 $application = Application::create([
@@ -64,6 +68,19 @@ class SubmitApplicationAction
                     $this->uploadAction->handle($application, (string) $vacancyDocumentId, $file);
                 }
             }
+
+            $this->snapshots->capture($application, $applicant);
+
+            $this->auditLogger->handle(
+                action: 'application_submitted',
+                module: 'applications',
+                recordId: $application->id,
+                newValues: [
+                    'vacancy_id' => $vacancy->id,
+                    'announcement_id' => $vacancy->announcement_id,
+                    'reference_number' => $application->reference_number,
+                ],
+            );
 
             return $application;
         });

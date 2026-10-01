@@ -8,6 +8,7 @@ use App\Enums\ApplicationStatus;
 use App\Enums\ScreeningDecision;
 use App\Models\Concerns\HasOrderedUuid;
 use App\Services\CodeGeneratorService;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,10 +27,17 @@ class Application extends Model
         'field_of_study',
         'graduation_date',
         'cgpa',
+        'profile_snapshot',
+        'snapshot_taken_at',
         'status',
         'submitted_at',
         'last_updated_at',
         'locked_at',
+        'locked_by',
+        'lock_reason',
+        'reopened_until',
+        'reopened_by',
+        'reopen_reason',
         'screening_status',
         'screening_remark',
         'screened_by',
@@ -46,6 +54,9 @@ class Application extends Model
             'submitted_at' => 'datetime',
             'last_updated_at' => 'datetime',
             'locked_at' => 'datetime',
+            'reopened_until' => 'datetime',
+            'snapshot_taken_at' => 'datetime',
+            'profile_snapshot' => 'array',
             'screened_at' => 'datetime',
             'cgpa' => 'decimal:2',
         ];
@@ -91,21 +102,40 @@ class Application extends Model
         return $this->hasOne(FinalResult::class);
     }
 
+    /**
+     * Whether the applicant may still change this application (data, documents,
+     * snapshot). Single source of truth: RecruitmentTimelineService::canEditApplication().
+     */
     public function isEditable(): bool
     {
-        // An application may be edited during its announcement's application period.
-        // (An explicit admin lock via `locked_at` still hard-blocks editing.)
-        if ($this->locked_at !== null) {
-            return false;
-        }
-
-        return $this->vacancy->canAcceptApplications();
+        return app(RecruitmentTimelineService::class)->canEditApplication($this);
     }
 
+    /** Read-only for the applicant (deadline passed or administratively locked). */
     public function isLocked(): bool
     {
-        return $this->locked_at !== null
-            || $this->vacancy->isPastDeadline();
+        return ! $this->isEditable();
+    }
+
+    /** Time-boxed reopening granted by ReopenApplicationAction is still running. */
+    public function isReopened(): bool
+    {
+        return $this->reopened_until !== null && $this->reopened_until->isFuture();
+    }
+
+    /**
+     * A value from the profile snapshot captured for this application, falling
+     * back to the live applicant profile for legacy rows without a snapshot.
+     */
+    public function snapshotValue(string $key): mixed
+    {
+        $snapshot = $this->profile_snapshot ?? [];
+
+        if (array_key_exists($key, $snapshot)) {
+            return $snapshot[$key];
+        }
+
+        return $this->applicant?->getAttribute($key);
     }
 
     /** Still waiting for a first screening decision (pass / fail). */

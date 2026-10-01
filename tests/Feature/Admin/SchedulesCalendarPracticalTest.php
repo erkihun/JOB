@@ -11,6 +11,7 @@ use App\Models\ApplicationDocument;
 use App\Models\ExamInterviewSchedule;
 use App\Models\User;
 use App\Models\Vacancy;
+use App\Models\VacancyDocument;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Support\Facades\Queue;
 
@@ -21,7 +22,8 @@ beforeEach(function (): void {
 });
 
 test('one schedule is created per selected vacancy', function (): void {
-    $vacancies = Vacancy::factory()->open()->count(3)->create();
+    // Sessions are scheduled once the application period has closed.
+    $vacancies = Vacancy::factory()->pastDeadline()->count(3)->create();
 
     $this->actingAs($this->admin)->post(route('admin.schedules.store'), [
         'vacancy_ids' => $vacancies->pluck('id')->all(),
@@ -92,7 +94,7 @@ test('schedules page shows a month calendar with scheduled sessions', function (
 
 test('screening review shows documents inline', function (): void {
     $application = Application::factory()->create(['status' => ApplicationStatus::Submitted]);
-    $required = \App\Models\VacancyDocument::create([
+    $required = VacancyDocument::create([
         'vacancy_id' => $application->vacancy_id, 'document_name' => 'Degree certificate', 'is_required' => true,
     ]);
     $doc = ApplicationDocument::create([

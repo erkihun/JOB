@@ -76,6 +76,17 @@
                             </button>
                         </li>
                         @endforeach
+                        @if($group === __('settings.group_system'))
+                        @can('backups.view')
+                        <li>
+                            <a href="{{ route('admin.backups.index') }}"
+                               class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100 hover:text-gray-900">
+                                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7v10c0 2.2 3.6 4 8 4s8-1.8 8-4V7M4 7c0 2.2 3.6 4 8 4s8-1.8 8-4M4 7c0-2.2 3.6-4 8-4s8 1.8 8 4m0 5c0 2.2-3.6 4-8 4s-8-1.8-8-4"/></svg>
+                                <span class="flex-1">{{ __('menus.backups') }}</span>
+                            </a>
+                        </li>
+                        @endcan
+                        @endif
                     </ul>
                 </div>
                 @endforeach

@@ -7,16 +7,16 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Exams\AssignApplicantsToScheduleAction;
 use App\Actions\Exams\RecordExamInterviewResultAction;
 use App\Enums\ApplicationStatus;
-use App\Enums\ExamInterviewType;
+use App\Exceptions\RecruitmentRuleException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ExamInterview\RecordResultRequest;
 use App\Models\Application;
 use App\Models\ExamInterviewApplicant;
 use App\Models\ExamInterviewSchedule;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use InvalidArgumentException;
 
 class ExamInterviewResultController extends Controller
 {
@@ -74,10 +74,11 @@ class ExamInterviewResultController extends Controller
 
         try {
             $action->handle($schedule, $applications);
-        } catch (InvalidArgumentException) {
+        } catch (RecruitmentRuleException $e) {
+            // Stage, duplicate or schedule-conflict rule: nothing was assigned.
             return redirect()
                 ->route('admin.schedules.results', $schedule)
-                ->with('error', __('messages.invalid_applicant_selection'));
+                ->with('error', collect($e->errors())->flatten()->first());
         }
 
         return redirect()
@@ -108,23 +109,7 @@ class ExamInterviewResultController extends Controller
      */
     private function eligibleStatusesFor(ExamInterviewSchedule $schedule): array
     {
-        return match ($schedule->type) {
-            ExamInterviewType::Exam => [
-                ApplicationStatus::PassedScreening,
-                ApplicationStatus::ShortlistedExam,
-            ],
-            ExamInterviewType::Interview => [
-                ApplicationStatus::ExamCompleted,
-                ApplicationStatus::ShortlistedInterview,
-            ],
-            // Anyone past screening without a final decision can sit a practical test.
-            ExamInterviewType::Practical => [
-                ApplicationStatus::PassedScreening,
-                ApplicationStatus::ShortlistedExam,
-                ApplicationStatus::ExamCompleted,
-                ApplicationStatus::ShortlistedInterview,
-                ApplicationStatus::InterviewCompleted,
-            ],
-        };
+        return app(RecruitmentTimelineService::class)
+            ->eligibleStatusesFor($schedule->type, $schedule->vacancy?->announcement);
     }
 }

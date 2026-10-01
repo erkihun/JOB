@@ -12,6 +12,7 @@ enum NotificationType: string
     case ScreeningFailed = 'screening_failed';
     case CorrectionRequired = 'correction_required';
     case ApplicationSubmitted = 'application_submitted';
+    case DeadlineExtended = 'deadline_extended';
     case Selected = 'selected';
     case Waitlisted = 'waitlisted';
     case NotSelected = 'not_selected';
@@ -43,6 +44,7 @@ enum NotificationType: string
             self::Selected, self::Waitlisted, self::NotSelected => [...$common, 'message'],
             self::General => ['applicant_name', 'message', 'contact_information'],
             self::ApplicationSubmitted => $common,
+            self::DeadlineExtended => [...$common, 'announcement', 'old_date', 'new_date', 'reason'],
         };
     }
 
@@ -50,7 +52,7 @@ enum NotificationType: string
     public function stage(): string
     {
         return match ($this) {
-            self::ApplicationSubmitted, self::CorrectionRequired => 'application',
+            self::ApplicationSubmitted, self::CorrectionRequired, self::DeadlineExtended => 'application',
             self::ScreeningPassed, self::ScreeningFailed => 'screening',
             self::ExamInvitation, self::InterviewInvitation => 'assessment',
             self::Selected, self::Waitlisted, self::NotSelected => 'final',

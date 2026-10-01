@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\AdminPasswordResetController;
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\ExamInterviewResultController;
 use App\Http\Controllers\Admin\FinalResultAnnouncementController;
 use App\Http\Controllers\Admin\FinalResultController;
@@ -192,6 +193,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->middlewareFor(['edit', 'update'], 'permission:vacancies.update')
             ->middlewareFor('destroy', 'permission:vacancies.delete');
 
+        // Recruitment lifecycle: each target stage re-checks its own permission
+        // (ChangeRecruitmentStageAction::PERMISSIONS) and the state machine.
+        Route::post('/announcements/{announcement}/transition', [VacancyAnnouncementController::class, 'transition'])
+            ->middleware(['permission:vacancies.view', 'throttle:30,1'])
+            ->name('announcements.transition');
+        Route::post('/announcements/{announcement}/extend-deadline', [VacancyAnnouncementController::class, 'extendDeadline'])
+            ->middleware(['permission:recruitment-announcements.extend-deadline', 'throttle:10,1'])
+            ->name('announcements.extend-deadline');
+
         Route::resource('hero-sliders', HeroSliderController::class)
             ->except(['show'])
             ->middleware('permission:settings.view')
@@ -200,6 +210,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('applications', AdminApplicationController::class)
             ->only(['index', 'show'])
             ->middleware('permission:applications.view');
+        Route::post('/applications/{application}/lock', [AdminApplicationController::class, 'lock'])
+            ->middleware(['permission:applications.view', 'permission:applications.lock'])
+            ->name('applications.lock');
+        Route::post('/applications/{application}/reopen', [AdminApplicationController::class, 'reopen'])
+            ->middleware(['permission:applications.view', 'permission:applications.unlock'])
+            ->name('applications.reopen');
 
         Route::resource('applicants', AdminApplicantController::class)
             ->only(['index', 'show'])
@@ -314,6 +330,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/settings', [SettingsController::class, 'update'])
             ->middleware(['permission:settings.manage', 'permission:settings.security'])
             ->name('settings.update');
+
+        // System Settings → Backup. Restore/delete are seeded to super_admin only and
+        // additionally require password (+ MFA code) re-confirmation in the controller.
+        Route::prefix('settings/backups')->name('backups.')->controller(BackupController::class)->group(function (): void {
+            Route::get('/', 'index')->middleware('permission:backups.view')->name('index');
+            Route::put('/', 'update')->middleware('permission:backups.settings.manage')->name('update');
+            Route::post('/{type}/run', 'run')->whereIn('type', ['database', 'documents'])
+                ->middleware(['permission:backups.run', 'throttle:6,1'])->name('run');
+            Route::get('/{backup}/download', 'download')->middleware(['permission:backups.download', 'throttle:20,1'])->name('download');
+            Route::post('/{backup}/restore', 'restore')->middleware(['permission:backups.restore', 'throttle:5,1'])->name('restore');
+            Route::delete('/{backup}', 'destroy')->middleware(['permission:backups.delete', 'throttle:10,1'])->name('destroy');
+        });
 
         Route::get('/reports', [ReportsController::class, 'index'])
             ->middleware('permission:reports.view')

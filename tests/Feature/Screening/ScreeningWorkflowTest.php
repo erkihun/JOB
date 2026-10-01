@@ -31,7 +31,7 @@ function makeApplication(?User $reviewer = null): Application
 {
     $applicantUser = User::factory()->asApplicant()->create();
     $applicant = Applicant::factory()->create(['user_id' => $applicantUser->id]);
-    $vacancy = Vacancy::factory()->open()->create();
+    $vacancy = Vacancy::factory()->pastDeadline()->create();
 
     return Application::create([
         'applicant_id' => $applicant->id,

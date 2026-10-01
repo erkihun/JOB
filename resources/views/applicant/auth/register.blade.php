@@ -38,6 +38,8 @@
     $req    = '<span class="text-red-600" aria-hidden="true">*</span>';
     $optTag = '<span class="ml-1 text-xs font-medium text-gray-500">('.e(__('applicant.optional')).')</span>';
     $err    = 'mt-1.5 text-sm text-red-600';
+    // Nobody younger than Applicant::MINIMUM_AGE can be picked or submitted.
+    $latestDob = \App\Models\Applicant::latestBirthDate()->toDateString();
 @endphp
 
 {{-- ── Title band ── --}}
@@ -176,9 +178,9 @@
                             <div>
                                 @if(app()->getLocale() === 'am')
                                     {{-- Amharic: Ethiopian calendar picker (submits a hidden Gregorian YYYY-MM-DD) --}}
-                                    <x-ethiopian-datepicker name="date_of_birth" :label="__('fields.date_of_birth')" required />
+                                    <x-ethiopian-datepicker name="date_of_birth" :label="__('fields.date_of_birth')" :max="$latestDob" required />
                                 @else
-                                    <x-reg-field name="date_of_birth" :label="__('fields.date_of_birth')" type="date" required max="{{ now()->subYears(15)->toDateString() }}" />
+                                    <x-reg-field name="date_of_birth" :label="__('fields.date_of_birth')" type="date" required max="{{ $latestDob }}" />
                                 @endif
                                 <p x-show="touched['date_of_birth'] && !!fieldErrors['date_of_birth']"
                                    x-text="fieldErrors['date_of_birth'] || ''" class="{{ $err }}"></p>
@@ -521,6 +523,8 @@ function registrationForm() {
         'passwordMismatch' => __('applicant.v_password_mismatch'),
         'passwordConfirm'  => __('applicant.v_password_confirm'),
         'dob'              => __('applicant.v_dob'),
+        'minAge'           => __('applicant.v_min_age', ['age' => \App\Models\Applicant::MINIMUM_AGE]),
+        'latestDob'        => $latestDob,
         'docType'          => __('applicant.v_doc_type', ['types' => $docTypesLabel]),
         'docSize'          => __('applicant.v_doc_size', ['size' => $maxMb]),
         'docMissing'       => __('applicant.v_doc_missing'),
@@ -771,8 +775,9 @@ function registrationForm() {
                 // (en) or the Ethiopian picker's hidden field (am).
                 const dob = document.querySelector('[name="date_of_birth"]')?.value ?? '';
                 this.touched['date_of_birth'] = true;
-                this.fieldErrors['date_of_birth'] = dob ? '' : msg.dob;
-                if (!dob) ok = false;
+                // YYYY-MM-DD strings compare correctly as text.
+                this.fieldErrors['date_of_birth'] = ! dob ? msg.dob : (dob > msg.latestDob ? msg.minAge : '');
+                if (this.fieldErrors['date_of_birth']) ok = false;
 
                 if (this.disabilityStatus === '1') {
                     const el = document.querySelector('[name="disability_type"]');

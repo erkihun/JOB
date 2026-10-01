@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'v_min_age' => 'ለመመዝገብ ዕድሜዎ ቢያንስ :age ዓመት መሆን አለበት።',
     // ── Dashboard ────────────────────────────────────────────────────────────
     'welcome' => 'እንኳን ደህና መጡ፣ :name',
     'what_today' => 'ዛሬ ምን መፈጸም ይፈልጋሉ?',
@@ -13,7 +14,7 @@ return [
     'recent_applications' => 'የቅርብ ጊዜ ማመልከቻዎች',
     'no_applications_yet' => 'እስካሁን ምንም ማመልከቻ አልቀረበም።',
     'quick_actions' => 'ፈጣን እርምጃዎች',
-    'browse_jobs' => 'ክፍት የስራ መደቦችን ይመልከቱ',
+    'browse_jobs' => 'ክፍት የሥራ መደቦችን ይመልከቱ',
 
     // ── Profile completion ───────────────────────────────────────────────────
     'profile_complete' => 'አስፈላጊ መረጃዎች ተሟልተዋል።',
@@ -47,7 +48,7 @@ return [
     // ── Applications ─────────────────────────────────────────────────────────
     'my_applications' => 'ማመልከቻዎቼ',
     'no_applications' => 'እስካሁን ምንም ማመልከቻ የለም።',
-    'start_applying' => 'ማመልከቻ ለማቅረብ ክፍት የስራ መደቦችን ይመልከቱ።',
+    'start_applying' => 'ማመልከቻ ለማቅረብ ክፍት የሥራ መደቦችን ይመልከቱ።',
     'ref_number' => 'የማመልከቻ ማጣቀሻ ቁጥር',
     'submitted_at' => 'የቀረበበት ቀን',
     'view_application' => 'ማመልከቻውን ይመልከቱ',
@@ -70,7 +71,7 @@ return [
     'submit_application' => 'ማመልከቻ ያቅርቡ',
     'save_draft' => 'ረቂቅ አስቀምጥ',
     'correction_required_note' => 'ማሳሰቢያ፦ ማመልከቻዎ ማስተካከያ ያስፈልገዋል።',
-    'locked_notice' => 'ይህ ማመልከቻ ከዚህ በኋላ ሊስተካከል አይችልም፤ የክፍት የስራ መደቡ የመዝጊያ ቀን አልፏል።',
+    'locked_notice' => 'ይህ ማመልከቻ ከዚህ በኋላ ሊስተካከል አይችልም፤ የክፍት የሥራ መደቡ የመዝጊያ ቀን አልፏል።',
 
     // ── Notifications ─────────────────────────────────────────────────────────
     'notifications_heading' => 'ማሳወቂያዎች',
@@ -103,7 +104,7 @@ return [
     'remember_me' => 'አስታውሰኝ',
     'enter_email' => 'ኢሜልዎን ያስገቡ',
     'enter_password' => 'የይለፍ ቃልዎን ያስገቡ',
-    'back_to_jobs' => '← ወደ ክፍት ስራዎች ተመለስ',
+    'back_to_jobs' => '← ወደ ክፍት ሥራዎች ተመለስ',
     'register_heading' => 'የአመልካች መለያ ፍጠሩ',
     'register_subheading' => 'ሁሉንም ክፍሎች ይሙሉ። ዝርዝሮቹን በኋላ ማዘምን ይችላሉ።',
     'already_have_account' => 'መለያ አስቀድሞ አለዎት?',
@@ -113,14 +114,14 @@ return [
     // ── Registration steps ────────────────────────────────────────────────────
     'step_personal' => 'ግላዊ መረጃ',
     'step_education' => 'የትምህርት መረጃ',
-    'step_work' => 'የስራ ልምድ',
+    'step_work' => 'የሥራ ልምድ',
     'step_contact' => 'መገኛ አድራሻ',
     'step_documents' => 'አስፈላጊ ሰነዶች',
     'step_review' => 'መረጃ ግምገማ',
 
     'step_1_heading' => 'ግላዊ መረጃ',
     'step_2_heading' => 'የትምህርት መረጃ',
-    'step_3_heading' => 'የስራ ልምድ',
+    'step_3_heading' => 'የሥራ ልምድ',
     'step_4_heading' => 'መገኛ አድራሻ',
     'step_5_heading' => 'አስፈላጊ ሰነዶች',
     'step_6_heading' => 'ይገምግሙ እና ያቅርቡ',
@@ -161,7 +162,7 @@ return [
     // ── Registration: review ──────────────────────────────────────────────────
     'review_personal' => 'የግል መረጃ',
     'review_education' => 'የትምህርት ሁኔታ',
-    'review_work' => 'የስራ ልምድ',
+    'review_work' => 'የሥራ ልምድ',
     'review_contact' => 'መገኛ አድራሻ',
     'review_documents' => 'ሰነዶች',
     'review_edit' => 'ያስተካክሉ',
@@ -172,8 +173,8 @@ return [
     'apply_for_position' => 'ለሥራ መደብ ማመልከት',
     'edit_application_title' => 'ማመልከቻ አስተካክል',
     'academic_info' => 'የትምህርት መረጃ',
-    'applied_position' => 'ያመለከቱበት የስራ መደብ',
-    'change_position_hint' => 'እስኪዘጋ ድረስ ያመለከቱበትን የስራ መደብ መቀየር ይችላሉ።',
+    'applied_position' => 'ያመለከቱበት የሥራ መደብ',
+    'change_position_hint' => 'እስኪዘጋ ድረስ ያመለከቱበትን የሥራ መደብ መቀየር ይችላሉ።',
     'replace_documents' => 'ሰነዶችን ይተኩ',
     'current_file' => 'አሁን ያለው',
     'replace' => 'ተካ',
@@ -181,7 +182,6 @@ return [
     'max_size' => 'ከፍተኛ',
     'cgpa_optional' => 'ሲጂፒኤ (አማራጭ)',
     'preferred_language' => 'ቋንቋ ምርጫ',
-    'ethnicity_optional' => 'ብሔር (አማራጭ)',
     'address_optional' => 'አድራሻ (አማራጭ)',
     'disability_label' => 'የአካል ጉዳት አለኝ',
 

@@ -3,12 +3,8 @@
 
 @section('content')
 @php
-    $stateOf = fn ($ann) => $ann->isPublished() ? 'published' : ($ann->status === 'published' && $ann->published_at?->isFuture() ? 'scheduled' : 'draft');
-    $stateBadge = [
-        'published' => ['success', __('messages.published')],
-        'scheduled' => ['info', __('messages.ann_mode_schedule')],
-        'draft'     => ['gray', __('messages.draft')],
-    ];
+    $timeline = app(\App\Services\Recruitment\RecruitmentTimelineService::class);
+    $stageFilters = collect(\App\Enums\RecruitmentStage::cases())->mapWithKeys(fn ($s) => [$s->value => $s->label()]);
 @endphp
 <div class="space-y-6">
 
@@ -30,7 +26,7 @@
             <label for="state" class="form-label">{{ __('vacancies.status') }}</label>
             <select id="state" name="state" class="form-select">
                 <option value="">{{ __('messages.all_statuses') }}</option>
-                @foreach($stateBadge as $value => [, $label])
+                @foreach($stageFilters as $value => $label)
                 <option value="{{ $value }}" @selected(request('state') === $value)>{{ $label }}</option>
                 @endforeach
             </select>
@@ -44,13 +40,17 @@
                     <th class="table-th">{{ __('messages.ann_title') }}</th>
                     <th class="table-th hidden md:table-cell">{{ __('messages.ann_period') }}</th>
                     <th class="table-th-right hidden sm:table-cell">{{ __('menus.vacancies') }}</th>
+                    <th class="table-th-right hidden lg:table-cell">{{ __('recruitment.applications_count') }}</th>
                     <th class="table-th">{{ __('vacancies.status') }}</th>
                     <th class="table-th-right"><span class="sr-only">{{ __('messages.actions') }}</span></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse($announcements as $ann)
-                @php [$tone, $label] = $stateBadge[$stateOf($ann)]; @endphp
+                @php
+                    $annStage = $timeline->stage($ann);
+                    $annDays = $timeline->remainingDays($ann);
+                @endphp
                 <tr class="table-row">
                     <td class="table-td">
                         <a href="{{ route('admin.announcements.show', $ann) }}" class="font-semibold text-gray-900 hover:text-brand">{{ $ann->subject }}</a>
@@ -60,9 +60,14 @@
                         @if($ann->opening_date && $ann->closing_date){{ et_date($ann->opening_date, 'M d') }} – {{ et_date($ann->closing_date, 'M d, Y') }}@else — @endif
                     </td>
                     <td class="table-td hidden text-right tabular-nums sm:table-cell">{{ $ann->vacancies_count }}</td>
+                    <td class="table-td hidden text-right tabular-nums lg:table-cell">{{ number_format($ann->applications_count) }}</td>
                     <td class="table-td">
-                        <x-admin.status :tone="$tone" :label="$label" />
-                        @if($stateOf($ann) === 'scheduled')<p class="mt-0.5 text-xs text-gray-600">{{ et_date($ann->published_at) }}</p>@endif
+                        <x-admin.status :tone="$annStage->tone()" :label="$annStage->label()" />
+                        @if($annDays !== null)
+                            <p class="mt-0.5 text-xs text-gray-600">{{ trans_choice('recruitment.days_remaining', $annDays, ['count' => $annDays]) }}</p>
+                        @elseif($annStage === \App\Enums\RecruitmentStage::Upcoming)
+                            <p class="mt-0.5 text-xs text-gray-600">{{ __('recruitment.opens_in', ['date' => et_date($ann->published_at?->isFuture() ? $ann->published_at : $ann->opening_date, 'M d, Y')]) }}</p>
+                        @endif
                     </td>
                     <td class="table-td">
                         <div class="table-actions">
@@ -85,7 +90,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="5">
+                <tr><td colspan="6">
                     <x-admin.empty :text="request()->hasAny(['search', 'state']) ? __('messages.empty_filtered') : __('messages.ann_empty_hint')">
                         <a href="{{ route('admin.announcements.create') }}" class="btn btn-primary btn-sm">{{ __('messages.add_announcement') }}</a>
                     </x-admin.empty>

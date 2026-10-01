@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'v_min_age' => 'You must be at least :age years old to register.',
     // ── Dashboard ────────────────────────────────────────────────────────────
     'welcome' => 'Welcome, :name',
     'what_today' => 'What would you like to do today?',
@@ -164,7 +165,6 @@ return [
     'max_size' => 'Max',
     'cgpa_optional' => 'CGPA (optional)',
     'preferred_language' => 'Preferred Language',
-    'ethnicity_optional' => 'Ethnicity (optional)',
     'address_optional' => 'Address (optional)',
     'disability_label' => 'I have a disability',
 

@@ -7,7 +7,10 @@ namespace App\Actions\Exams;
 use App\Actions\Audit\LogAuditAction;
 use App\Enums\ApplicationStatus;
 use App\Enums\ExamInterviewType;
+use App\Enums\RecruitmentStatus;
+use App\Exceptions\RecruitmentRuleException;
 use App\Models\ExamInterviewApplicant;
+use App\Services\Recruitment\RecruitmentStateMachine;
 use Illuminate\Support\Facades\DB;
 
 class RecordExamInterviewResultAction
@@ -40,7 +43,10 @@ class RecordExamInterviewResultAction
         ],
     ];
 
-    public function __construct(private readonly LogAuditAction $auditLogger) {}
+    public function __construct(
+        private readonly LogAuditAction $auditLogger,
+        private readonly RecruitmentStateMachine $stateMachine,
+    ) {}
 
     public function handle(
         ExamInterviewApplicant $applicantRecord,
@@ -50,6 +56,11 @@ class RecordExamInterviewResultAction
     ): ExamInterviewApplicant {
         return DB::transaction(function () use ($applicantRecord, $status, $score, $remark): ExamInterviewApplicant {
             $previousRecordStatus = $applicantRecord->status;
+
+            $announcementStatus = $applicantRecord->schedule?->vacancy?->announcement?->lifecycleStatus();
+            if (in_array($announcementStatus, [RecruitmentStatus::Finalized, RecruitmentStatus::Cancelled], true)) {
+                throw RecruitmentRuleException::because('recruitment.errors.stage_not_allowed', 'status');
+            }
 
             $applicantRecord->update([
                 'status' => $status,
@@ -77,7 +88,8 @@ class RecordExamInterviewResultAction
 
             $stageKey = $scheduleType->value;
             $canChangeStatus = in_array($previousAppStatus, self::STAGE_STATUSES[$stageKey], true)
-                && $application->finalResult()->doesntExist();
+                && $application->finalResult()->doesntExist()
+                && $this->stateMachine->canTransitionApplication($application, $newAppStatus);
 
             if ($canChangeStatus && $newAppStatus !== $previousAppStatus) {
                 $application->update(['status' => $newAppStatus]);

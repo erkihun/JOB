@@ -65,7 +65,9 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // Recruitment opening/closing days are evaluated in this timezone (see
+    // docs/RECRUITMENT_LIFECYCLE_RULES.md). Ethiopian deployments: Africa/Addis_Ababa.
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
 
     /*
     |--------------------------------------------------------------------------

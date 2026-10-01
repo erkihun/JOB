@@ -42,6 +42,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'vacancies.publish', 'vacancies.close', 'vacancies.cancel', 'vacancies.archive',
             'vacancy-documents.manage', 'vacancy-questions.manage',
 
+            // Recruitment lifecycle (announcement-level, see RECRUITMENT_LIFECYCLE_RULES.md)
+            'recruitment-announcements.publish', 'recruitment-announcements.close',
+            'recruitment-announcements.cancel', 'recruitment-announcements.extend-deadline',
+            'screening.start', 'recruitment.advance-stage', 'recruitment.finalize',
+
             // Application Management
             'applications.view', 'applications.view-sensitive', 'applications.update',
             'applications.delete', 'applications.export', 'applications.assign-reviewer',
@@ -78,6 +83,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'settings.view', 'settings.manage', 'settings.localization',
             'settings.security', 'settings.notifications', 'settings.backup',
 
+            // Backups (restore/delete: super_admin only)
+            'backups.view', 'backups.settings.manage', 'backups.run', 'backups.download',
+            'backups.restore', 'backups.delete',
+
             // Audit Logs
             'audit.view', 'audit.export', 'audit.delete',
 
@@ -106,8 +115,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'vacancies.view', 'vacancies.create', 'vacancies.update', 'vacancies.delete',
             'vacancies.publish', 'vacancies.close', 'vacancies.cancel', 'vacancies.archive',
             'vacancy-documents.manage',
+            'recruitment-announcements.publish', 'recruitment-announcements.close',
+            'recruitment-announcements.cancel', 'recruitment-announcements.extend-deadline',
+            'screening.start', 'recruitment.advance-stage', 'recruitment.finalize',
             'applications.view', 'applications.view-sensitive', 'applications.update',
-            'applications.export', 'applications.assign-reviewer', 'applications.lock',
+            'applications.export', 'applications.assign-reviewer', 'applications.lock', 'applications.unlock',
             'screening.view', 'screening.review', 'screening.verify-documents',
             'screening.mark-passed', 'screening.mark-failed', 'screening.request-correction',
             'screening.reverse-decision', 'screening.view-history', 'screening.export',
@@ -125,6 +137,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'footer.manage', 'organization-info.manage',
             'settings.view', 'settings.manage', 'settings.localization',
             'settings.security', 'settings.notifications', 'settings.backup',
+            'backups.view', 'backups.settings.manage', 'backups.run', 'backups.download',
             'audit.view', 'audit.export',
         ]);
 
@@ -133,8 +146,11 @@ class RolesAndPermissionsSeeder extends Seeder
         $hrManager->syncPermissions([
             'vacancies.view', 'vacancies.create', 'vacancies.update', 'vacancies.publish',
             'vacancies.close', 'vacancy-documents.manage',
+            'recruitment-announcements.publish', 'recruitment-announcements.close',
+            'recruitment-announcements.cancel', 'recruitment-announcements.extend-deadline',
+            'screening.start', 'recruitment.advance-stage', 'recruitment.finalize',
             'applications.view', 'applications.view-sensitive', 'applications.export',
-            'applications.assign-reviewer',
+            'applications.assign-reviewer', 'applications.lock', 'applications.unlock',
             'screening.view', 'screening.review', 'screening.verify-documents',
             'screening.mark-passed', 'screening.mark-failed', 'screening.request-correction',
             'screening.reverse-decision', 'screening.view-history', 'screening.export',
@@ -152,6 +168,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $hrOfficer->syncPermissions([
             'vacancies.view', 'vacancies.create', 'vacancies.update', 'vacancies.publish',
             'vacancies.close', 'vacancy-documents.manage',
+            'recruitment-announcements.publish', 'recruitment-announcements.close', 'screening.start',
             'applications.view', 'applications.export', 'applications.assign-reviewer',
             'screening.view', 'screening.review', 'screening.verify-documents',
             'screening.mark-passed', 'screening.mark-failed', 'screening.request-correction',

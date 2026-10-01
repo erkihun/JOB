@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'deadline_extended' => [
+        'subject' => 'Recruitment deadline extended – :announcement',
+        'greeting' => 'Dear :name,',
+        'body' => 'The recruitment deadline was extended for the announcement ":announcement".',
+        'details' => 'Previous closing date: :old_date | New closing date: :new_date',
+        'reason' => 'Reason: :reason',
+        'closing' => 'You may update your application until the new closing date.',
+    ],
     'application_submitted' => [
         'subject' => 'Application Received – :vacancy',
         'greeting' => 'Dear :name,',

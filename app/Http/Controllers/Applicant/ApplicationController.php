@@ -17,6 +17,7 @@ use App\Models\ApplicationDocument;
 use App\Models\Vacancy;
 use App\Services\Eligibility\EligibilityProfile;
 use App\Services\Eligibility\VacancyEligibilityChecker;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -38,9 +39,8 @@ class ApplicationController extends Controller
     {
         abort_unless($vacancy->status === VacancyStatus::Open && $vacancy->announcement?->isPublished(), 404);
 
-        if (! $vacancy->canAcceptApplications()) {
-            return redirect()->route('vacancies.show', $vacancy)
-                ->with('error', __($vacancy->isPastDeadline() ? 'vacancies.deadline_passed' : 'vacancies.not_accepting_applications'));
+        if ($reason = $vacancy->applicationBlockReason()) {
+            return redirect()->route('vacancies.show', $vacancy)->with('error', __($reason));
         }
 
         $applicant = auth()->user()->applicant;
@@ -80,9 +80,8 @@ class ApplicationController extends Controller
     ): RedirectResponse {
         abort_unless($vacancy->status === VacancyStatus::Open, 422);
 
-        if (! $vacancy->canAcceptApplications()) {
-            return redirect()->route('vacancies.show', $vacancy)
-                ->with('error', __($vacancy->isPastDeadline() ? 'vacancies.deadline_passed' : 'vacancies.not_accepting_applications'));
+        if ($reason = $vacancy->applicationBlockReason()) {
+            return redirect()->route('vacancies.show', $vacancy)->with('error', __($reason));
         }
 
         $applicant = auth()->user()->applicant;
@@ -140,9 +139,8 @@ class ApplicationController extends Controller
     {
         $this->authorize('update', $application);
 
-        if (! $application->isEditable()) {
-            return redirect()->route('applicant.applications.show', $application)
-                ->with('error', __('applications.deadline_locked'));
+        if ($reason = app(RecruitmentTimelineService::class)->applicationEditViolation($application)) {
+            return redirect()->route('applicant.applications.show', $application)->with('error', __($reason));
         }
 
         $application->load(['vacancy', 'vacancy.institution', 'vacancy.requiredDocuments', 'documents.vacancyDocument']);

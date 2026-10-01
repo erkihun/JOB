@@ -193,7 +193,8 @@ test('admin with applications.view permission can access profile document', func
 test('screening decision creates an audit log entry', function (): void {
     $reviewer = User::factory()->admin()->create();
     $applicant = Applicant::factory()->create();
-    $vacancy = Vacancy::factory()->open()->create();
+    // Screening decisions are recorded after the application period has closed.
+    $vacancy = Vacancy::factory()->pastDeadline()->create();
 
     $application = Application::create([
         'applicant_id' => $applicant->id,

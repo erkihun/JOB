@@ -9,7 +9,8 @@ use Database\Seeders\RolesAndPermissionsSeeder;
 beforeEach(function (): void {
     $this->seed(RolesAndPermissionsSeeder::class);
     $this->admin = User::factory()->admin()->create();
-    $this->vacancy = Vacancy::factory()->open()->create();
+    // Exams can only be scheduled after the recruitment's application period closes.
+    $this->vacancy = Vacancy::factory()->pastDeadline()->create();
 });
 
 function schedulePayload(array $overrides = []): array
@@ -50,3 +51,20 @@ test('invalid schedule input is rejected instead of erroring', function (array $
     'badly formatted time' => [['start_time' => '9am'], 'start_time'],
     'date in the past' => [['date' => now()->subDay()->toDateString()], 'date'],
 ]);
+
+test('the Amharic date picker factory is defined inside the swapped page frame', function (): void {
+    // Admin fast navigation replaces only [data-admin-page-frame] and re-runs the
+    // scripts inside it; a factory outside the frame would be missing after
+    // navigation and leave the calendar empty.
+    $this->admin->update(['preferred_locale' => 'am']);
+    $html = $this->actingAs($this->admin)->withSession(['locale' => 'am'])
+        ->get(route('admin.schedules.create'))->assertOk()->getContent();
+
+    $dom = new DOMDocument;
+    @$dom->loadHTML('<?xml encoding="utf-8"?>'.$html);
+    $frameScripts = collect((new DOMXPath($dom))->query('//*[@data-admin-page-frame]//script'))
+        ->map(fn (DOMNode $node) => $node->textContent)->implode("\n");
+
+    expect($html)->toContain("ethiopianDatepicker('date',")
+        ->and($frameScripts)->toContain('function ethiopianDatepicker(');
+});

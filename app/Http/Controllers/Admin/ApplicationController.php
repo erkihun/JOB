@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Applications\ChangeApplicationLockAction;
 use App\Enums\ApplicationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\Institution;
 use App\Models\Vacancy;
+use App\Services\Recruitment\RecruitmentTimelineService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -72,6 +75,35 @@ class ApplicationController extends Controller
 
         $application->load(['applicant.profileDocuments', 'vacancy.announcement', 'vacancy.institution', 'documents.vacancyDocument', 'screeningReviews.reviewer', 'screener']);
 
-        return view('admin.applications.show', compact('application', 'canViewSensitive'));
+        $timeline = app(RecruitmentTimelineService::class);
+        $announcement = $application->vacancy?->announcement;
+        // Reopening is offered only after the deadline, before a screening decision.
+        $canReopen = $announcement !== null && ! $announcement->lifecycleStatus()->isTerminal()
+            && $timeline->hasApplicationPeriodEnded($announcement)
+            && in_array($application->status, RecruitmentTimelineService::AWAITING_SCREENING_STATUSES, true);
+
+        return view('admin.applications.show', compact('application', 'canViewSensitive', 'canReopen'));
+    }
+
+    public function lock(Request $request, Application $application, ChangeApplicationLockAction $action): RedirectResponse
+    {
+        $data = $request->validate(['lock_reason' => ['required', 'string', 'min:5', 'max:1000']]);
+
+        $action->lock($application, $request->user(), $data['lock_reason']);
+
+        return redirect()->route('admin.applications.show', $application)->with('success', __('recruitment.application.locked'));
+    }
+
+    public function reopen(Request $request, Application $application, ChangeApplicationLockAction $action): RedirectResponse
+    {
+        $data = $request->validate([
+            'reopened_until' => ['required', 'date_format:Y-m-d'],
+            'reopen_reason' => ['required', 'string', 'min:10', 'max:1000'],
+        ]);
+
+        $application = $action->reopen($application, $request->user(), $data['reopened_until'], $data['reopen_reason']);
+
+        return redirect()->route('admin.applications.show', $application)
+            ->with('success', __('recruitment.application.reopened', ['date' => et_date($application->reopened_until, 'M d, Y')]));
     }
 }

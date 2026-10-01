@@ -26,7 +26,6 @@ return [
     'disability_type' => 'Disability Type',
 
     // Education
-    'ethnicity' => 'Ethnicity',
     'university_name' => 'University / Institution',
     'field_of_study' => 'Field of Study',
     'graduation_year' => 'Graduation Year',

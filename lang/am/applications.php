@@ -22,7 +22,7 @@ return [
     'filter_by_institution' => 'በተቋም አጣራ',
     'file_too_large' => 'ፋይሉ ከ 2 ሜባ ያለፈ ነው።',
     'invalid_file_type' => 'ልክ ያልሆነ የፋይል ዓይነት። PDF, JPG, JPEG, እና PNG ብቻ ይፈቀዳሉ።',
-    'required_document_missing' => 'ከማስገባቶ በፊት ሁሉም አስፈላጊ ሰነዶችን ይጫኑ።',
+    'required_document_missing' => 'ማመልከቻዎን ከማስገባትዎ በፊት ሁሉንም አስፈላጊ ሰነዶች ይጫኑ።',
     'document_replaced' => 'ሰነዱ በተሳካ ሁኔታ ተቀይሯል።',
     'profile_updated' => 'መገለጫዎ ተዘምኗል።',
 

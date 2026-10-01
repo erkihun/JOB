@@ -17,14 +17,14 @@ beforeEach(function (): void {
 
 function queuedApplication(array $attributes, int $minutesAgo): Application
 {
-    $application = Application::factory()->create($attributes + ['status' => ApplicationStatus::Submitted]);
+    $application = Application::factory()->afterDeadline()->create($attributes + ['status' => ApplicationStatus::Submitted]);
     $application->forceFill(['created_at' => now()->subMinutes($minutesAgo)])->saveQuietly();
 
     return $application;
 }
 
 test('saving a decision opens the next applicant in the queue', function (): void {
-    $vacancy = Vacancy::factory()->open()->create();
+    $vacancy = Vacancy::factory()->pastDeadline()->create();
     $first = queuedApplication(['vacancy_id' => $vacancy->id], 1);
     $second = queuedApplication(['vacancy_id' => $vacancy->id], 2);
     queuedApplication(['status' => ApplicationStatus::PassedScreening], 3); // already screened
@@ -44,7 +44,7 @@ test('saving a decision opens the next applicant in the queue', function (): voi
 });
 
 test('the vacancy filter from the queue is kept when moving to the next applicant', function (): void {
-    [$a, $b] = Vacancy::factory()->open()->count(2)->create();
+    [$a, $b] = Vacancy::factory()->pastDeadline()->count(2)->create();
     $current = queuedApplication(['vacancy_id' => $a->id], 1);
     queuedApplication(['vacancy_id' => $b->id], 2); // other vacancy, skipped
     $nextSame = queuedApplication(['vacancy_id' => $a->id], 3);

@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\ApplicantRegisterRequest;
 use App\Models\PasswordResetOtp;
 use App\Models\Setting;
 use App\Notifications\PasswordResetOtpNotification;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,9 +23,16 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ApplicantAuthController extends Controller
 {
-    public function showRegister(): View
+    public function showRegister(RecruitmentTimelineService $timeline): View
     {
         abort_unless((bool) Setting::get('recruitment.allow_registration', true), 403);
+
+        // Accounts can only be created while at least one announcement is open.
+        if (! $timeline->canRegisterApplicant()) {
+            return view('applicant.auth.registration-closed', [
+                'nextAnnouncement' => $timeline->nextUpcomingAnnouncement(),
+            ]);
+        }
 
         return view('applicant.auth.register');
     }

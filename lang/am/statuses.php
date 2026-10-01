@@ -70,6 +70,7 @@ return [
     ],
 
     'notification_type' => [
+        'deadline_extended' => 'የጊዜ ገደብ ማራዘሚያ',
         'exam_invitation' => 'የፈተና ጥሪ',
         'interview_invitation' => 'የቃለ መጠይቅ ጥሪ',
         'screening_passed' => 'የማጣሪያ ማለፍ ማሳወቂያ',

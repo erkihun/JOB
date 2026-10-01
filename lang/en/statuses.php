@@ -68,6 +68,7 @@ return [
     ],
 
     'notification_type' => [
+        'deadline_extended' => 'Deadline Extended',
         'exam_invitation' => 'Exam Invitation',
         'interview_invitation' => 'Interview Invitation',
         'screening_passed' => 'Screening Passed',

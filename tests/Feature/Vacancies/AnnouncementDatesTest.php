@@ -46,14 +46,23 @@ test('multiple vacancies share one announcement period and edits apply to all of
         expect($vacancy->announcement->opening_date->equalTo($announcement->opening_date))->toBeTrue()
             ->and($vacancy->canAcceptApplications())->toBeTrue();
     }
+    // A published period is no longer editable through the normal form …
+    $admin = User::factory()->admin()->create();
     $payload = announcementFormData($announcement->refresh());
     $payload['closing_date'] = today()->subDay()->toDateString();
     $payload['opening_date'] = today()->subDays(10)->toDateString();
-    $this->actingAs(User::factory()->admin()->create())
-        ->put(route('admin.announcements.update', $announcement), $payload)->assertSessionHasNoErrors();
+    $this->actingAs($admin)
+        ->put(route('admin.announcements.update', $announcement), $payload)
+        ->assertSessionHasErrors(['opening_date', 'closing_date']);
+    expect($announcement->refresh()->closing_date->toDateString())->toBe('2026-10-15');
+
+    // … the dedicated extension moves it, and every vacancy inherits the new period.
+    $this->post(route('admin.announcements.extend-deadline', $announcement), [
+        'new_closing_date' => '2026-10-25', 'reason' => 'Extended by HR directive 12/2026.', 'confirm' => '1',
+    ])->assertSessionHasNoErrors();
     foreach ($vacancies as $vacancy) {
-        expect($vacancy->refresh()->canAcceptApplications())->toBeFalse()
-            ->and($vacancy->announcement->closing_date->toDateString())->toBe($payload['closing_date']);
+        expect($vacancy->refresh()->canAcceptApplications())->toBeTrue()
+            ->and($vacancy->announcement->closing_date->toDateString())->toBe('2026-10-25');
     }
 });
 
@@ -272,12 +281,20 @@ test('announcement and vacancy forms preserve English and Amharic date presentat
     if ($locale === 'am') {
         expect(__('vacancies.announcement'))->toBe('የቅጥር ማስታወቂያ');
     }
-    foreach ([route('admin.announcements.create'), route('admin.announcements.edit', $vacancy->announcement)] as $url) {
+    $draft = RecruitmentAnnouncement::factory()->create(['status' => 'draft', 'published_at' => null]);
+    foreach ([route('admin.announcements.create'), route('admin.announcements.edit', $draft)] as $url) {
         $this->get($url)->assertOk()
             ->assertSee($locale === 'am' ? "ethiopianDatepicker('opening_date'," : 'name="opening_date"', false)
             ->assertSee($locale === 'am' ? "ethiopianDatepicker('closing_date'," : 'name="closing_date"', false)
             ->assertSee('name="institution_ids[]"', false);
     }
+    // Published: the period is shown read-only and moves only through "Extend deadline".
+    $this->get(route('admin.announcements.edit', $vacancy->announcement))->assertOk()
+        ->assertDontSee('name="closing_date"', false)
+        ->assertDontSee("ethiopianDatepicker('closing_date',", false)
+        ->assertSee(__('recruitment.dates_locked_hint'))
+        ->assertSee(et_date($vacancy->announcement->closing_date, 'M d, Y'))
+        ->assertSee('name="institution_ids[]"', false);
     $this->get(route('admin.announcements.show', $vacancy->announcement))->assertOk()
         ->assertSee(route('admin.vacancies.create', ['announcement_id' => $vacancy->announcement_id]), false);
     $this->get(route('admin.vacancies.edit', $vacancy))->assertOk()

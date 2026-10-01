@@ -8,6 +8,8 @@ use App\Actions\Audit\LogAuditAction;
 use App\Enums\ApplicationStatus;
 use App\Models\Application;
 use App\Models\Vacancy;
+use App\Services\Recruitment\ApplicationSnapshotService;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -36,7 +38,11 @@ class UpdateApplicationAction
         ApplicationStatus::FailedScreening,
     ];
 
-    public function __construct(private readonly LogAuditAction $auditLogger) {}
+    public function __construct(
+        private readonly LogAuditAction $auditLogger,
+        private readonly RecruitmentTimelineService $timeline,
+        private readonly ApplicationSnapshotService $snapshots,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $data
@@ -71,26 +77,37 @@ class UpdateApplicationAction
 
         try {
             DB::transaction(function () use ($application, $attributes, $needsRescreen, $previousStatus): void {
-                $application->refresh()->load('vacancy');
+                $application = Application::whereKey($application->id)->lockForUpdate()->firstOrFail();
+                $application->load('vacancy');
                 $vacancy = $application->vacancy;
                 $vacancy->setRelation('announcement', $vacancy->announcement()->lockForUpdate()->first());
-                if (! $application->isEditable()) {
-                    throw ValidationException::withMessages([
-                        'application' => __('applications.deadline_locked'),
-                    ]);
-                }
+                // Deadline, admin lock and stage are re-checked against locked rows.
+                $this->timeline->assertCanEditApplication($application);
                 if (isset($attributes['vacancy_id'])) {
                     $target = Vacancy::find($attributes['vacancy_id']);
-                    if ($target) {
-                        $target->setRelation('announcement', $target->announcement()->lockForUpdate()->first());
-                    }
-                    if (! $target?->canAcceptApplications()) {
+                    if ($target === null) {
                         throw ValidationException::withMessages([
                             'vacancy_id' => __('vacancies.not_accepting_applications'),
                         ]);
                     }
+                    $target->setRelation('announcement', $target->announcement()->lockForUpdate()->first());
+                    $this->timeline->assertCanSubmitApplication($target, 'vacancy_id');
                 }
+                $oldValues = $application->only(['vacancy_id', 'field_of_study', 'cgpa']) + [
+                    'graduation_date' => $application->graduation_date?->toDateString(),
+                ];
                 $application->update($attributes);
+                $this->snapshots->capture($application->refresh());
+
+                $this->auditLogger->handle(
+                    action: 'application_edited',
+                    module: 'applications',
+                    recordId: $application->id,
+                    oldValues: $oldValues,
+                    newValues: $application->only(['vacancy_id', 'field_of_study', 'cgpa']) + [
+                        'graduation_date' => $application->graduation_date?->toDateString(),
+                    ],
+                );
 
                 if ($needsRescreen) {
                     $this->auditLogger->handle(
@@ -112,6 +129,6 @@ class UpdateApplicationAction
             ]);
         }
 
-        return $application->fresh();
+        return Application::findOrFail($application->id);
     }
 }

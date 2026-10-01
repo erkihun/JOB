@@ -291,6 +291,7 @@ test('unsupported file type is rejected during application submission', function
 });
 
 test('svg file is rejected for profile photo during registration', function (): void {
+    openRecruitmentWindow();
     $svgFile = UploadedFile::fake()->createWithContent(
         'photo.svg',
         '<svg><script>alert(1)</script></svg>'

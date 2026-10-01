@@ -8,6 +8,7 @@ use App\Enums\EducationLevel;
 use App\Enums\Gender;
 use App\Models\Concerns\HasOrderedUuid;
 use App\Services\CodeGeneratorService;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Applicant extends Model
 {
     use HasFactory, HasOrderedUuid;
+
+    /** Applicants must be at least this old (registration and profile edits). */
+    public const MINIMUM_AGE = 18;
+
+    /** Latest date of birth that still meets MINIMUM_AGE today (application timezone). */
+    public static function latestBirthDate(): CarbonImmutable
+    {
+        return CarbonImmutable::now(config('app.timezone'))->startOfDay()->subYears(self::MINIMUM_AGE);
+    }
 
     protected $fillable = [
         'user_id',
@@ -38,7 +48,6 @@ class Applicant extends Model
         'disability_status',
         'disability_type',
         // Education
-        'ethnicity',
         'university_name',
         'field_of_study',
         'graduation_year',

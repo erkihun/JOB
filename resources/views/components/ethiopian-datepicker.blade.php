@@ -26,9 +26,22 @@
     $initialViewYear  = $todayEtYear;
     $initialViewMonth = $todayEtMonth;
 
+    // With a max date (e.g. date of birth for adults only), open on that month and
+    // never offer later years, so the first view is not a page of disabled days.
+    $maxEtYear = null;
+    if ($safeMax !== '') {
+        $maxDate = \Illuminate\Support\Carbon::parse($safeMax);
+        $maxEt = \App\Services\EthiopianCalendar::fromGregorian($maxDate->year, $maxDate->month, $maxDate->day);
+        $maxEtYear = $maxEt['year'];
+        if ($maxDate->lt($today->copy()->startOfDay())) {
+            $initialViewYear = $maxEt['year'];
+            $initialViewMonth = $maxEt['month'];
+        }
+    }
+
     $etMonths = ['መስከረም','ጥቅምት','ህዳር','ታህሳስ','ጥር','የካቲት','መጋቢት','ሚያዚያ','ግንቦት','ሰኔ','ሐምሌ','ነሐሴ','ጳጉሜ'];
     $yearMin  = 1900;
-    $yearMax  = $todayEtYear + 10;
+    $yearMax  = $maxEtYear !== null ? min($todayEtYear + 10, $maxEtYear) : $todayEtYear + 10;
 @endphp
 
 <div class="{{ $class }}"
@@ -41,7 +54,7 @@
         @if($required) <span class="text-red-500">*</span> @endif
     </label>
 
-    <input type="hidden" :name="fieldName" :value="gcValue">
+    <input type="hidden" x-ref="hidden" :name="fieldName" :value="gcValue">
 
     <div class="relative mt-1">
         <input type="text"
@@ -188,7 +201,10 @@ function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue, minGcValue, 
         isEtLeap(y) { return y % 4 === 3; },
 
         init() {
-            if (gcInitialValue) this.setFromGc(gcInitialValue);
+            if (gcInitialValue) {
+                this.setFromGc(gcInitialValue);
+                this.notifyChange();
+            }
         },
 
         setFromGc(str) {
@@ -228,11 +244,28 @@ function ethiopianDatepicker(fieldName, gcInitialValue, maxGcValue, minGcValue, 
             this.gcValue      = `${gc.year}-${pad(gc.month)}-${pad(gc.day)}`;
             this.displayValue = this.formatEt(this.viewYear, this.viewMonth, d);
             this.open = false;
+            this.notifyChange();
         },
 
         clear() {
             this.selYear = this.selMonth = this.selDay = null;
             this.gcValue = ''; this.displayValue = ''; this.touched = true; this.open = false;
+            this.notifyChange();
+        },
+
+        // Setting a hidden input's value from script fires no event, so forms that
+        // listen for input/change on the field (live previews, day counters) would
+        // never see the picked date. Fire them once the new value is in the DOM.
+        notifyChange() {
+            this.$nextTick(() => {
+                const input = this.$refs.hidden;
+                if (! input) return;
+                input.value = this.gcValue;
+                // Ethiopian-calendar label for listeners that show the date back.
+                input.dataset.display = this.displayValue;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
         },
 
         prevMonth() {

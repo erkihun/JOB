@@ -1,7 +1,16 @@
+@php
+    // Upcoming = published but the opening day has not arrived yet (RecruitmentTimelineService).
+    $isUpcoming = ! $isPast && app(\App\Services\Recruitment\RecruitmentTimelineService::class)->isUpcoming($vacancy->announcement);
+    $opensOn = __('recruitment.applicant.opens_on', ['date' => et_date($vacancy->announcement->opening_date, 'M d, Y')]);
+@endphp
 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-    <div class="border-b p-5 {{ $isPast ? 'border-red-100 bg-red-50' : ($isUrgent ? 'border-accent/20 bg-accent-muted' : 'border-brand/15 bg-brand-muted') }}">
+    <div class="border-b p-5 {{ $isPast ? 'border-red-100 bg-red-50' : ($isUpcoming ? 'border-gray-200 bg-gray-50' : ($isUrgent ? 'border-accent/20 bg-accent-muted' : 'border-brand/15 bg-brand-muted')) }}">
         @if($isPast)
-            <p class="font-bold text-red-700">{{ __('vacancies.deadline_passed') }}</p>
+            <p class="text-lg font-extrabold text-red-700">{{ __('recruitment.applicant.closed') }}</p>
+            <p class="mt-1 text-sm text-red-700">{{ __('recruitment.applicant.closed_hint', ['date' => et_date($vacancy->announcement->closing_date, 'M d, Y')]) }}</p>
+        @elseif($isUpcoming)
+            <p class="text-[13px] font-extrabold uppercase tracking-wider text-gray-600">{{ __('recruitment.stage.upcoming') }}</p>
+            <p class="mt-1 text-lg font-extrabold text-gray-900">{{ $opensOn }}</p>
         @else
             <p class="text-[13px] font-extrabold uppercase tracking-wider {{ $isUrgent ? 'text-accent-dark' : 'text-brand-dark' }}">{{ __('public.deadline') }}</p>
             <p class="mt-1 flex items-baseline gap-2">
@@ -36,6 +45,8 @@
             <a href="{{ route('applicant.applications.index') }}" class="flex h-11 items-center justify-center rounded-xl border border-gray-300 text-sm font-bold text-gray-900 hover:bg-gray-50">{{ __('applicant.my_applications') }}</a>
         @elseif($isPast)
             <p class="text-sm text-gray-600">{{ __('vacancies.deadline_passed') }}</p>
+        @elseif($isUpcoming)
+            <p class="rounded-xl bg-gray-50 px-4 py-3 text-center text-sm font-semibold text-gray-800 ring-1 ring-gray-200">{{ $opensOn }}</p>
         @elseif($canApply)
             <a href="{{ route('applicant.applications.create', $vacancy) }}"
                class="flex h-12 items-center justify-center rounded-xl bg-accent-dark text-base font-extrabold text-white transition hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">

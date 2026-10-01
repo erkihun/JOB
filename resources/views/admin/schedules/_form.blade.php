@@ -28,6 +28,7 @@
         },
         get chosen() { return this.multi ? this.selected : (this.vacancy ? [this.vacancy] : []); },
         date: @js((string) old('date', $schedule->date?->format('Y-m-d') ?? '')),
+        dateDisplay: '',
         start: @js((string) old('start_time', $schedule->start_time ? substr($schedule->start_time, 0, 5) : '')),
         end: @js((string) old('end_time', $schedule->end_time ? substr($schedule->end_time, 0, 5) : '')),
         venue: @js((string) old('venue', $schedule->venue ?? '')),
@@ -48,6 +49,8 @@
         },
         get dateLabel() {
             if (!this.date) return this.notSet;
+            // Amharic picker: show the Ethiopian-calendar date the user chose.
+            if (this.dateDisplay) return this.dateDisplay;
             const d = new Date(this.date + 'T00:00:00');
             return isNaN(d) ? this.date : d.toLocaleDateString(@js(app()->getLocale() === 'am' ? 'am-ET' : 'en-GB'), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         },
@@ -60,7 +63,11 @@
         },
         get endBeforeStart() { return this.start && this.end && this.end <= this.start; },
         // Ethiopian date picker writes a hidden input; pick its value up too.
-        syncDate(e) { if (e.target.name === 'date') this.date = e.target.value; }
+        syncDate(e) {
+            if (e.target.name !== 'date') return;
+            this.date = e.target.value;
+            this.dateDisplay = e.target.dataset?.display || '';
+        }
      }"
      @input="syncDate($event)" @change="syncDate($event)">
 
@@ -167,7 +174,8 @@
                 <div>
                     @if(app()->getLocale() === 'am')
                         <x-ethiopian-datepicker name="date" :label="__('dashboard.table.date')"
-                            :value="old('date', $schedule->date?->format('Y-m-d') ?? '')" required/>
+                            :value="old('date', $schedule->date?->format('Y-m-d') ?? '')"
+                            :min="$isEdit ? null : now()->toDateString()" required/>
                     @else
                         <label for="date" class="form-label">{{ __('dashboard.table.date') }} <span class="form-required">*</span></label>
                         <input type="date" id="date" name="date" x-model="date"

@@ -17,7 +17,7 @@ beforeEach(function (): void {
 // ── Screening: only pass or fail ─────────────────────────────────────────────
 
 test('screening form offers only pass and fail', function (): void {
-    $application = Application::factory()->create(['status' => ApplicationStatus::Submitted]);
+    $application = Application::factory()->afterDeadline()->create(['status' => ApplicationStatus::Submitted]);
 
     $html = $this->actingAs($this->admin)->get(route('admin.screening.review', $application))->assertOk()->getContent();
 
@@ -27,7 +27,7 @@ test('screening form offers only pass and fail', function (): void {
 });
 
 test('screening rejects decisions other than pass or fail', function (string $decision): void {
-    $application = Application::factory()->create(['status' => ApplicationStatus::Submitted]);
+    $application = Application::factory()->afterDeadline()->create(['status' => ApplicationStatus::Submitted]);
 
     $this->actingAs($this->admin)
         ->post(route('admin.screening.submit', $application), ['decision' => $decision, 'remark' => 'Some remark text here'])
@@ -37,7 +37,7 @@ test('screening rejects decisions other than pass or fail', function (string $de
 })->with(['correction_required', 'pending']);
 
 test('failing an application requires a remark', function (): void {
-    $application = Application::factory()->create(['status' => ApplicationStatus::Submitted]);
+    $application = Application::factory()->afterDeadline()->create(['status' => ApplicationStatus::Submitted]);
 
     $this->actingAs($this->admin)
         ->post(route('admin.screening.submit', $application), ['decision' => 'failed'])

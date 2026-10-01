@@ -22,6 +22,8 @@
         __('fields.cgpa')                   => $application->cgpa !== null ? number_format($application->cgpa, 2) : null,
     ], fn ($v) => filled($v));
     $docTone = ['verified' => 'bg-green-50 text-green-800', 'rejected' => 'bg-red-50 text-red-800'];
+    $editable = $application->isEditable();
+    $closingDay = $vacancy->announcement?->closing_date;
 @endphp
 <div class="space-y-6">
 
@@ -29,10 +31,28 @@
                              :description="collect([$application->reference_number, $vacancy->department, $vacancy->institution?->displayName(), $application->submitted_at ? __('applicant.applied_on', ['date' => et_date($application->submitted_at, 'M d, Y')]) : null])->filter()->implode(' · ')"
                              :crumbs="[['label' => __('applicant.nav_dashboard'), 'url' => route('applicant.dashboard')], ['label' => __('applicant.my_applications'), 'url' => route('applicant.applications.index')], ['label' => $application->reference_number]]">
         <span class="rounded-full px-3 py-1.5 text-sm font-bold {{ $tone }}">{{ $application->status->label() }}</span>
-        @if($application->isEditable())
+        @if($editable)
         <a href="{{ route('applicant.applications.edit', $application) }}" class="inline-flex h-11 items-center rounded-xl bg-brand px-5 text-sm font-bold text-white hover:bg-brand-dark">{{ __('applicant.edit_application') }}</a>
         @endif
     </x-applicant.page-header>
+
+    {{-- Editing window: open until the closing day (or an authorised reopening), read-only afterwards. --}}
+    @if($editable && $application->isReopened())
+        <p class="rounded-xl border border-accent/30 bg-accent-muted px-4 py-3 text-sm font-semibold text-accent-dark" role="status">
+            {{ __('recruitment.applicant.reopened_until', ['date' => et_date($application->reopened_until, 'M d, Y')]) }}
+        </p>
+    @elseif($editable && $closingDay)
+        <p class="rounded-xl border border-brand/20 bg-brand-muted/60 px-4 py-3 text-sm font-semibold text-brand-dark" role="status">
+            {{ __('recruitment.applicant.editable_until', ['date' => et_date($closingDay, 'M d, Y')]) }}
+        </p>
+    @else
+        <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800" role="status">
+            @if($vacancy->isPastDeadline())
+                <p class="font-bold text-gray-900">{{ __('recruitment.applicant.closed') }}</p>
+            @endif
+            <p>{{ __('recruitment.applicant.read_only') }}</p>
+        </div>
+    @endif
 
     {{-- Tracker + what happens next --}}
     <section class="rounded-2xl border border-gray-200 bg-white p-5 sm:p-7" aria-labelledby="progress-heading">

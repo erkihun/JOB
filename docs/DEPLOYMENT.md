@@ -164,6 +164,26 @@ After each deployment:
 php artisan queue:restart
 ```
 
+Backups run as queued jobs (`RunBackupJob`, `RestoreBackupJob`, 1 attempt, up to 60 minutes each). A dedicated
+worker keeps a long backup from delaying notifications. Set `BACKUP_QUEUE=backups` and add:
+
+```ini
+[program:jobs-backup-worker]
+command=php /var/www/jobs/artisan queue:work redis --queue=backups --tries=1 --timeout=3700 --max-time=3600
+directory=/var/www/jobs
+autostart=true
+autorestart=true
+user=www-data
+numprocs=1
+stopwaitsecs=3700
+stdout_logfile=/var/www/jobs/storage/logs/backup-worker.log
+```
+
+The queue connection's `retry_after` must be **greater than 3700 seconds** (`REDIS_QUEUE_RETRY_AFTER=3800`, or
+`DB_QUEUE_RETRY_AFTER=3800` with the database driver; the default is 90). Otherwise a backup that runs longer
+than that is handed to a second worker while the first is still running. The job ignores such a redelivery,
+but it still occupies a worker.
+
 ---
 
 ## 7. Task Scheduler
@@ -173,6 +193,15 @@ Add to crontab (`crontab -e` as www-data or root):
 ```cron
 * * * * * cd /var/www/jobs && php artisan schedule:run >> /dev/null 2>&1
 ```
+
+Scheduled tasks (`routes/console.php`, all `withoutOverlapping()->onOneServer()`):
+
+| Command | Frequency | Purpose |
+| --- | --- | --- |
+| `backups:dispatch-due` | every minute | queues database/document backups whose configured slot has come (each slot once) |
+| `recruitment:sync-statuses` | every 15 minutes | records recruitment announcements opening/closing |
+
+`onOneServer()` needs a cache store that supports locks (database, redis or memcached).
 
 ---
 
@@ -234,29 +263,88 @@ server {
 
 ---
 
-## 9. Database Backups
+## 9. Database & Document Backups
 
-**Automated daily backup with mysqldump:**
+Backups are built in. They are configured under **Admin → Settings → Backup** (`/admin/settings/backups`) and
+run by the scheduler and queue worker above. No extra package is required for local backups.
 
-```bash
-# /etc/cron.daily/jobs-backup
-#!/bin/bash
-BACKUP_DIR="/var/backups/jobs"
-DATE=$(date +%Y%m%d_%H%M%S)
-mkdir -p "$BACKUP_DIR"
-mysqldump -u jobs_user -p'your-password' jobs_db | gzip > "$BACKUP_DIR/db_$DATE.sql.gz"
-# Keep last 30 days
-find "$BACKUP_DIR" -name "db_*.sql.gz" -mtime +30 -delete
+### What is backed up
+
+| Backup | Contents |
+| --- | --- |
+| **Database** | Full dump of the default connection: `mysqldump --single-transaction --routines --triggers` (MySQL/MariaDB), `pg_dump` (PostgreSQL) or `VACUUM INTO` (SQLite) |
+| **Documents** | Selectable groups: applicant private documents (`storage/app/private/applicant-documents`, `applications`), profile photos, logos (`storage/app/public/org`, `institutions`), hero images, exported reports. Temp uploads, cache and log files are always excluded. |
+
+Each backup is one ZIP with a `manifest.json`. It can optionally be compressed and/or encrypted.
+Every run is recorded in `backup_records` with these fields:
+
+- type, destination and storage path;
+- size and SHA-256 checksum;
+- status, started/completed times and who started it;
+- the failure message, when it failed.
+
+### Configuration (.env — secrets live here only)
+
+```dotenv
+BACKUP_DISK=backup_local            # local destination → storage/app/backups (never web-served)
+BACKUP_ENCRYPTION_KEY=base64:...    # php -r "echo 'base64:'.base64_encode(random_bytes(32)).PHP_EOL;"
+BACKUP_QUEUE=backups
+BACKUP_MYSQLDUMP_PATH=mysqldump     # full path if not on PATH (XAMPP: C:/xampp/mysql/bin/mysqldump.exe)
+BACKUP_MYSQL_PATH=mysql
+# Off-site, S3-compatible destination (AWS S3, MinIO, Wasabi, …):
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=
+AWS_BUCKET=
+AWS_ENDPOINT=                       # for non-AWS S3-compatible providers
 ```
 
-**Storage backup:**
+The S3 destination also needs `composer require league/flysystem-aws-s3-v3`. Until it is installed and `AWS_*` is
+set, the option is disabled in the UI. System Settings stores only non-secret preferences: schedule, retention,
+destination name and what to include.
 
-```bash
-# Include in your backup script
-tar -czf "$BACKUP_DIR/storage_$DATE.tar.gz" /var/www/jobs/storage/app/
-```
+- **Encryption:** AES-256-GCM in authenticated 1 MB chunks. A wrong key, a modified file, reordered chunks or a
+  truncated file are all rejected. Keep a copy of `BACKUP_ENCRYPTION_KEY` offline (e.g. a password manager or
+  sealed envelope): **an encrypted backup cannot be restored without it.** Rotating the key does not re-encrypt
+  old backups, so keep the old key for as long as its backups are retained.
+- **Retention:** after each successful backup, copies older than *Retention (days)* or beyond *Maximum backup
+  copies* are deleted. The newest successful copy is always kept. Pre-restore copies are never pruned
+  automatically. The history row stays, marked "Removed by retention".
+- **Schedule:** *hourly* (at the chosen minute), *daily*, *weekly* (Monday) or *monthly* (1st). Times are in
+  `APP_TIMEZONE`. Each slot is queued at most once. A slot missed while the server was down is caught up on the
+  next scheduler run. A backup that has been queued or running for more than 3 hours is marked failed.
 
-Recommended: use `spatie/laravel-backup` for automated cloud backups.
+### Restore procedure
+
+Restore and delete are granted to **super_admin only** (`backups.restore`, `backups.delete`).
+
+1. Prefer the server shell for database restores:
+   ```bash
+   php artisan backups:list --type=database
+   php artisan backups:restore <backup-id>      # asks you to type RESTORE
+   ```
+   From the UI: **Backup history → Restore**. You must type `RESTORE`, enter your current password and your
+   authenticator code (if MFA is enabled). The restore then runs on the queue.
+2. The restore runs these steps in order:
+   1. downloads the artifact and **verifies its SHA-256 checksum** (a mismatch aborts before anything changes);
+   2. decrypts and authenticates it, and checks the manifest type;
+   3. takes a **pre-restore backup** of the current data (rollback point; the restore aborts if this fails);
+   4. puts the site into **maintenance mode**;
+   5. restores, re-inserts the backup-history rows, writes the audit log entry, and brings the site back up.
+3. A database restore replaces the whole database with the dump, so audit-log rows written after that backup
+   are lost. The `backup_restored` audit entry itself is written after the restore.
+
+   A document restore overwrites the archived files. Files uploaded after the backup are kept.
+4. To undo a restore, restore the "Pre-restore copy" listed in the history.
+
+### Off-site recommendation
+
+Local backups protect against mistakes, not against losing the server. Use at least one of these:
+
+- the S3-compatible destination (ideally a bucket with object lock/versioning, in another region or provider);
+- a nightly `rsync`/`rclone` of `storage/app/backups` to another machine.
+
+Test a restore on a staging server at least once a quarter.
 
 ---
 
@@ -369,7 +457,7 @@ php artisan test
 - [ ] File upload validation enforced (MIME + size)
 - [ ] Session driver set to `redis` (not `file`) in production
 - [ ] Queue driver set to `redis` (not `sync`) in production
-- [ ] Backups configured and tested
+- [ ] Backups configured (Settings → Backup), `BACKUP_ENCRYPTION_KEY` set and stored offline, off-site copy configured, a test restore done on staging
 - [ ] Log rotation configured (`/etc/logrotate.d/jobs`)
 - [ ] Firewall: only 80, 443, and 22 open
 - [ ] Redis protected (bind 127.0.0.1, requirepass set)

@@ -6,7 +6,7 @@ return [
     'title' => 'የምልመላ አስተዳደር ዳሽቦርድ',
     'guest' => 'አስተዳዳሪ',
     'welcome' => 'እንኳን ደህና መጡ፣ :name',
-    'summary' => 'የክፍት የስራ መደቦችን፣ የአመልካቾች እንቅስቃሴን፣ የማጣሪያ ሂደትን፣ የፈተናና የቃለ መጠይቅ መርሃ ግብሮችን፣ ማሳወቂያዎችን እና የስርዓት እንቅስቃሴን ለመከታተል የተዘጋጀ የአስተዳደር ማዕከል።',
+    'summary' => 'የክፍት የሥራ መደቦችን፣ የአመልካቾች እንቅስቃሴን፣ የማጣሪያ ሂደትን፣ የፈተናና የቃለ መጠይቅ መርሐ ግብሮችን፣ ማሳወቂያዎችን እና የስርዓት እንቅስቃሴን ለመከታተል የተዘጋጀ የአስተዳደር ማዕከል።',
     'unknown' => 'ያልታወቀ',
     'system' => 'ስርዓት',
     'restricted' => 'የተገደበ',
@@ -21,7 +21,7 @@ return [
 
     'quick_actions' => [
         'title' => 'ፈጣን እርምጃዎች',
-        'create_vacancy' => 'ክፍት የስራ መደብ ፍጠር',
+        'create_vacancy' => 'ክፍት የሥራ መደብ ፍጠር',
         'view_applications' => 'ማመልከቻዎችን ይመልከቱ',
         'screening_queue' => 'የማጣሪያ ተጠባባቂዎች',
         'generate_report' => 'ሪፖርት አውጣ',
@@ -31,9 +31,9 @@ return [
     'kpi' => [
         'total_applicants' => 'ጠቅላላ አመልካቾች',
         'total_applications' => 'ጠቅላላ ማመልከቻዎች',
-        'open_vacancies' => 'ክፍት የስራ መደቦች',
-        'closed_vacancies' => 'የተዘጉ የስራ መደቦች',
-        'total_vacancies' => 'ጠቅላላ የስራ መደቦች',
+        'open_vacancies' => 'ክፍት የሥራ መደቦች',
+        'closed_vacancies' => 'የተዘጉ የሥራ መደቦች',
+        'total_vacancies' => 'ጠቅላላ የሥራ መደቦች',
         'pending_screening' => 'ማጣሪያ የሚጠብቁ',
         'passed_screening' => 'ማጣሪያ ያለፉ',
         'failed_screening' => 'ማጣሪያ ያላለፉ',
@@ -44,9 +44,9 @@ return [
 
     'kpi_desc' => [
         'total_applicants' => 'የተመዘገቡ የአመልካች መገለጫዎች።',
-        'total_applications' => 'ለክፍት ስራዎች የቀረቡ ማመልከቻዎች።',
-        'open_vacancies' => 'አሁን ማመልከቻ የሚቀበሉ ክፍት ስራዎች።',
-        'closed_vacancies' => 'ማመልከቻ መቀበል ያቆሙ የስራ መደቦች።',
+        'total_applications' => 'ለክፍት ሥራዎች የቀረቡ ማመልከቻዎች።',
+        'open_vacancies' => 'አሁን ማመልከቻ የሚቀበሉ ክፍት ሥራዎች።',
+        'closed_vacancies' => 'ማመልከቻ መቀበል ያቆሙ የሥራ መደቦች።',
         'pending_screening' => 'ግምገማ የሚጠብቁ ማመልከቻዎች።',
         'passed_screening' => 'የመጀመሪያ ማጣሪያ ያለፉ አመልካቾች።',
         'failed_screening' => 'በማጣሪያ ውድቅ የተደረጉ አመልካቾች።',
@@ -76,7 +76,7 @@ return [
         'demographics' => 'የአመልካቾች ስነ-ሕዝብ መረጃ',
         'recent_applications' => 'የቅርብ ጊዜ ማመልከቻዎች',
         'pending_screening' => 'ማጣሪያ የሚጠብቁ ማመልከቻዎች',
-        'open_vacancies' => 'ክፍት የስራ መደቦች',
+        'open_vacancies' => 'ክፍት የሥራ መደቦች',
         'upcoming_schedules' => 'መጪ ፈተናዎች እና ቃለ መጠይቆች',
         'notification_health' => 'የማሳወቂያ መድረስ ሁኔታ',
         'notification_health_desc' => 'የአመልካች ማሳወቂያዎች የመድረስ ሁኔታ።',
@@ -88,11 +88,11 @@ return [
         'interview_top_scorers' => 'ከፍተኛ የቃለ መጠይቅ ውጤት ያስመዘገቡ',
         'exam_by_gender' => 'የፈተና አፈፃፀም በፆታ',
         'final_results' => 'የመጨረሻ ውጤቶች ማጠቃለያ',
-        'vacancy_load' => 'ማመልከቻዎች በክፍት የስራ መደብ',
+        'vacancy_load' => 'ማመልከቻዎች በክፍት የሥራ መደብ',
     ],
 
     'charts' => [
-        'applications_per_vacancy' => 'ማመልከቻዎች በክፍት የስራ መደብ',
+        'applications_per_vacancy' => 'ማመልከቻዎች በክፍት የሥራ መደብ',
         'daily_submissions' => 'ዕለታዊ ማመልከቻዎች',
         'monthly_trends' => 'ወርሃዊ የምልመላ አዝማሚያ',
         'screening_ratio' => 'የማጣሪያ ማለፍ/አለማለፍ መጠን',
@@ -103,7 +103,7 @@ return [
 
     'table' => [
         'applicant' => 'አመልካች',
-        'vacancy' => 'ክፍት የስራ መደብ',
+        'vacancy' => 'ክፍት የሥራ መደብ',
         'reference' => 'የማመልከቻ ቁጥር',
         'submitted_date' => 'የቀረበበት ቀን',
         'status' => 'የማመልከቻ ሁኔታ',
@@ -114,7 +114,7 @@ return [
         'closing_date' => 'የማመልከቻ መዝጊያ ቀን',
         'days_remaining' => 'የቀሩ ቀናት',
         'applicant_count' => 'የአመልካች ብዛት',
-        'schedule_title' => 'የመርሃ ግብር ርዕስ',
+        'schedule_title' => 'የመርሐ ግብር ርዕስ',
         'type' => 'አይነት',
         'date' => 'ቀን',
         'time' => 'ሰዓት',
@@ -156,7 +156,7 @@ return [
         'avg_exam' => 'የፈተና አማካይ',
         'avg_interview' => 'የቃለ መጠይቅ አማካይ',
         'avg_final' => 'የመጨረሻ አማካይ',
-        'top_8_open' => 'ከፍተኛ 8 ክፍት የስራ መደቦች',
+        'top_8_open' => 'ከፍተኛ 8 ክፍት የሥራ መደቦች',
     ],
 
     'schedule' => [
@@ -187,7 +187,7 @@ return [
         'no_analytics' => 'እስካሁን ትንታኔ የለም።',
         'no_applications' => 'የቅርብ ጊዜ ማመልከቻ የለም።',
         'no_pending_screening' => 'ማጣሪያ የሚጠብቅ ማመልከቻ የለም።',
-        'no_open_vacancies' => 'ክፍት የስራ መደብ የለም።',
+        'no_open_vacancies' => 'ክፍት የሥራ መደብ የለም።',
         'no_schedules' => 'መጪ ቀጠሮ የለም።',
         'no_activity' => 'የቅርብ ጊዜ እንቅስቃሴ የለም።',
         'no_pipeline_data' => 'እስካሁን የማመልከቻ መረጃ የለም።',

@@ -13,7 +13,7 @@ class AnnouncementController extends Controller
     public function index(): View
     {
         $announcements = RecruitmentAnnouncement::query()
-            ->where('status', 'published')->where('published_at', '<=', now())
+            ->publiclyVisible()
             ->latest('published_at')
             ->paginate(12);
 

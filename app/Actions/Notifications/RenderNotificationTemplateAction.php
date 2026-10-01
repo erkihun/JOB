@@ -68,7 +68,7 @@ class RenderNotificationTemplateAction
         $transKey = "notifications.{$key}.subject";
 
         if (trans()->has($transKey, $locale)) {
-            return trans($transKey, ['vacancy' => $vacancy], $locale);
+            return trans($transKey, ['vacancy' => $vacancy, 'announcement' => $placeholders['announcement'] ?? $vacancy], $locale);
         }
 
         return $type->label();
@@ -120,6 +120,16 @@ class RenderNotificationTemplateAction
                 $t("{$type->value}.greeting", ['name' => $name]),
                 $t("{$type->value}.body", ['vacancy' => $vacancy]),
                 $message ? $message : null,
+                $t("{$type->value}.closing"),
+            ]),
+            NotificationType::DeadlineExtended => array_filter([
+                $t("{$type->value}.greeting", ['name' => $name]),
+                $t("{$type->value}.body", ['announcement' => $placeholders['announcement'] ?? $vacancy]),
+                $t("{$type->value}.details", [
+                    'old_date' => $placeholders['old_date'] ?? '',
+                    'new_date' => $placeholders['new_date'] ?? '',
+                ]),
+                filled($placeholders['reason'] ?? null) ? $t("{$type->value}.reason", ['reason' => $placeholders['reason']]) : null,
                 $t("{$type->value}.closing"),
             ]),
             NotificationType::General => [$message],

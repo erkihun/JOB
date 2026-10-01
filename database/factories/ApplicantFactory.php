@@ -32,7 +32,6 @@ class ApplicantFactory extends Factory
             'nationality' => null,
             'disability_status' => false,
             'disability_type' => null,
-            'ethnicity' => null,
             'university_name' => null,
             'field_of_study' => null,
             'graduation_year' => null,

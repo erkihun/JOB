@@ -7,6 +7,7 @@ namespace App\Actions\Auth;
 use App\Models\Applicant;
 use App\Models\ApplicantProfileDocument;
 use App\Models\User;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -14,12 +15,18 @@ use Illuminate\Support\Str;
 
 class RegisterApplicantAction
 {
+    public function __construct(private readonly RecruitmentTimelineService $timeline) {}
+
     /**
      * @param  array<string, mixed>  $data  Validated request data (includes UploadedFile instances)
      */
     public function handle(array $data): User
     {
         return DB::transaction(function () use ($data) {
+            // Re-checked at commit time: the last open announcement may have closed
+            // while the (multi-step) form was being submitted.
+            $this->timeline->assertCanRegisterApplicant();
+
             $fullName = $this->buildFullName($data);
 
             $user = User::create([

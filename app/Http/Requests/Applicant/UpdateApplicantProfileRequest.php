@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Applicant;
 
 use App\Enums\EducationLevel;
+use App\Models\Applicant;
 use App\Models\Setting;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -31,7 +32,8 @@ class UpdateApplicantProfileRequest extends FormRequest
 
             // Personal
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
-            'date_of_birth' => ['nullable', 'date', 'before:today'],
+            // Same minimum age as registration, so it cannot be bypassed later.
+            'date_of_birth' => ['nullable', 'date', 'after:1900-01-01', 'before_or_equal:'.Applicant::latestBirthDate()->toDateString()],
             'nationality' => ['nullable', 'string', 'max:100'],
             'phone' => ['required', 'string', 'max:20',
                 Rule::unique('applicants', 'phone')->ignore($applicantId)],
@@ -67,7 +69,6 @@ class UpdateApplicantProfileRequest extends FormRequest
 
             // Preferences
             'preferred_locale' => ['required', Rule::in(['en', 'am'])],
-            'ethnicity' => ['nullable', 'string', 'max:100'],
 
             // Profile photo (optional update)
             'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', "max:{$maxKb}"],

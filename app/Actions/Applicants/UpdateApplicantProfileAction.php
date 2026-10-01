@@ -6,6 +6,8 @@ namespace App\Actions\Applicants;
 
 use App\Models\Applicant;
 use App\Models\ApplicantProfileDocument;
+use App\Services\Recruitment\ApplicationSnapshotService;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
@@ -13,6 +15,11 @@ use Illuminate\Support\Str;
 
 class UpdateApplicantProfileAction
 {
+    public function __construct(
+        private readonly RecruitmentTimelineService $timeline,
+        private readonly ApplicationSnapshotService $snapshots,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $data
      */
@@ -67,7 +74,6 @@ class UpdateApplicantProfileAction
             'current_position' => $data['current_position'] ?? null,
             'work_experience_summary' => $data['work_experience_summary'] ?? null,
             'address' => $data['address'] ?? null,
-            'ethnicity' => $data['ethnicity'] ?? null,
             'preferred_locale' => $data['preferred_locale'],
             'profile_photo_path' => $photoPath,
         ]);
@@ -82,7 +88,21 @@ class UpdateApplicantProfileAction
 
         $this->replaceDocuments($applicant, $data);
 
+        $this->refreshEditableSnapshots($applicant->fresh());
+
         return $applicant->fresh();
+    }
+
+    /**
+     * Profile changes flow into applications that are still editable (their
+     * announcement is open). Applications whose period has closed keep the
+     * snapshot they were submitted with.
+     */
+    private function refreshEditableSnapshots(Applicant $applicant): void
+    {
+        $applicant->applications()->with('vacancy')->get()
+            ->filter(fn ($application) => $this->timeline->canEditApplication($application))
+            ->each(fn ($application) => $this->snapshots->capture($application, $applicant));
     }
 
     /** Replace the combined documents PDF when a new one is uploaded. */

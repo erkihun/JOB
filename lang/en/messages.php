@@ -350,6 +350,7 @@ return [
     'ntpl_stage_final' => 'Final result',
     'ntpl_stage_general' => 'General',
     'ntpl_when' => [
+        'deadline_extended' => 'Sent to applicants of an announcement when its application deadline is extended.',
         'application_submitted' => 'Sent when an applicant submits an application.',
         'correction_required' => 'Sent when an application is returned for correction.',
         'screening_passed' => 'Sent when an application passes screening.',

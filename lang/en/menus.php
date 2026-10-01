@@ -26,6 +26,7 @@ return [
     'hero_slider' => 'Hero Slider',
     'settings' => 'Settings',
     'audit_logs' => 'Audit Logs',
+    'backups' => 'Backup',
     'access_control' => 'Access Control',
     'recruitment' => 'Recruitment',
     'system' => 'System',

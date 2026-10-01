@@ -33,7 +33,7 @@ return [
     'max_file_size' => 'ከፍተኛ የሰነድ መጠን (ሜባ)',
     'allowed_file_types' => 'የተፈቀዱ የፋይል ዓይነቶች',
     'allow_registration' => 'የአመልካቾች ምዝገባ ይፈቀድ',
-    'show_archived_vacancies' => 'የተዘጉ ክፍት የስራ መደቦችን አሳይ',
+    'show_archived_vacancies' => 'የተዘጉ ክፍት የሥራ መደቦችን አሳይ',
     'reference_format' => 'የማመልከቻ ማጣቀሻ ቅርጸት',
     'email_sender_name' => 'የኢሜይል ላኪ ስም',
     'email_sender_address' => 'የኢሜይል ላኪ አድራሻ',
@@ -102,7 +102,7 @@ return [
     // Code generation
     'codes' => 'የኮድ አወጣጥ',
     'code_application' => 'የማመልከቻ ቁጥር ኮድ',
-    'code_vacancy' => 'የክፍት የስራ መደብ ኮድ',
+    'code_vacancy' => 'የክፍት የሥራ መደብ ኮድ',
     'code_applicant' => 'የአመልካች ኮድ',
     'code_prefix' => 'ቅድመ ቅጥያ',
     'code_format' => 'ቅርጸት',

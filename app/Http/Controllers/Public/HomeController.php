@@ -47,7 +47,7 @@ class HomeController extends Controller
         ];
 
         $announcements = RecruitmentAnnouncement::query()
-            ->where('status', 'published')->where('published_at', '<=', now())
+            ->publiclyVisible()
             ->latest('published_at')
             ->limit(3)
             ->get();

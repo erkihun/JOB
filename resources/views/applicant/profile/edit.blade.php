@@ -67,13 +67,13 @@
                         name="date_of_birth"
                         :label="__('fields.date_of_birth')"
                         :value="old('date_of_birth', $applicant->date_of_birth?->format('Y-m-d'))"
-                        :max="now()->toDateString()"/>
+                        :max="\App\Models\Applicant::latestBirthDate()->toDateString()"/>
                 @else
                 <div>
                     <label for="date_of_birth" class="block text-sm font-medium text-gray-700">{{ __('fields.date_of_birth') }}</label>
                     <input type="date" id="date_of_birth" name="date_of_birth"
                            value="{{ old('date_of_birth', $applicant->date_of_birth?->format('Y-m-d')) }}"
-                           max="{{ now()->toDateString() }}"
+                           max="{{ \App\Models\Applicant::latestBirthDate()->toDateString() }}"
                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                     @error('date_of_birth')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
@@ -237,12 +237,6 @@
                            value="{{ old('email', $applicant->email) }}"
                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('email') border-red-400 @enderror">
                     @error('email')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                </div>
-                <div>
-                    <label for="ethnicity" class="block text-sm font-medium text-gray-700">{{ __('applicant.ethnicity_optional') }}</label>
-                    <input type="text" id="ethnicity" name="ethnicity"
-                           value="{{ old('ethnicity', $applicant->ethnicity) }}"
-                           class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                 </div>
                 <div class="sm:col-span-2">
                     <label for="address" class="block text-sm font-medium text-gray-700">{{ __('fields.address') }}</label>

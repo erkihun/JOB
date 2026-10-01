@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Requests\Auth;
 
 use App\Enums\EducationLevel;
+use App\Exceptions\RecruitmentRuleException;
+use App\Models\Applicant;
 use App\Models\Setting;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use App\Services\Security\PasswordPolicyService;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -15,9 +18,19 @@ use Illuminate\Validation\Rule;
 
 class ApplicantRegisterRequest extends FormRequest
 {
+    /**
+     * New accounts only while at least one recruitment announcement is open.
+     * Checked before validation so nothing (not even temp uploads) is stored.
+     */
     public function authorize(): bool
     {
-        return true;
+        return app(RecruitmentTimelineService::class)->canRegisterApplicant();
+    }
+
+    protected function failedAuthorization(): void
+    {
+        throw RecruitmentRuleException::because('recruitment.errors.registration_closed', 'registration')
+            ->redirectTo(route('applicant.register'));
     }
 
     protected function prepareForValidation(): void
@@ -45,7 +58,8 @@ class ApplicantRegisterRequest extends FormRequest
             'middle_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'gender' => ['required', Rule::in(['male', 'female', 'other'])],
-            'date_of_birth' => ['required', 'date'],
+            // Applicants must be at least 18 (Applicant::MINIMUM_AGE).
+            'date_of_birth' => ['required', 'date', 'after:1900-01-01', 'before_or_equal:'.Applicant::latestBirthDate()->toDateString()],
             'nationality' => ['nullable', 'string', 'max:100'],
             'national_id' => ['required', 'digits:16', 'unique:applicants,national_id'],
 
@@ -114,6 +128,7 @@ class ApplicantRegisterRequest extends FormRequest
                 : 'Enter a valid Ethiopian mobile number.',
             'middle_name.required' => __('validation.required', ['attribute' => __('fields.middle_name')]),
             'national_id.unique' => __('validation.national_id_taken'),
+            'date_of_birth.before_or_equal' => __('applicant.v_min_age', ['age' => Applicant::MINIMUM_AGE]),
             'national_id.digits' => __('validation.digits', ['attribute' => __('fields.national_id'), 'digits' => 16]),
             'email.unique' => __('validation.email_taken'),
             'documents.required' => __('validation.required', ['attribute' => __('documents.type_documents')]),

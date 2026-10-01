@@ -49,8 +49,30 @@ final readonly class EligibilityProfile
         );
     }
 
+    /**
+     * Screening judges the data captured with the application (its snapshot), so a
+     * later profile edit for another recruitment never changes the outcome here.
+     * Applications from before snapshots existed fall back to the live profile.
+     */
     public static function fromApplication(Application $application): self
     {
+        $snapshot = $application->profile_snapshot;
+
+        if (! empty($snapshot)) {
+            $graduationDate = $application->graduation_date ?? ($snapshot['graduation_date'] ?? null);
+            $gpa = $application->cgpa ?? ($snapshot['gpa'] ?? null);
+
+            return new self(
+                educationLevel: EducationLevel::tryFrom((string) ($snapshot['education_level'] ?? '')),
+                fieldOfStudy: ($application->field_of_study ?: ($snapshot['field_of_study'] ?? null)) ?: null,
+                gpa: filled($gpa) ? (float) $gpa : null,
+                graduationYear: filled($graduationDate)
+                    ? Carbon::parse($graduationDate)->year
+                    : (filled($snapshot['graduation_year'] ?? null) ? (int) $snapshot['graduation_year'] : null),
+                experienceYears: (int) ($snapshot['work_experience_years'] ?? 0) + ((int) ($snapshot['work_experience_months'] ?? 0) / 12),
+            );
+        }
+
         return self::fromApplicant($application->applicant, [
             'field_of_study' => $application->field_of_study,
             'graduation_date' => $application->graduation_date,

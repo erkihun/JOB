@@ -45,7 +45,6 @@
                             __('fields.gender')           => $application->applicant?->gender?->getLabel(),
                             __('fields.date_of_birth')    => et_date($application->applicant?->date_of_birth),
                             __('fields.nationality')      => $application->applicant?->nationality,
-                            __('fields.ethnicity')        => $application->applicant?->ethnicity,
                             __('fields.national_id')      => $canViewSensitive ? $application->applicant?->national_id : __('dashboard.restricted'),
                             __('fields.phone')            => $canViewSensitive ? $application->applicant?->phone : __('dashboard.restricted'),
                             __('fields.alternative_phone')=> $canViewSensitive ? $application->applicant?->alternative_phone : __('dashboard.restricted'),

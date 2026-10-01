@@ -29,6 +29,7 @@ class StoreVacancyAnnouncementRequest extends FormRequest
             'subject' => ['required', 'string', 'max:255'],
             'content' => ['nullable', 'string'],
             'status' => ['required', 'in:draft,published'],
+            'exam_required' => ['sometimes', 'boolean'],
             'published_at' => ['nullable', 'date', Rule::when($this->input('_publish_mode') === 'schedule', ['required', 'after:now'])],
         ];
     }

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     $this->seed(RolesAndPermissionsSeeder::class);
+    // Registration is only open while a recruitment announcement accepts applications.
+    openRecruitmentWindow();
     Storage::fake('local');
 });
 

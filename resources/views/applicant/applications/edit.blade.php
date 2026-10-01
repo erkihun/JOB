@@ -12,6 +12,11 @@
                ?: $application->vacancy->getTranslation('title', 'en', false) }}
             · {{ $application->reference_number }}
         </p>
+        <p class="mt-3 rounded-xl border border-brand/20 bg-brand-muted/60 px-4 py-3 text-sm font-semibold text-brand-dark" role="status">
+            {{ $application->isReopened()
+                ? __('recruitment.applicant.reopened_until', ['date' => et_date($application->reopened_until, 'M d, Y')])
+                : __('recruitment.applicant.editable_until', ['date' => et_date($application->vacancy->announcement->closing_date, 'M d, Y')]) }}
+        </p>
     </div>
 
     {{-- Application Fields Form --}}

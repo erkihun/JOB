@@ -258,7 +258,7 @@
                 $nav[] = ['route'=>'admin.roles.index','label'=>__('menus.roles'),'match'=>'admin.roles.*',
                     'icon'=>'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'];
         }
-        if ($canAnyPerm(['settings.view','audit.view'])) {
+        if ($canAnyPerm(['settings.view','audit.view','backups.view'])) {
             $nav[] = 'system';
             if ($canPerm('settings.view')) {
                 $nav[] = ['route'=>'admin.settings.index',   'label'=>__('menus.settings'),   'match'=>'admin.settings.*',
@@ -266,6 +266,9 @@
                 $nav[] = ['route'=>'admin.hero-sliders.index','label'=>__('menus.hero_slider'),'match'=>'admin.hero-sliders.*',
                     'icon'=>'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'];
             }
+            if ($canPerm('backups.view'))
+                $nav[] = ['route'=>'admin.backups.index','label'=>__('menus.backups'),'match'=>'admin.backups.*',
+                    'icon'=>'M4 7v10c0 2.2 3.6 4 8 4s8-1.8 8-4V7M4 7c0 2.2 3.6 4 8 4s8-1.8 8-4M4 7c0-2.2 3.6-4 8-4s8 1.8 8 4m0 5c0 2.2-3.6 4-8 4s-8-1.8-8-4'];
             if ($canPerm('audit.view'))
                 $nav[] = ['route'=>'admin.audit-logs.index','label'=>__('menus.audit_logs'),'match'=>'admin.audit-logs.*',
                     'icon'=>'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'];
@@ -622,6 +625,11 @@
     <main class="mx-auto w-full max-w-360 flex-1 px-4 py-6 sm:px-6 lg:px-8">
         @yield('content')
     </main>
+
+    {{-- Page scripts live inside the frame so fast navigation (which swaps only this
+         frame and re-runs its scripts) defines component factories such as
+         ethiopianDatepicker() before Alpine initialises the new page. --}}
+    @stack('scripts')
     </div>
 </div>
 
@@ -798,7 +806,5 @@ function adminShell() {
     window.addEventListener('popstate', () => visit(window.location.href, false));
 })();
 </script>
-
-@stack('scripts')
 </body>
 </html>

@@ -13,10 +13,10 @@ return [
     'announcement_has_vacancies' => 'የሥራ መደቦች ያሉትን ማስታወቂያ መሰረዝ አይቻልም።',
     'not_accepting_applications' => 'ይህ ማስታወቂያ በአሁኑ ጊዜ ማመልከቻ አይቀበልም።',
     // Public-facing labels
-    'job_vacancies' => 'የስራ ክፍት ቦታዎች',
+    'job_vacancies' => 'የሥራ ክፍት ቦታዎች',
     'apply_now' => 'አሁን ያመልክቱ',
     'view_details' => 'ዝርዝር ይመልከቱ',
-    'job_title' => 'የስራ ዓይነት',
+    'job_title' => 'የሥራ ዓይነት',
     'already_applied' => 'ለዚህ ክፍት ቦታ አስቀድሞ አመልክተዋል።',
     'deadline_passed' => 'የማመልከቻ የጊዜ ገደብ አልፏል።',
     'vacancy_not_open' => 'ይህ ክፍት ቦታ ለማመልከቻ ክፍት አይደለም።',
@@ -27,7 +27,7 @@ return [
     'required_documents' => 'የሚያስፈልጉ ሰነዶች',
 
     // Shared field labels (admin + public)
-    'vacancy' => 'ክፍት ስራ',
+    'vacancy' => 'ክፍት ሥራ',
     'code' => 'ኮድ',
     'title' => 'ርዕስ',
     'status' => 'ሁኔታ',
@@ -39,7 +39,7 @@ return [
     'number_of_positions' => 'ተፈላጊ ብዛት',
     'opening_date' => 'መክፈቻ ቀን',
     'closing_date' => 'መዝጊያ ቀን',
-    'description' => 'የስራ መግለጫ',
+    'description' => 'የሥራ መግለጫ',
     'requirements' => 'መስፈርቶች',
     'qualification_requirements' => 'የብቃት መስፈርቶች',
     'field_of_study' => 'የትምህርት መስክ',
@@ -52,8 +52,8 @@ return [
     // Admin form section headings
     'basic_info' => 'መሰረታዊ መረጃ',
     'details' => 'ዝርዝሮች',
-    'create_vacancy' => 'ክፍት ስራ ፍጠር',
-    'edit_vacancy' => 'ክፍት ስራ አርትዕ',
+    'create_vacancy' => 'ክፍት ሥራ ፍጠር',
+    'edit_vacancy' => 'ክፍት ሥራ አርትዕ',
 
     // Vacancy detail page
     'detail_max' => 'ከፍተኛ',

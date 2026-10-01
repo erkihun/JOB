@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\EmploymentType;
 use App\Enums\VacancyStatus;
 use App\Models\Concerns\HasOrderedUuid;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -68,10 +69,7 @@ class Vacancy extends Model
     {
         return $query->where('vacancies.status', VacancyStatus::Open)
             ->whereHas('announcement', fn (Builder $announcement) => $announcement
-                ->whereNull('deleted_at')->where('status', 'published')
-                ->where('published_at', '<=', now())
-                ->whereDate('opening_date', '<=', today())
-                ->whereDate('closing_date', '>=', today()));
+                ->whereNull('deleted_at')->acceptingApplications());
     }
 
     public function institution(): BelongsTo
@@ -105,24 +103,30 @@ class Vacancy extends Model
         return $this->hasMany(ExamInterviewSchedule::class);
     }
 
+    /** Open position under an announcement that is accepting applications right now. */
     public function isOpen(): bool
     {
         return $this->status === VacancyStatus::Open
-            && $this->announcement?->isPublished()
-            && $this->announcement->opening_date !== null
-            && $this->announcement->closing_date !== null
-            && now()->gte($this->announcement->opening_date->copy()->startOfDay())
-            && now()->lte($this->announcement->closing_date->copy()->endOfDay());
+            && $this->announcement !== null
+            && ! $this->announcement->trashed()
+            && app(RecruitmentTimelineService::class)->isOpen($this->announcement);
     }
 
+    /** The parent announcement's closing day has ended (or it has no period). */
     public function isPastDeadline(): bool
     {
         return $this->announcement?->closing_date === null
-            || now()->gt($this->announcement->closing_date->copy()->endOfDay());
+            || app(RecruitmentTimelineService::class)->hasApplicationPeriodEnded($this->announcement);
     }
 
     public function canAcceptApplications(): bool
     {
-        return $this->isOpen() && ! $this->isPastDeadline();
+        return app(RecruitmentTimelineService::class)->canSubmitApplication($this);
+    }
+
+    /** Translation key explaining why applications are refused (null when accepted). */
+    public function applicationBlockReason(): ?string
+    {
+        return app(RecruitmentTimelineService::class)->applicationSubmissionViolation($this);
     }
 }

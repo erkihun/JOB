@@ -1,6 +1,8 @@
 @php
     $isEdit = isset($announcement);
     $isAm = app()->getLocale() === 'am';
+    // Past "published" the stage moves only through the lifecycle actions on the announcement page.
+    $lifecycleLocked = $isEdit && ! in_array($announcement->status, ['draft', 'published'], true);
     $currentStatus = old('status', $announcement->status ?? 'draft');
     $existingPublishedAt = $isEdit ? $announcement->published_at : null;
 
@@ -100,6 +102,14 @@
         <section class="card" aria-labelledby="ann-publish">
             <h2 id="ann-publish" class="card-title border-b border-gray-100 px-5 py-4">{{ __('messages.ann_publishing') }}</h2>
             <div class="space-y-3 p-5">
+                @if($lifecycleLocked)
+                <input type="hidden" name="status" value="published">
+                <p class="flex items-center justify-between gap-3 text-sm">
+                    <span class="text-gray-600">{{ __('recruitment.current_stage') }}</span>
+                    <x-admin.status :tone="$announcement->stage()->tone()" :label="$announcement->stage()->label()" />
+                </p>
+                <a href="{{ route('admin.announcements.show', $announcement) }}" class="btn btn-secondary btn-sm w-full justify-center">{{ __('recruitment.lifecycle') }}</a>
+                @else
                 <input type="hidden" name="status" :value="mode === 'draft' ? 'draft' : 'published'" value="{{ $currentStatus }}">
                 @foreach([
                     'draft'    => [__('messages.draft'), __('messages.ann_mode_draft_hint'), 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'],
@@ -140,6 +150,7 @@
                     @endif
                     @error('published_at')<p class="form-error">{{ $message }}</p>@enderror
                 </div>
+                @endif
             </div>
         </section>
 
@@ -150,6 +161,16 @@
                 <p class="mt-0.5 text-xs text-gray-600">{{ __('messages.ann_period_hint') }}</p>
             </div>
             <div class="space-y-4 p-5">
+                @if($datesLocked ?? false)
+                    {{-- Published: the period is read-only; it only moves via "Extend deadline". --}}
+                    <dl class="space-y-2 text-sm">
+                        <div class="flex justify-between gap-3"><dt class="text-gray-600">{{ __('vacancies.opening_date') }}</dt><dd class="font-semibold text-gray-900">{{ et_date($announcement->opening_date, 'M d, Y') }}</dd></div>
+                        <div class="flex justify-between gap-3"><dt class="text-gray-600">{{ __('vacancies.closing_date') }}</dt><dd class="font-semibold text-gray-900">{{ et_date($announcement->closing_date, 'M d, Y') }}</dd></div>
+                    </dl>
+                    <p class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-700">{{ __('recruitment.dates_locked_hint') }}</p>
+                    @error('opening_date')<p class="form-error">{{ $message }}</p>@enderror
+                    @error('closing_date')<p class="form-error">{{ $message }}</p>@enderror
+                @else
                 @foreach(['opening_date', 'closing_date'] as $dateField)
                     @if($isAm)
                         <x-ethiopian-datepicker :name="$dateField" :label="__('vacancies.'.$dateField)" :value="$dateField === 'opening_date' ? $opening : $closing" required />
@@ -172,6 +193,20 @@
                 <p x-show="days !== null && days <= 0" x-cloak class="rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700" role="alert">
                     {{ __('messages.ann_closing_before_opening') }}
                 </p>
+                @endif
+
+                @php $examLocked = $isEdit && $announcement->lifecycleStatus()->hasStartedAssessment(); @endphp
+                <div class="border-t border-gray-100 pt-4">
+                    <input type="hidden" name="exam_required" value="0" @disabled($examLocked)>
+                    <label class="flex items-start gap-3 text-sm">
+                        <input type="checkbox" name="exam_required" value="1" @checked(old('exam_required', $announcement->exam_required ?? true)) @disabled($examLocked)
+                               class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand">
+                        <span>
+                            <span class="block font-semibold text-gray-900">{{ __('recruitment.exam_required') }}</span>
+                            <span class="block text-xs text-gray-600">{{ __('recruitment.exam_required_hint') }}</span>
+                        </span>
+                    </label>
+                </div>
             </div>
         </section>
 

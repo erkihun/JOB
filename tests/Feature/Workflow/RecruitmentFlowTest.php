@@ -23,13 +23,13 @@ beforeEach(function (): void {
     Queue::fake();
 });
 
-function flowSchedule(Application $application, ExamInterviewType $type): ExamInterviewSchedule
+function flowSchedule(Application $application, ExamInterviewType $type, int $daysAhead = 7): ExamInterviewSchedule
 {
     return ExamInterviewSchedule::create([
         'vacancy_id' => $application->vacancy_id,
         'title' => $type->label().' Schedule',
         'type' => $type,
-        'date' => now()->addWeek()->toDateString(),
+        'date' => now()->addDays($daysAhead)->toDateString(),
         'start_time' => '09:00',
         'end_time' => '11:00',
         'venue' => 'Main Hall',
@@ -59,7 +59,7 @@ function flowApplicantApplication(ApplicationStatus $status): array
 // ── Screening → applicant is informed ────────────────────────────────────────
 
 test('screening decisions notify the applicant', function (ScreeningDecision $decision, string $type): void {
-    $application = Application::factory()->create(['status' => ApplicationStatus::Submitted]);
+    $application = Application::factory()->afterDeadline()->create(['status' => ApplicationStatus::Submitted]);
 
     app(ReviewApplicationAction::class)->handle(
         $application, User::factory()->admin()->create(), $decision, 'Please upload a clearer degree certificate.',
@@ -128,11 +128,12 @@ test('a shortlisted application cannot be moved to another vacancy', function ()
     $originalVacancy = $application->vacancy_id;
     $other = Vacancy::factory()->open()->create();
 
+    // Past screening the application is read-only altogether, so the switch is refused.
     $this->actingAs($user)->put(route('applicant.applications.update', $application), [
         'field_of_study' => 'CS',
         'graduation_date' => now()->subYears(2)->toDateString(),
         'vacancy_id' => $other->id,
-    ])->assertSessionHasErrors('vacancy_id');
+    ])->assertForbidden();
 
     expect($application->refresh()->vacancy_id)->toBe($originalVacancy);
 });
@@ -164,6 +165,8 @@ test('a late exam result does not overwrite a recorded final decision', function
     $application = Application::factory()->create(['status' => ApplicationStatus::PassedScreening]);
     $schedule = flowSchedule($application, ExamInterviewType::Exam);
     $record = app(AssignApplicantsToScheduleAction::class)->handle($schedule, [$application])->first();
+    // The exam is completed before any final decision can be recorded.
+    app(RecordExamInterviewResultAction::class)->handle($record, 'passed', 80.0);
 
     $this->actingAs(User::factory()->admin()->create())
         ->post(route('admin.final-results.store', $application), [
@@ -200,7 +203,7 @@ test('final result form is pre-filled with the recorded exam and interview score
     $examRecord = app(AssignApplicantsToScheduleAction::class)->handle($exam, [$application])->first();
     app(RecordExamInterviewResultAction::class)->handle($examRecord, 'passed', 81.5);
 
-    $interview = flowSchedule($application, ExamInterviewType::Interview);
+    $interview = flowSchedule($application, ExamInterviewType::Interview, daysAhead: 8);
     $interviewRecord = app(AssignApplicantsToScheduleAction::class)->handle($interview, [$application->refresh()])->first();
     app(RecordExamInterviewResultAction::class)->handle($interviewRecord, 'passed', 92.0);
 

@@ -11,6 +11,7 @@ use App\Enums\ApplicationStatus;
 use App\Enums\ExamInterviewType;
 use App\Enums\NotificationType;
 use App\Enums\ScreeningDecision;
+use App\Exceptions\RecruitmentRuleException;
 use App\Models\ApplicantNotification;
 use App\Models\Application;
 use App\Models\AuditLog;
@@ -31,10 +32,11 @@ function phase5Application(ApplicationStatus $status = ApplicationStatus::Passed
     return Application::factory()->create(['status' => $status]);
 }
 
-function phase5Schedule(ExamInterviewType $type = ExamInterviewType::Exam): ExamInterviewSchedule
+/** A session for the application's own position (the recruitment period has closed). */
+function phase5Schedule(ExamInterviewType $type = ExamInterviewType::Exam, ?Application $for = null): ExamInterviewSchedule
 {
     return ExamInterviewSchedule::create([
-        'vacancy_id' => Vacancy::factory()->open()->create()->id,
+        'vacancy_id' => $for?->vacancy_id ?? Vacancy::factory()->pastDeadline()->create()->id,
         'title' => $type->label().' Schedule',
         'type' => $type,
         'date' => now()->addWeek()->toDateString(),
@@ -49,18 +51,18 @@ function phase5Schedule(ExamInterviewType $type = ExamInterviewType::Exam): Exam
 test('only passed applicants can be assigned to exam schedule', function (): void {
     Queue::fake();
     $application = phase5Application(ApplicationStatus::FailedScreening);
-    $schedule = phase5Schedule(ExamInterviewType::Exam);
+    $schedule = phase5Schedule(ExamInterviewType::Exam, $application);
 
     app(AssignApplicantsToScheduleAction::class)->handle($schedule, [$application]);
-})->throws(InvalidArgumentException::class);
+})->throws(RecruitmentRuleException::class, 'Applicant is not eligible for this stage.');
 
 test('only passed applicants can be assigned to interview schedule', function (): void {
     Queue::fake();
-    $application = phase5Application(ApplicationStatus::Submitted);
-    $schedule = phase5Schedule(ExamInterviewType::Interview);
+    $application = Application::factory()->afterDeadline()->create(['status' => ApplicationStatus::Submitted]);
+    $schedule = phase5Schedule(ExamInterviewType::Interview, $application);
 
     app(AssignApplicantsToScheduleAction::class)->handle($schedule, [$application]);
-})->throws(InvalidArgumentException::class);
+})->throws(RecruitmentRuleException::class, 'Applicant is not eligible for this stage.');
 
 test('unauthorized user cannot create schedule', function (): void {
     $user = User::factory()->create();
@@ -82,7 +84,8 @@ test('unauthorized user cannot create schedule', function (): void {
 test('authorized user can create exam schedule', function (): void {
     $user = User::factory()->create();
     $user->givePermissionTo('exams.create');
-    $vacancy = Vacancy::factory()->open()->create();
+    // Exams are scheduled after the application period has closed.
+    $vacancy = Vacancy::factory()->pastDeadline()->create();
 
     $schedule = app(CreateExamInterviewScheduleAction::class)->handle(
         vacancy: $vacancy,
@@ -244,7 +247,7 @@ test('exam invitation notification is created', function (): void {
 
 test('interview invitation notification is created', function (): void {
     Queue::fake();
-    $application = phase5Application();
+    $application = phase5Application(ApplicationStatus::ExamCompleted);
     $schedule = ExamInterviewSchedule::create([
         'vacancy_id' => $application->vacancy_id,
         'title' => 'Interview',
@@ -332,7 +335,7 @@ test('dashboard requires dashboard view permission', function (): void {
 
 test('audit log is created when screening status changes', function (): void {
     $officer = User::factory()->screeningOfficer()->create();
-    $application = phase5Application(ApplicationStatus::Submitted);
+    $application = Application::factory()->afterDeadline()->create(['status' => ApplicationStatus::Submitted]);
 
     $this->actingAs($officer);
 

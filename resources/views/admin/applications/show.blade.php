@@ -5,21 +5,28 @@
 @php
     $applicant = $application->applicant;
     $restricted = __('dashboard.restricted');
+    // Recruitment data as captured with this application (frozen after the deadline),
+    // so later profile edits never rewrite what was judged.
+    $hasSnapshot = ! empty($application->profile_snapshot);
+    $snap = fn (string $key) => $application->snapshotValue($key);
+    $gender = \App\Enums\Gender::tryFrom((string) $snap('gender'));
+    $level = \App\Enums\EducationLevel::tryFrom((string) $snap('education_level'));
+    $dob = $snap('date_of_birth');
     $personal = [
-        __('fields.gender')            => $applicant?->gender?->getLabel(),
-        __('fields.date_of_birth')     => et_date($applicant?->date_of_birth),
+        __('fields.gender')            => $gender?->getLabel(),
+        __('fields.date_of_birth')     => $dob ? et_date(\Illuminate\Support\Carbon::parse($dob)) : null,
         __('fields.national_id')       => $canViewSensitive ? $applicant?->national_id : $restricted,
-        __('fields.nationality')       => $applicant?->nationality,
-        __('fields.phone')             => $canViewSensitive ? $applicant?->phone : $restricted,
-        __('fields.email')             => $canViewSensitive ? $applicant?->email : $restricted,
-        __('fields.disability_status') => $applicant?->disability_status ? __('applicant.disability_yes') : __('applicant.disability_no'),
+        __('fields.nationality')       => $snap('nationality'),
+        __('fields.phone')             => $canViewSensitive ? $snap('phone') : $restricted,
+        __('fields.email')             => $canViewSensitive ? $snap('email') : $restricted,
+        __('fields.disability_status') => $snap('disability_status') ? __('applicant.disability_yes') : __('applicant.disability_no'),
     ];
     $education = [
-        __('fields.education_level') => $applicant?->education_level?->getLabel(),
-        __('fields.field_of_study')  => $application->field_of_study ?: $applicant?->field_of_study,
-        __('fields.university_name') => $applicant?->university_name,
-        __('fields.graduation_year') => $applicant?->graduation_year,
-        __('fields.gpa')             => $application->cgpa ?? $applicant?->gpa,
+        __('fields.education_level') => $level?->getLabel(),
+        __('fields.field_of_study')  => $application->field_of_study ?: $snap('field_of_study'),
+        __('fields.university_name') => $snap('university_name'),
+        __('fields.graduation_year') => $snap('graduation_year'),
+        __('fields.gpa')             => $application->cgpa ?? $snap('gpa'),
     ];
     $docs = $application->documents;
 @endphp
@@ -36,6 +43,11 @@
         <a href="{{ route('admin.screening.review', $application) }}" class="btn btn-primary">{{ __('messages.review_application') }}</a>
         @endcan
     </x-admin.page-header>
+
+    <p class="rounded-xl border px-4 py-3 text-sm {{ $hasSnapshot ? 'border-brand/20 bg-brand-muted/50 text-gray-800' : 'border-amber-200 bg-amber-50 text-amber-900' }}">
+        <strong>{{ __('recruitment.application.snapshot') }}.</strong>
+        {{ $hasSnapshot ? __('recruitment.application.snapshot_hint').' '.__('recruitment.application.snapshot_taken', ['date' => et_date($application->snapshot_taken_at, 'M d, Y H:i')]) : __('recruitment.application.no_snapshot') }}
+    </p>
 
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
         <div class="space-y-6">
@@ -105,6 +117,56 @@
                     @endif
                 </dl>
             </section>
+
+            {{-- Editing lock: administrative lock and time-boxed, audited reopening --}}
+            @canany(['applications.lock', 'applications.unlock'])
+            <section class="card card-body space-y-3" aria-labelledby="lock-heading">
+                <div class="flex items-center justify-between gap-3">
+                    <h2 id="lock-heading" class="card-title">{{ __('recruitment.application.lock') }}</h2>
+                    @if($application->locked_at)
+                        <x-admin.status tone="danger" :label="__('recruitment.application.locked_badge')" />
+                    @elseif($application->isReopened())
+                        <x-admin.status tone="warning" :label="__('recruitment.application.reopened_badge', ['date' => et_date($application->reopened_until, 'M d, Y')])" />
+                    @endif
+                </div>
+                @if($application->locked_at && $application->lock_reason)
+                    <p class="text-xs text-gray-600">{{ et_date($application->locked_at) }} — {{ $application->lock_reason }}</p>
+                @endif
+
+                @can('applications.lock')
+                @if(! $application->locked_at)
+                <form method="POST" action="{{ route('admin.applications.lock', $application) }}" class="space-y-2"
+                      onsubmit="return confirm(@js(__('recruitment.application.lock_hint')))">
+                    @csrf
+                    <label for="lock_reason" class="form-label">{{ __('recruitment.reason') }}</label>
+                    <textarea id="lock_reason" name="lock_reason" rows="2" required minlength="5" maxlength="1000" class="form-textarea">{{ old('lock_reason') }}</textarea>
+                    @error('lock_reason')<p class="form-error">{{ $message }}</p>@enderror
+                    <button type="submit" class="btn btn-secondary btn-sm w-full justify-center">{{ __('recruitment.application.lock') }}</button>
+                </form>
+                @endif
+                @endcan
+
+                @can('applications.unlock')
+                @if($canReopen)
+                <form method="POST" action="{{ route('admin.applications.reopen', $application) }}" class="space-y-2 border-t border-gray-100 pt-3">
+                    @csrf
+                    <p class="text-sm font-semibold text-gray-900">{{ __('recruitment.application.reopen') }}</p>
+                    <p class="text-xs text-gray-600">{{ __('recruitment.application.reopen_hint') }}</p>
+                    <label for="reopened_until" class="form-label">{{ __('recruitment.application.reopen_until') }}</label>
+                    <input type="date" id="reopened_until" name="reopened_until" required
+                           min="{{ today()->addDay()->toDateString() }}" max="{{ today()->addDays(\App\Actions\Applications\ChangeApplicationLockAction::MAX_REOPEN_DAYS)->toDateString() }}"
+                           value="{{ old('reopened_until') }}" class="form-input">
+                    @error('reopened_until')<p class="form-error">{{ $message }}</p>@enderror
+                    <label for="reopen_reason" class="form-label">{{ __('recruitment.reason') }}</label>
+                    <textarea id="reopen_reason" name="reopen_reason" rows="2" required minlength="10" maxlength="1000"
+                              placeholder="{{ __('recruitment.reason_placeholder') }}" class="form-textarea">{{ old('reopen_reason') }}</textarea>
+                    @error('reopen_reason')<p class="form-error">{{ $message }}</p>@enderror
+                    <button type="submit" class="btn btn-secondary btn-sm w-full justify-center">{{ __('recruitment.application.reopen') }}</button>
+                </form>
+                @endif
+                @endcan
+            </section>
+            @endcanany
 
             <section class="card card-body">
                 <h2 class="card-title mb-3">{{ __('messages.screening_history') }}</h2>

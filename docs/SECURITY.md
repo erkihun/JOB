@@ -270,9 +270,9 @@ Address any HIGH or CRITICAL advisories before going live.
 
 ## Operations Security
 
-- Run queue workers continuously for notifications and exports.
-- Run the Laravel scheduler every minute if scheduled tasks are added.
-- Back up the database and `storage/app/` (private disk) regularly.
+- Run queue workers continuously for notifications, exports and backups.
+- Run the Laravel scheduler every minute (backups and recruitment status sync depend on it).
+- Back up the database and private documents with the built-in backups (see below).
 - Restrict file permissions to the web user for `storage/` and `bootstrap/cache/`.
 - Rotate local/default credentials after any staging import.
 - Configure log rotation (`/etc/logrotate.d/jobs`).
@@ -280,6 +280,26 @@ Address any HIGH or CRITICAL advisories before going live.
 - Bind Redis to `127.0.0.1` and set `requirepass`.
 
 ---
+
+## Backups
+
+- **Secrets in `.env` only:** `BACKUP_ENCRYPTION_KEY`, `BACKUP_DISK` and `AWS_*` are never read from or written
+  to the settings table. The settings form accepts only non-secret preferences, and a test asserts this.
+- **Private storage:** backups are written to the non-public `backup_local` disk (`storage/app/backups`,
+  never web-served) or to S3. They are downloaded only through `/admin/settings/backups/{id}/download`, which
+  needs the `backups.download` permission, is audited, and is sent with `Cache-Control: no-store`. Applicants and
+  guests cannot reach any backup route (the admin middleware and permissions block them).
+- **Permissions:** `backups.view`, `backups.settings.manage`, `backups.run`, `backups.download`,
+  `backups.restore`, `backups.delete`. Admins get view, settings, run and download. **Restore and delete are
+  super_admin only**, and also require re-entering the current password plus a TOTP code when MFA is enabled.
+  A restore also requires typing `RESTORE`.
+- **Integrity:** every artifact has a SHA-256 checksum that is verified before restore. Encrypted artifacts use
+  authenticated AES-256-GCM chunks. A restore never writes outside the known document folders (path traversal
+  is rejected) and always takes a pre-restore backup first.
+- **Audit:** every backup action is logged: settings changes, queued/manual runs, downloads, deletions, restore
+  requests, failed re-authentication, and restore success or failure.
+- Database credentials are passed to `mysqldump`/`pg_dump` through environment variables, never on the
+  command line.
 
 ## Reporting Security Issues
 

@@ -8,10 +8,13 @@ use App\Actions\Audit\LogAuditAction;
 use App\Actions\Notifications\SendApplicantNotificationAction;
 use App\Enums\ApplicationStatus;
 use App\Enums\NotificationType;
+use App\Enums\RecruitmentStatus;
 use App\Enums\ScreeningDecision;
 use App\Models\Application;
 use App\Models\ScreeningReview;
 use App\Models\User;
+use App\Services\Recruitment\RecruitmentStateMachine;
+use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Support\Facades\DB;
 
 class ReviewApplicationAction
@@ -19,6 +22,8 @@ class ReviewApplicationAction
     public function __construct(
         private readonly LogAuditAction $auditLogger,
         private readonly SendApplicantNotificationAction $notifications,
+        private readonly RecruitmentTimelineService $timeline,
+        private readonly RecruitmentStateMachine $stateMachine,
     ) {}
 
     public function handle(
@@ -31,6 +36,17 @@ class ReviewApplicationAction
         $newStatus = $this->mapDecisionToStatus($decision);
 
         $review = DB::transaction(function () use ($application, $reviewer, $decision, $remark, $previousStatus, $newStatus): ScreeningReview {
+            // Pass / fail only after the application period has closed; the target
+            // status must be a legal move from where the application stands now.
+            $application->setRawAttributes(Application::whereKey($application->id)->lockForUpdate()->firstOrFail()->getAttributes(), true);
+            $this->timeline->assertCanRecordScreeningDecision($application, $decision);
+            $this->stateMachine->assertApplicationTransition($application, $newStatus, 'decision');
+
+            // The first final decision moves the recruitment into the Screening stage.
+            if ($decision === ScreeningDecision::Passed || $decision === ScreeningDecision::Failed) {
+                $this->stateMachine->advanceTo($application->vacancy->announcement, RecruitmentStatus::Screening);
+            }
+
             $application->update([
                 'status' => $newStatus,
                 'screening_status' => $decision,

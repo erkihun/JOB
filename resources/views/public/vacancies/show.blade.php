@@ -9,7 +9,9 @@
     $loc          = $tr('location');
     $closing      = $vacancy->announcement->closing_date;
     $daysLeft     = (int) today()->diffInDays($closing, false);
-    $isPast       = $daysLeft < 0;
+    $isPast       = $vacancy->isPastDeadline();
+    $isUpcoming   = ! $isPast && app(\App\Services\Recruitment\RecruitmentTimelineService::class)->isUpcoming($vacancy->announcement);
+    $opensOn      = __('recruitment.applicant.opens_on', ['date' => et_date($vacancy->announcement->opening_date, 'M d, Y')]);
     $isUrgent     = ! $isPast && $daysLeft <= 6;
     $institution  = $vacancy->institution;
     $isApplicant  = auth()->check() && auth()->user()->hasRole('applicant');
@@ -202,8 +204,11 @@
                         @if($isPast)
                             <p class="flex items-center gap-2 text-base font-bold text-red-700">
                                 <x-public.icon name="x-circle" class="h-5 w-5" />
-                                {{ __('public.closed') }}
+                                {{ __('recruitment.applicant.closed') }}
                             </p>
+                        @elseif($isUpcoming)
+                            <p class="text-[13px] font-extrabold uppercase tracking-wider text-gray-600">{{ __('recruitment.stage.upcoming') }}</p>
+                            <p class="mt-1 text-lg font-extrabold text-gray-900">{{ $opensOn }}</p>
                         @else
                             <p class="text-[13px] font-extrabold uppercase tracking-wider {{ $isUrgent ? 'text-accent-dark' : 'text-brand-dark' }}">{{ __('public.deadline') }}</p>
                             <p class="mt-1 flex items-baseline gap-2">
@@ -239,6 +244,8 @@
                             </a>
                         @elseif($isPast)
                             <p class="text-sm text-red-700">{{ __('vacancies.deadline_passed') }}</p>
+                        @elseif($isUpcoming)
+                            <div class="rounded-xl bg-gray-50 px-4 py-3 text-center text-sm font-semibold text-gray-800 ring-1 ring-gray-200">{{ $opensOn }}</div>
                         @elseif($canApply)
                             @if(! auth()->check() || $isApplicant)
                             <a href="{{ $applyUrl }}"
