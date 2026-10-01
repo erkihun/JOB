@@ -132,7 +132,11 @@
             </div>
             @endif
 
+            {{-- "submitting" is set on the form's submit event, i.e. after the browser has
+                 started the submission. Setting it in the button's click handler disabled the
+                 button before its default action ran, which cancelled the submit. --}}
             <form method="POST" action="{{ route('applicant.register') }}" enctype="multipart/form-data" novalidate
+                  @submit="submitting = true" @pageshow.window="submitting = false"
                   class="overflow-hidden rounded-2xl border border-gray-200 bg-white">
                 @csrf
 
@@ -486,7 +490,7 @@
                             <x-public.icon name="arrow-left" class="h-4 w-4" />
                             {{ __('applicant.step_back') }}
                         </button>
-                        <button type="submit" :disabled="!confirmed || submitting" @click="submitting = confirmed"
+                        <button type="submit" :disabled="!confirmed || submitting"
                                 class="inline-flex h-12 items-center gap-2 rounded-xl bg-accent-dark px-6 text-[15px] font-extrabold text-white transition hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50">
                             <span x-show="!submitting">{{ __('applicant.register_button') }}</span>
                             <span x-show="submitting" x-cloak>{{ __('applicant.submitting') }}</span>

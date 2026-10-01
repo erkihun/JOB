@@ -163,3 +163,12 @@ test('ethnicity is no longer collected or stored', function (): void {
         ->assertDontSee('ብሔር')
         ->assertSee('ዜግነት');
 });
+
+test('the register button does not disable itself before the form submits', function (): void {
+    // Disabling a submit button inside its own click handler cancels the browser's
+    // submission (the button stayed on "creating your account…" and nothing was sent).
+    $html = $this->get(route('applicant.register'))->assertOk()->getContent();
+
+    expect($html)->toContain('@submit="submitting = true"')
+        ->not->toMatch('/<button[^>]*type="submit"[^>]*@click="submitting/');
+});
