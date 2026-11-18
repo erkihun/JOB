@@ -9,11 +9,11 @@ use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Session\TokenMismatchException;
 use PragmaRX\Google2FALaravel\Middleware as TwoFactorMiddleware;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 use Spatie\Permission\Middleware\RoleOrPermissionMiddleware;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -39,15 +39,21 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // When a session expires the CSRF token becomes stale and the next form
-        // submission throws TokenMismatchException (HTTP 419). Redirect the user
-        // to the appropriate login page with a friendly message instead of showing
-        // an error page.
-        $exceptions->render(function (TokenMismatchException $e, $request) {
-            $redirect = $request->is('admin/*')
-                ? redirect()->route('login')
-                : redirect()->route('login');
+        // Laravel converts TokenMismatchException to a 419 before render callbacks run.
+        $exceptions->render(function (HttpException $e, $request) {
+            if ($e->getStatusCode() !== 419 || $request->expectsJson()) {
+                return null;
+            }
 
-            return $redirect->with('warning', 'Your session expired. Please log in again.');
+            // CSRF verification runs before SetLocale in the web group.
+            app(SetLocale::class)->handle($request, fn () => response()->noContent());
+
+            if ($request->user()) {
+                return back()
+                    ->withInput($request->except(['_token', 'password', 'password_confirmation', 'current_password', 'one_time_password', 'recovery_code', 'otp']))
+                    ->with('warning', __('auth.page_expired'));
+            }
+
+            return redirect()->route('login')->with('warning', __('auth.session_expired'));
         });
     })->create();

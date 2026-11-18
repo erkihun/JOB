@@ -42,14 +42,6 @@
 
     {{-- ════════════ Main column ════════════ --}}
     <div class="space-y-6">
-        @if($errors->any())
-        <div class="alert alert-danger" role="alert">
-            <p class="font-semibold">{{ __('applicant.fix_errors_heading') }}</p>
-            <ul class="mt-1 list-inside list-disc text-sm">
-                @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-            </ul>
-        </div>
-        @endif
 
         <section class="card" aria-labelledby="ann-details">
             <div class="border-b border-gray-100 px-5 py-4 sm:px-6">

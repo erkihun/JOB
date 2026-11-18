@@ -561,4 +561,6 @@ return [
     'ann_empty_hint' => 'Create an announcement, then add its vacancies.',
     // Admin UI
     'dash_registered' => 'Registered on the careers portal',
+
+    'fix_errors' => 'Please fix the following errors:',
 ];

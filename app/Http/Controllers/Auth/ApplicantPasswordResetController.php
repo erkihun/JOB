@@ -65,7 +65,8 @@ class ApplicantPasswordResetController extends Controller
         $email = session('applicant_password_reset_email');
 
         if (! $email) {
-            return redirect()->route('applicant.password.request');
+            return redirect()->route('applicant.password.request')
+                ->withErrors(['email' => __('auth.reset_expired')]);
         }
 
         $record = PasswordResetOtp::where('email', $email)
@@ -118,7 +119,8 @@ class ApplicantPasswordResetController extends Controller
         $user = User::where('email', $email)->first();
 
         if (! $user) {
-            return redirect()->route('applicant.password.request');
+            return redirect()->route('applicant.password.request')
+                ->withErrors(['email' => __('auth.reset_expired')]);
         }
 
         $user->forceFill(['password' => Hash::make($request->password)])->save();

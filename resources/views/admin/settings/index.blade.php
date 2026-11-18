@@ -98,17 +98,6 @@
               class="min-w-0 space-y-5" @input="changed = true" @change="changed = true" @submit="changed = false">
             @csrf @method('PUT')
             <input type="hidden" name="_section" :value="tab" value="{{ $initialTab }}">
-            @if($hasErrors)
-                <div role="alert" class="alert alert-danger">
-                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-                    <div>
-                        <p class="font-semibold">{{ __('settings.correct_errors') }}</p>
-                        <ul class="mt-1 list-inside list-disc">
-                            @foreach($errors->all() as $message)<li>{{ $message }}</li>@endforeach
-                        </ul>
-                    </div>
-                </div>
-            @endif
 
             {{-- Organization --}}
             <fieldset x-show="tab === 'org'" :disabled="tab !== 'org'" class="card" @if($initialTab !== 'org') style="display:none" @endif>

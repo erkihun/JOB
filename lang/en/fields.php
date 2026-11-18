@@ -58,4 +58,6 @@ return [
     'months' => 'months',
     'experience' => 'Experience',
     'experience_summary' => 'Experience summary',
+
+    'applicant_code' => 'Applicant code',
 ];

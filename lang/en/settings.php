@@ -70,6 +70,8 @@ return [
     'mfa_required_for_admins_hint' => 'Admins must configure and pass MFA before using the admin panel.',
     'mfa_required_for_applicants' => 'Require MFA for Applicants',
     'mfa_required_for_applicants_hint' => 'Applicants must configure and pass MFA before using applicant pages.',
+    'mfa_required_roles' => 'Require MFA for specific roles',
+    'mfa_required_roles_hint' => 'Choose the roles that must set up and pass MFA. Selecting any role here overrides the admin and applicant options above.',
     'mfa_methods_allowed' => 'Allowed MFA Methods',
     'mfa_methods_allowed_hint' => 'TOTP authenticator apps are supported.',
     'mfa_method_totp' => 'Authenticator App (TOTP)',

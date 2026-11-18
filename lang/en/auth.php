@@ -71,4 +71,6 @@ return [
     'verify_email_hint' => 'We sent a 6-digit code to your email address. Enter it below to verify your account.',
     'email_verified_success' => 'Email verified successfully. Welcome aboard!',
     'otp_resent' => 'A new verification code has been sent to your email.',
+
+    'page_expired' => 'This page expired before your request could be saved. Please check your details and try again.',
 ];

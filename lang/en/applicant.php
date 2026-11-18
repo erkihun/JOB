@@ -318,4 +318,22 @@ return [
     'track_screening_passed' => 'Screening passed',
     'track_screening_failed' => 'Screening not passed',
     'track_selected' => 'Selected',
+
+
+    // Relative time
+    'just_now' => 'just now',
+    'ago' => 'ago',
+    'from_now' => 'from now',
+    'minute_one' => '1 minute',
+    'minutes_many' => ':n minutes',
+    'hour_one' => '1 hour',
+    'hours_many' => ':n hours',
+    'day_one' => '1 day',
+    'days_many' => ':n days',
+    'week_one' => '1 week',
+    'weeks_many' => ':n weeks',
+    'month_one' => '1 month',
+    'months_many' => ':n months',
+    'year_one' => '1 year',
+    'years_many' => ':n years',
 ];

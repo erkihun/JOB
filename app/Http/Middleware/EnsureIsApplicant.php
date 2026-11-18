@@ -15,7 +15,7 @@ class EnsureIsApplicant
         }
 
         if (! auth()->user()->hasRole('applicant')) {
-            abort(403, 'Access denied. This area is for applicants only.');
+            abort(403, __('auth.not_authorized'));
         }
 
         if (! auth()->user()->isActive()) {

@@ -212,13 +212,13 @@
 </div>
 
 {{-- ═══════════════════════════════════════════════ FLASH TOASTS ══ --}}
-@foreach(['success' => ['check-circle', 'border-green-200 bg-white text-green-800', 'text-green-500', 4000], 'error' => ['alert', 'border-red-200 bg-white text-red-800', 'text-red-500', 6000]] as $flashKey => [$flashIcon, $flashClasses, $flashIconColor, $flashTimeout])
+@foreach(['success' => ['check-circle', 'border-green-200 bg-white text-green-800', 'text-green-500', 4000], 'error' => ['alert', 'border-red-200 bg-white text-red-800', 'text-red-500', 6000], 'warning' => ['alert', 'border-amber-200 bg-white text-amber-900', 'text-amber-500', 0]] as $flashKey => [$flashIcon, $flashClasses, $flashIconColor, $flashTimeout])
 @if(session($flashKey))
 <div class="fixed right-4 top-20 z-60 w-[calc(100%-2rem)] max-w-sm"
-     x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, {{ $flashTimeout }})"
+     x-data="{ show: true }" x-show="show" @if($flashTimeout) x-init="setTimeout(() => show = false, {{ $flashTimeout }})" @endif
      x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0"
      x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-     role="{{ $flashKey === 'error' ? 'alert' : 'status' }}">
+     role="{{ $flashKey === 'success' ? 'status' : 'alert' }}">
     <div class="flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-lg {{ $flashClasses }}">
         <x-public.icon :name="$flashIcon" class="mt-0.5 h-5 w-5 {{ $flashIconColor }}" />
         <span class="flex-1">{{ session($flashKey) }}</span>

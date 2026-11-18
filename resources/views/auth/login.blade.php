@@ -16,12 +16,6 @@
                 <p class="mt-1 text-sm text-gray-500">{{ __('auth.unified_login_hint') }}</p>
             </div>
 
-            @if(session('warning'))
-                <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-                    {{ session('warning') }}
-                </div>
-            @endif
-
             @if($errors->any() && ! $errors->has('email') && ! $errors->has('password'))
                 <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                     {{ $errors->first() }}
