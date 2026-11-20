@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Actions\Applications;
 
 use App\Actions\Audit\LogAuditAction;
+use App\Actions\Notifications\SendApplicantNotificationAction;
 use App\Enums\ApplicationStatus;
+use App\Enums\NotificationType;
 use App\Models\Applicant;
 use App\Models\Application;
 use App\Models\Vacancy;
@@ -23,6 +25,7 @@ class SubmitApplicationAction
         private readonly RecruitmentTimelineService $timeline,
         private readonly ApplicationSnapshotService $snapshots,
         private readonly LogAuditAction $auditLogger,
+        private readonly SendApplicantNotificationAction $notifications,
     ) {}
 
     /**
@@ -37,7 +40,7 @@ class SubmitApplicationAction
         array $data,
         array $files = [],
     ): Application {
-        return DB::transaction(function () use ($applicant, $vacancy, $data, $files): Application {
+        $application = DB::transaction(function () use ($applicant, $vacancy, $data, $files): Application {
             $vacancy->refresh();
             $vacancy->setRelation('announcement', $vacancy->announcement()->lockForUpdate()->first());
             // Re-verify the window inside the transaction, against the row-locked parent
@@ -84,5 +87,28 @@ class SubmitApplicationAction
 
             return $application;
         });
+
+        $this->sendConfirmation($applicant, $application);
+
+        return $application;
+    }
+
+    /**
+     * Confirms receipt to the applicant once the application is committed. The
+     * submission has already succeeded at this point, so a notification problem
+     * is reported rather than surfaced to the applicant.
+     */
+    private function sendConfirmation(Applicant $applicant, Application $application): void
+    {
+        try {
+            $this->notifications->handle(
+                applicant: $applicant,
+                type: NotificationType::ApplicationSubmitted,
+                application: $application,
+                channel: $applicant->email ? 'email' : 'in_system',
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }

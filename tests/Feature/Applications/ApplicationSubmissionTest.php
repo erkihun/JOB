@@ -3,14 +3,18 @@
 declare(strict_types=1);
 
 use App\Enums\ApplicationStatus;
+use App\Enums\NotificationType;
 use App\Models\Applicant;
+use App\Models\ApplicantNotification;
 use App\Models\ApplicantProfileDocument;
 use App\Models\Application;
 use App\Models\User;
 use App\Models\Vacancy;
 use App\Models\VacancyDocument;
+use App\Notifications\TemplatedApplicantNotification;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
@@ -687,4 +691,29 @@ test('applicant can update their profile', function () {
         'id' => $applicant->id,
         'full_name' => 'Updated Name',
     ]);
+});
+
+test('submitting an application emails a confirmation with the reference number', function () {
+    Notification::fake();
+    $user = User::factory()->asApplicant()->create();
+    $applicant = Applicant::factory()->create(['user_id' => $user->id, 'email' => $user->email]);
+    $vacancy = Vacancy::factory()->open()->create();
+
+    $this->actingAs($user)->post(route('applicant.applications.store', $vacancy), [
+        'field_of_study' => 'Accounting',
+        'graduation_date' => now()->subYears(3)->toDateString(),
+    ])->assertSessionHasNoErrors();
+
+    $application = Application::where('applicant_id', $applicant->id)->sole();
+    $record = ApplicantNotification::where('application_id', $application->id)->sole();
+
+    expect($record->type)->toBe(NotificationType::ApplicationSubmitted)
+        ->and($record->channel)->toBe('email')
+        ->and($record->message)->toContain($application->reference_number);
+
+    Notification::assertSentTo(
+        $user,
+        TemplatedApplicantNotification::class,
+        fn ($n, array $channels) => in_array('mail', $channels, true),
+    );
 });
