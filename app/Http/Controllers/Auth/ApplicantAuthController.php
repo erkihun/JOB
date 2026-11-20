@@ -76,7 +76,15 @@ class ApplicantAuthController extends Controller
             'otp' => Hash::make($otp),
             'expires_at' => now()->addMinutes(10),
         ]);
-        $user->notify(new PasswordResetOtpNotification($otp));
+        try {
+            $user->notify(new PasswordResetOtpNotification($otp, PasswordResetOtpNotification::PURPOSE_VERIFY));
+        } catch (\Throwable $e) {
+            // The account is already created; let the applicant use "Resend code" instead of a 500.
+            report($e);
+
+            return redirect()->route('applicant.verify-email')
+                ->withErrors(['otp' => __('auth.otp_send_failed')]);
+        }
 
         return redirect()->route('applicant.verify-email');
     }

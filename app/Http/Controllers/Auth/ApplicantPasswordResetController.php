@@ -40,7 +40,12 @@ class ApplicantPasswordResetController extends Controller
                 'expires_at' => now()->addMinutes(10),
             ]);
 
-            $user->notify(new PasswordResetOtpNotification($otp));
+            try {
+                $user->notify(new PasswordResetOtpNotification($otp));
+            } catch (\Throwable $e) {
+                // Logged for the operator; the response stays generic so it cannot reveal which emails exist.
+                report($e);
+            }
         }
 
         session(['applicant_password_reset_email' => $request->email]);

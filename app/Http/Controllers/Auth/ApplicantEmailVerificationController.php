@@ -65,7 +65,13 @@ class ApplicantEmailVerificationController extends Controller
             'otp' => Hash::make($otp),
             'expires_at' => now()->addMinutes(10),
         ]);
-        $user->notify(new PasswordResetOtpNotification($otp));
+        try {
+            $user->notify(new PasswordResetOtpNotification($otp, PasswordResetOtpNotification::PURPOSE_VERIFY));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->withErrors(['otp' => __('auth.otp_send_failed')]);
+        }
 
         return back()->with('info', __('auth.otp_resent'));
     }

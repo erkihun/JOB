@@ -33,7 +33,7 @@
 
 <!-- Hidden inbox preview text -->
 <div style="display:none; font-size:1px; color:#f0f4f8; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
-    Your password reset code is: {{ $otp }}. Expires in 10 minutes.
+    {{ $preview }}
 </div>
 
 <!-- Outer wrapper -->
@@ -67,7 +67,7 @@
                         </p>
                         <p style="margin:6px 0 0; font-size:11px; font-weight:600;
                                   color:rgba(255,255,255,.65); letter-spacing:2px; text-transform:uppercase;">
-                            Password Reset
+                            {{ $heading }}
                         </p>
                     </td>
                 </tr>

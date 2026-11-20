@@ -8,9 +8,21 @@ use App\Models\Setting;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
+/**
+ * One-time code email, used both for password resets and for verifying a new
+ * applicant's email address. Sent synchronously so the code arrives while the
+ * user is still on the "enter your code" page.
+ */
 class PasswordResetOtpNotification extends Notification
 {
-    public function __construct(private readonly string $otp) {}
+    public const PURPOSE_RESET = 'reset';
+
+    public const PURPOSE_VERIFY = 'verify';
+
+    public function __construct(
+        private readonly string $otp,
+        private readonly string $purpose = self::PURPOSE_RESET,
+    ) {}
 
     /** @return array<string> */
     public function via(): array
@@ -20,18 +32,21 @@ class PasswordResetOtpNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $name = property_exists($notifiable, 'name') ? (string) $notifiable->name : '';
+        $name = (string) ($notifiable->name ?? '');
         $orgName = Setting::get('org.name', config('app.name'));
+        $prefix = $this->purpose === self::PURPOSE_VERIFY ? 'auth.verify_otp_' : 'auth.otp_';
 
         return (new MailMessage)
-            ->subject(__('auth.otp_subject', ['org' => $orgName]))
+            ->subject(__($prefix.'subject', ['org' => $orgName]))
             ->view('emails.password-reset-otp', [
                 'otp' => $this->otp,
                 'orgName' => $orgName,
+                'heading' => __($prefix.'heading'),
+                'preview' => __($prefix.'preview', ['otp' => $this->otp]),
                 'greeting' => __('auth.otp_greeting', ['name' => $name]),
-                'line1' => __('auth.otp_line1'),
+                'line1' => __($prefix.'line1'),
                 'expires' => __('auth.otp_expires'),
-                'ignore' => __('auth.otp_ignore'),
+                'ignore' => __($prefix.'ignore'),
                 'year' => date('Y'),
             ]);
     }
