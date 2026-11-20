@@ -121,19 +121,6 @@
                             </tr>
                         </table>
 
-                        <!-- Ignore notice -->
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-                               style="margin-top:28px;">
-                            <tr>
-                                <td style="background:#fafafa; border-left:3px solid #e2e8f0;
-                                           border-radius:0 8px 8px 0; padding:14px 16px;">
-                                    <p style="margin:0; font-size:13px; color:#94a3b8; line-height:1.6;">
-                                        {{ $ignore }}
-                                    </p>
-                                </td>
-                            </tr>
-                        </table>
-
                     </td>
                 </tr>
 

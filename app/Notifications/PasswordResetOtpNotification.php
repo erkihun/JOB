@@ -46,7 +46,6 @@ class PasswordResetOtpNotification extends Notification
                 'greeting' => __('auth.otp_greeting', ['name' => $name]),
                 'line1' => __($prefix.'line1'),
                 'expires' => __('auth.otp_expires'),
-                'ignore' => __($prefix.'ignore'),
                 'year' => date('Y'),
             ]);
     }

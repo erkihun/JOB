@@ -30,6 +30,7 @@ test('verification email uses verification wording, not password reset', functio
         ->and($html)->toContain('123456')
         ->and($html)->toContain('Selam Haile')
         ->and($html)->toContain(__('auth.verify_otp_line1'))
+        ->and($html)->not->toContain('safely ignore')
         ->and($html)->not->toContain('password reset');
 });
 

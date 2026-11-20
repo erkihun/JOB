@@ -63,7 +63,6 @@ return [
     'otp_greeting' => 'Hello :name,',
     'otp_line1' => 'You requested a password reset. Use the code below:',
     'otp_expires' => 'This code expires in 10 minutes.',
-    'otp_ignore' => 'If you did not request this, you can safely ignore this email.',
     'otp_sent' => 'If your email is registered, a reset code has been sent. Please check your inbox.',
     'otp_heading' => 'Password Reset',
     'otp_preview' => 'Your password reset code is: :otp. Expires in 10 minutes.',
@@ -76,7 +75,6 @@ return [
     'otp_resent' => 'A new verification code has been sent to your email.',
     'verify_otp_subject' => 'Your email verification code — :org',
     'verify_otp_line1' => 'Thank you for registering. Use the code below to verify your email address:',
-    'verify_otp_ignore' => 'If you did not create an account, you can safely ignore this email.',
     'verify_otp_heading' => 'Email Verification',
     'verify_otp_preview' => 'Your email verification code is: :otp. Expires in 10 minutes.',
 
