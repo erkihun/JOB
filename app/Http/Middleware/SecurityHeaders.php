@@ -43,7 +43,10 @@ class SecurityHeaders
      */
     private function applyContentSecurityPolicy(Response $response): void
     {
-        $scriptSrc = "'self' 'unsafe-inline' https://cdn.jsdelivr.net https://maps.googleapis.com https://maps.gstatic.com";
+        // 'unsafe-eval': the standard Alpine.js build compiles x-data/x-on expressions
+        // with new Function(). Dropping it would require Alpine's CSP build and moving
+        // every inline component into Alpine.data() registrations.
+        $scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://maps.googleapis.com https://maps.gstatic.com";
         $styleSrc = "'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com";
         $imgSrc = "'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://*.googleapis.com https://*.gstatic.com https://*.google.com";
         $fontSrc = "'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net";
@@ -64,14 +67,14 @@ class SecurityHeaders
             "frame-ancestors 'self'",
         ];
 
-        $reportUri = env('CSP_REPORT_URI');
+        $reportUri = config('app.csp.report_uri');
         if (is_string($reportUri) && $reportUri !== '') {
             $directives[] = 'report-uri '.$reportUri;
         }
 
         $policy = implode('; ', $directives);
 
-        $header = filter_var(env('CSP_ENFORCE', false), FILTER_VALIDATE_BOOLEAN)
+        $header = filter_var(config('app.csp.enforce', false), FILTER_VALIDATE_BOOLEAN)
             ? 'Content-Security-Policy'
             : 'Content-Security-Policy-Report-Only';
 

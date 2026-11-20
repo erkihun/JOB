@@ -70,16 +70,18 @@ test('content security policy ships in report-only mode by default with locked-d
 });
 
 test('content security policy is enforced when CSP_ENFORCE is enabled', function (): void {
-    putenv('CSP_ENFORCE=true');
-    $_ENV['CSP_ENFORCE'] = 'true';
+    config(['app.csp.enforce' => true]);
 
     $response = $this->get(route('home'));
 
     $response->assertHeader('Content-Security-Policy');
     $response->assertHeaderMissing('Content-Security-Policy-Report-Only');
+});
 
-    putenv('CSP_ENFORCE');
-    unset($_ENV['CSP_ENFORCE']);
+test('content security policy allows eval for Alpine.js expressions', function (): void {
+    $csp = $this->get(route('home'))->headers->get('Content-Security-Policy-Report-Only');
+
+    expect($csp)->toContain("script-src 'self' 'unsafe-inline' 'unsafe-eval'");
 });
 
 test('HSTS header is not sent over plain HTTP', function (): void {

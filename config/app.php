@@ -127,4 +127,19 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Content Security Policy
+    |--------------------------------------------------------------------------
+    |
+    | Read here (not via env() in the middleware) so the values still apply
+    | when the configuration is cached in production.
+    |
+    */
+
+    'csp' => [
+        'enforce' => (bool) env('CSP_ENFORCE', false),
+        'report_uri' => env('CSP_REPORT_URI'),
+    ],
+
 ];
