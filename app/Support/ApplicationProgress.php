@@ -6,6 +6,7 @@ namespace App\Support;
 
 use App\Enums\ApplicationStatus;
 use App\Models\Application;
+use Carbon\CarbonInterface;
 
 /**
  * Turns an application's status into the five-step tracker shown to applicants
@@ -39,7 +40,7 @@ final class ApplicationProgress
      * Each step with its state, a specific label ("Screening passed", "Written exam")
      * and the date it happened or is scheduled, when known.
      *
-     * @return list<array{key: string, label: string, state: 'done'|'current'|'failed'|'pending', date: ?\Carbon\CarbonInterface}>
+     * @return list<array{key: string, label: string, state: 'done'|'current'|'failed'|'pending', date: ?CarbonInterface}>
      */
     public static function steps(Application $application): array
     {

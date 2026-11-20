@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\VacancyStatus;
+use App\Models\RecruitmentAnnouncement;
 use App\Models\User;
 use App\Models\Vacancy;
 use Database\Seeders\RolesAndPermissionsSeeder;
@@ -20,7 +21,7 @@ function vacancyFormPayload(array $overrides = []): array
         'location' => ['en' => 'Addis Ababa'],
         'status' => 'draft',
         'number_of_positions' => 1,
-        'announcement_id' => $overrides['announcement_id'] ?? \App\Models\RecruitmentAnnouncement::factory()->create()->id,
+        'announcement_id' => $overrides['announcement_id'] ?? RecruitmentAnnouncement::factory()->create()->id,
         'requirement_groups_submitted' => 1,
     ], $overrides);
 }

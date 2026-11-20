@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\ExamInterview;
 
-use App\Enums\ExamInterviewType;
 use App\Models\ExamInterviewApplicant;
 use App\Models\ExamInterviewSchedule;
 use Illuminate\Foundation\Http\FormRequest;

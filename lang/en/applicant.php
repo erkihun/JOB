@@ -319,7 +319,6 @@ return [
     'track_screening_failed' => 'Screening not passed',
     'track_selected' => 'Selected',
 
-
     // Relative time
     'just_now' => 'just now',
     'ago' => 'ago',

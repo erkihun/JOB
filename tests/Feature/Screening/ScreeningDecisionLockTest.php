@@ -80,7 +80,7 @@ test('an authorised user can change a decision with a reason', function (): void
     expect($application->status)->toBe(ApplicationStatus::FailedScreening)
         ->and($application->screening_status)->toBe(ScreeningDecision::Failed)
         ->and(ScreeningReview::where('application_id', $application->id)->latest('reviewed_at')->first()->remark)
-            ->toBe('Degree certificate turned out to be invalid.')
+        ->toBe('Degree certificate turned out to be invalid.')
         ->and(AuditLog::where('action', 'screening_decision_changed')->where('record_id', $application->id)->exists())->toBeTrue();
 });
 

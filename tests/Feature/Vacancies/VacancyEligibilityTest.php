@@ -6,6 +6,7 @@ use App\Actions\Vacancies\SyncVacancyRequirementsAction;
 use App\Enums\EducationLevel;
 use App\Models\Applicant;
 use App\Models\Application;
+use App\Models\RecruitmentAnnouncement;
 use App\Models\User;
 use App\Models\Vacancy;
 use App\Services\Eligibility\EligibilityProfile;
@@ -134,7 +135,7 @@ test('vacancy can save multiple requirement groups', function (): void {
         'location' => ['en' => 'Addis Ababa'],
         'status' => 'open',
         'number_of_positions' => 2,
-        'announcement_id' => \App\Models\RecruitmentAnnouncement::factory()->create()->id,
+        'announcement_id' => RecruitmentAnnouncement::factory()->create()->id,
         'requirement_groups_submitted' => 1,
         'requirement_groups' => [
             ['title' => 'Degree holders', 'is_active' => 1, 'requirements' => [
