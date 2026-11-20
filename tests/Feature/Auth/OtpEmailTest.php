@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\User;
 use App\Notifications\PasswordResetOtpNotification;
 use Database\Seeders\RolesAndPermissionsSeeder;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 
 beforeEach(function (): void {
@@ -70,4 +71,40 @@ test('a mail server failure on password reset keeps the generic response', funct
     $this->post(route('applicant.password.email'), ['email' => $user->email])
         ->assertRedirect(route('applicant.password.otp'))
         ->assertSessionHas('info', __('auth.otp_sent'));
+});
+
+test('staff can request a reset code from the shared forgot-password page', function (): void {
+    Notification::fake();
+    $admin = User::factory()->admin()->create();
+
+    $this->post(route('applicant.password.email'), ['email' => $admin->email])
+        ->assertRedirect(route('applicant.password.otp'))
+        ->assertSessionHas('info', __('auth.otp_sent'));
+
+    Notification::assertSentTo($admin, PasswordResetOtpNotification::class);
+});
+
+test('unknown emails get the same response and no email', function (): void {
+    Notification::fake();
+
+    $this->post(route('applicant.password.email'), ['email' => 'nobody@example.com'])
+        ->assertRedirect(route('applicant.password.otp'))
+        ->assertSessionHas('info', __('auth.otp_sent'));
+
+    Notification::assertNothingSent();
+});
+
+test('staff resetting via the shared page must meet the staff password policy', function (): void {
+    $admin = User::factory()->admin()->create();
+    session(['applicant_password_reset_email' => $admin->email, 'applicant_password_reset_token' => 'tok']);
+
+    $this->post(route('applicant.password.reset'), [
+        'token' => 'tok', 'password' => 'short', 'password_confirmation' => 'short',
+    ])->assertSessionHasErrors('password');
+
+    $this->post(route('applicant.password.reset'), [
+        'token' => 'tok', 'password' => 'Very$trongAdmin2026x', 'password_confirmation' => 'Very$trongAdmin2026x',
+    ])->assertRedirect(route('login'));
+
+    expect(Hash::check('Very$trongAdmin2026x', $admin->fresh()->password))->toBeTrue();
 });

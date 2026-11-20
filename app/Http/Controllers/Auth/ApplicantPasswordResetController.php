@@ -29,7 +29,9 @@ class ApplicantPasswordResetController extends Controller
         $user = User::where('email', $request->email)->first();
 
         // Only send for applicant users; success message shown regardless to prevent enumeration
-        if ($user && $user->hasRole('applicant')) {
+        // The shared login page links here for everyone, so staff accounts (any role)
+        // are served too; accounts with no role at all are ignored.
+        if ($user && $user->roles()->exists()) {
             $otp = (string) random_int(100000, 999999);
 
             PasswordResetOtp::where('email', $request->email)->delete();
@@ -107,9 +109,16 @@ class ApplicantPasswordResetController extends Controller
 
     public function resetPassword(Request $request): RedirectResponse
     {
+        // Staff resetting through this shared page still get the stricter staff password policy.
+        $resetUser = User::where('email', (string) session('applicant_password_reset_email'))->first();
+        $policy = app(PasswordPolicyService::class);
+        $passwordRules = $resetUser !== null && ! $resetUser->hasRole('applicant')
+            ? $policy->adminRules()
+            : $policy->applicantRules();
+
         $request->validate([
             'token' => ['required'],
-            'password' => ['required', 'confirmed', ...app(PasswordPolicyService::class)->applicantRules()],
+            'password' => ['required', 'confirmed', ...$passwordRules],
             'password_confirmation' => ['required'],
         ]);
 
