@@ -54,7 +54,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700" for="code">
-                        {{ __('vacancies.code') }} @unless($autoCode ?? false)<span class="text-red-500">*</span>@endunless
+                        {{ __('vacancies.code') }} @unless($autoCode ?? false)<span class="text-red-600">*</span>@endunless
                     </label>
                     @if($autoCode ?? false)
                         <div class="form-input mt-1.5 flex items-center gap-2 bg-gray-50">
@@ -81,7 +81,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700" for="number_of_positions">
-                            {{ __('vacancies.positions') }} <span class="text-red-500">*</span>
+                            {{ __('vacancies.positions') }} <span class="text-red-600">*</span>
                         </label>
                         <input type="number" id="number_of_positions" name="number_of_positions" min="1"
                                value="{{ old('number_of_positions', $vacancy->number_of_positions ?? 1) }}"
@@ -117,7 +117,7 @@
             <x-admin.form-section :title="__('vacancies.section_publishing')" x-data="{ status: '{{ $currentStatus }}', help: {{ \Illuminate\Support\Js::from($statusHelp) }} }">
                 <div>
                     <label class="block text-sm font-medium text-gray-700" for="status">
-                        {{ __('vacancies.status') }} <span class="text-red-500">*</span>
+                        {{ __('vacancies.status') }} <span class="text-red-600">*</span>
                     </label>
                     <select id="status" name="status" x-model="status" class="form-select mt-1.5">
                         @foreach ($statuses as $s)
@@ -129,7 +129,7 @@
 
                 @php $selectedAnnouncement = (string) old('announcement_id', $vacancy->announcement_id ?? ''); @endphp
                 <div x-data="{ selected: @js($selectedAnnouncement) }">
-                    <label for="announcement_id" class="block text-sm font-medium text-gray-700">{{ __('vacancies.announcement') }} <span class="text-red-500">*</span></label>
+                    <label for="announcement_id" class="block text-sm font-medium text-gray-700">{{ __('vacancies.announcement') }} <span class="text-red-600">*</span></label>
                     <select id="announcement_id" name="announcement_id" x-model="selected" required class="form-select mt-1.5">
                         <option value="">{{ __('vacancies.select_announcement') }}</option>
                         @foreach($announcements as $parent)

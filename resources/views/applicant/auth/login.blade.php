@@ -11,7 +11,7 @@
             <div class="mb-8 text-center">
                 @php $orgLogo = \App\Models\Setting::get('org.logo', ''); @endphp
                 @if($orgLogo)
-                    <img src="{{ Storage::url($orgLogo) }}" alt="{{ \App\Models\Setting::get('org.name') }}"
+                    <img src="{{ Storage::url(\App\Support\OptimizedImage::logo($orgLogo)) }}" alt="{{ \App\Models\Setting::get('org.name') }}"
                          class="mx-auto mb-4 h-14 w-auto object-contain">
                 @endif
                 <h1 class="text-2xl font-bold text-gray-900">{{ __('applicant.sign_in') }}</h1>

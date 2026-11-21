@@ -80,6 +80,14 @@ class GenerateReportExportJob implements ShouldQueue
                 ->implode('').'</tr>')
             ->implode('');
 
-        return "<html><body><table border=\"1\" cellpadding=\"4\" cellspacing=\"0\"><thead><tr>{$headerHtml}</tr></thead><tbody>{$rowHtml}</tbody></table></body></html>";
+        // Abyssinica SIL (shipped in public/fonts, OFL-licensed) covers Ethiopic and Latin, so
+        // Amharic names print correctly without any system font installed on the server.
+        // dompdf has no synthetic bold, so the same file is registered for bold headings.
+        $font = e(public_path('fonts/abyssinica/AbyssinicaSIL-Regular.ttf'));
+        $style = "@font-face { font-family: 'Abyssinica SIL'; font-weight: normal; src: url('{$font}') format('truetype'); }"
+            ."@font-face { font-family: 'Abyssinica SIL'; font-weight: bold; src: url('{$font}') format('truetype'); }"
+            ."body { font-family: 'Abyssinica SIL', 'DejaVu Sans', sans-serif; font-size: 9px; }";
+
+        return "<html><head><meta charset=\"UTF-8\"><style>{$style}</style></head><body><table border=\"1\" cellpadding=\"4\" cellspacing=\"0\"><thead><tr>{$headerHtml}</tr></thead><tbody>{$rowHtml}</tbody></table></body></html>";
     }
 }

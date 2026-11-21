@@ -19,7 +19,11 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
-        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <!-- Per-process maintenance flag: backup-restore tests run `artisan down`; with the file
+             driver that wrote storage/framework/down, which every parallel worker (and the local
+             dev server) shares, so unrelated tests randomly got HTTP 503. -->
+        <env name="APP_MAINTENANCE_DRIVER" value="cache"/>
+        <env name="APP_MAINTENANCE_STORE" value="array"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>

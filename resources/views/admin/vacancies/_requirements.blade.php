@@ -90,7 +90,7 @@
                             <div x-show="group.requirements.length > 1" class="mb-2 flex items-center justify-between">
                                 <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-600"
                                       x-text="(ri > 0 ? @js(__('vacancies.and')) + ' · ' : '') + @js(__('vacancies.condition')) + ' ' + (ri + 1)"></span>
-                                <button type="button" @click="removeRequirement(group, ri)" class="text-xs text-gray-400 hover:text-red-600">
+                                <button type="button" @click="removeRequirement(group, ri)" class="text-xs text-gray-500 hover:text-red-600">
                                     {{ __('messages.delete') }}
                                 </button>
                             </div>

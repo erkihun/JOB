@@ -36,7 +36,7 @@
     {{-- Titles --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-            <label class="block text-sm font-medium text-gray-700">{{ __('messages.title') }} (EN) <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-gray-700">{{ __('messages.title') }} (EN) <span class="text-red-600">*</span></label>
             <input type="text" name="title_en"
                    value="{{ old('title_en', $isEdit ? $heroSlider->getTranslation('title', 'en', false) : '') }}"
                    class="form-input mt-1 @error('title_en') form-input-error @enderror">

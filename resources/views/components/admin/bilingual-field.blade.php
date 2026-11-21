@@ -25,7 +25,7 @@
     <div class="flex items-end justify-between gap-3">
         <label :for="'{{ $id }}_' + lang" class="block text-sm font-medium text-gray-700">
             {{ $label }}
-            @if($required)<span class="text-red-500">*</span>@endif
+            @if($required)<span class="text-red-600">*</span>@endif
         </label>
         <div class="inline-flex rounded-lg bg-gray-100 p-0.5 text-xs font-semibold" role="tablist" aria-label="{{ $label }}">
             @foreach(['en' => 'EN', 'am' => 'አማ'] as $code => $tab)

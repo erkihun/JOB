@@ -7,7 +7,9 @@
     <meta name="robots" content="noindex">
     <title>{{ $status }} — {{ trans("errors.$status.title", [], 'en') }}</title>
     <style>
-        body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; box-sizing: border-box; background: #f5f7f7; color: #111827; font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans Ethiopic", "Nyala", sans-serif; }
+        /* Amharic in Abyssinica SIL, as on every other page (Ethiopic code points only). */
+        @font-face { font-family: "Abyssinica SIL"; src: url("/fonts/abyssinica/AbyssinicaSIL-Regular.woff2") format("woff2"), url("/fonts/abyssinica/AbyssinicaSIL-Regular.woff") format("woff"); font-weight: 400 800; font-display: swap; unicode-range: U+1200-137F, U+1380-139F, U+2D80-2DDF, U+AB00-AB2F, U+1E7E0-1E7FF; }
+        body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; box-sizing: border-box; background: #f5f7f7; color: #111827; font-family: "Abyssinica SIL", system-ui, -apple-system, "Segoe UI", "Noto Sans Ethiopic", "Nyala", sans-serif; }
         main { width: 100%; max-width: 30rem; padding: 2.5rem 2rem; box-sizing: border-box; background: #fff; border: 1px solid #e5e7eb; border-radius: 1rem; text-align: center; }
         .status { margin: 0 0 1rem; font-size: .875rem; font-weight: 700; letter-spacing: .08em; color: #4b5563; }
         h1 { margin: 0; font-size: 1.375rem; line-height: 1.3; }

@@ -47,7 +47,7 @@
     <div class="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6 lg:h-17 lg:px-8">
         <a href="{{ route('home') }}" class="flex min-w-0 shrink items-center gap-2.5">
             @if($orgLogo)
-                <img src="{{ Storage::url($orgLogo) }}" alt="" class="h-9 w-auto shrink-0 object-contain">
+                <img src="{{ Storage::url(\App\Support\OptimizedImage::logo($orgLogo)) }}" alt="" class="h-9 w-auto shrink-0 object-contain">
             @else
                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icons['jobs'] }}"/></svg>

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Models\AuditLog;
 use App\Models\Setting;
+use App\Support\UiStyle;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
@@ -55,6 +56,7 @@ class SettingsController extends Controller
         'codes.applicant.prefix', 'codes.applicant.format', 'codes.applicant.padding',
         'results.exam_weight', 'results.interview_weight', 'results.practical_weight',
         'appearance.primary_color', 'appearance.sidebar_color', 'appearance.accent_color', 'appearance.logo_size',
+        'appearance.ui_style',
     ];
 
     public function index(): View
@@ -254,6 +256,7 @@ class SettingsController extends Controller
             'appearance.sidebar_color' => '#1E3A8A',
             'appearance.accent_color' => '#FF6B2B',
             'appearance.logo_size' => 36,
+            'appearance.ui_style' => UiStyle::DEFAULT,
             default => '',
         };
     }

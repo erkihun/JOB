@@ -1,4 +1,9 @@
 @import 'tailwindcss';
+/* Atkinson Hyperlegible Next — the UI typeface for Latin text (designed by the Braille
+   Institute for legibility; the accessibility-first choice for public-sector sites).
+   Self-hosted variable font (weights 200–800) bundled by Vite: no third-party request,
+   no render-blocking stylesheet. unicode-range means only the subsets in use download. */
+@import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
 
 /* Abyssinica SIL — self-hosted, the typeface for ALL Amharic (Ethiopic) text.
    unicode-range limits it to Ethiopic code points, so it can lead every font stack:
@@ -24,10 +29,13 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Abyssinica SIL', 'Public Sans', 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Abyssinica SIL', 'Atkinson Hyperlegible Next Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-serif-am: 'Abyssinica SIL', 'Public Sans', 'Inter', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
-    --font-public: 'Abyssinica SIL', 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-serif-am: 'Abyssinica SIL', 'Atkinson Hyperlegible Next Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-public: 'Abyssinica SIL', 'Atkinson Hyperlegible Next Variable', ui-sans-serif, system-ui, sans-serif;
+    /* Codes, references and IDs: Amharic characters in them still use Abyssinica SIL
+       (unicode-range keeps Latin/digits in the monospace font). */
+    --font-mono: 'Abyssinica SIL', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
     /* ── Brand Colors ──────────────────────────────── */
     --color-brand:        #1A56DB;
@@ -49,6 +57,24 @@
 
 [x-cloak] { display: none !important; }
 
+/* ── Accessibility baseline (applies to every page) ─────────────────────
+   Zero-specificity :where() so any component that styles its own focus or
+   cursor still wins. */
+@layer base {
+    /* Visible keyboard focus on everything interactive (WCAG 2.4.7). Mouse
+       clicks don't trigger :focus-visible, so pointer users see no ring. */
+    :where(a, button, summary, [role='button'], [tabindex]:not([tabindex='-1']), input[type='checkbox'], input[type='radio']):focus-visible {
+        outline: 2px solid var(--color-brand);
+        outline-offset: 2px;
+    }
+    /* Tailwind v4 resets buttons to the default arrow; clickable things should look clickable. */
+    :where(button:not(:disabled), [role='button'], summary, select:not(:disabled), label[for], input[type='checkbox']:not(:disabled), input[type='radio']:not(:disabled), input[type='file']:not(:disabled)) {
+        cursor: pointer;
+    }
+    /* Underlined links keep their underline clear of descenders (Amharic and Latin). */
+    a { text-underline-offset: 0.2em; }
+}
+
 html[lang='am'],
 html[lang='am'] body,
 .lang-am,
@@ -56,7 +82,7 @@ html[lang='am'] body,
     font-family: var(--font-serif-am);
 }
 
-/* Public site: Abyssinica SIL for Amharic, Public Sans for Latin. */
+/* Public site: Abyssinica SIL for Amharic, Atkinson Hyperlegible Next for Latin. */
 html body.public-site,
 html[lang='am'] body.public-site {
     font-family: var(--font-public);
@@ -121,9 +147,16 @@ html.dark .border-gray-300 { border-color: #4b5563; }
 html.dark .text-gray-900 { color: #f9fafb; }
 html.dark .text-gray-800 { color: #e5e7eb; }
 html.dark .text-gray-700 { color: #d1d5db; }
-html.dark .text-gray-600 { color: #9ca3af; }
-html.dark .text-gray-500 { color: #6b7280; }
-html.dark .text-gray-400 { color: #4b5563; }
+/* Secondary text must stay ≥ 4.5:1 on both dark surfaces (#111827 page, #1f2937 card):
+   600 → 7.7:1, 500 → 6.4:1, 400 → 5.8:1 on cards. (Previously 400/500 got darker in
+   dark mode, down to 1.9:1.) */
+html.dark .text-gray-600 { color: #b4bcc8; }
+html.dark .text-gray-500 { color: #a3acb9; }
+html.dark .text-gray-400 { color: #9ca3af; }
+/* Error text / required markers: Tailwind's red-600/700 are ~3:1 on dark cards. */
+html.dark .text-red-600, html.dark .form-required { color: #f87171; }   /* 5.3:1 on #1f2937 */
+html.dark .text-red-700, html.dark .text-red-800, html.dark .form-error,
+html.dark .link-danger { color: #fca5a5; }                               /* 8.1:1 */
 
 /* Hover states */
 html.dark .hover\:bg-gray-50:hover    { background-color: #1f2937; }
@@ -366,7 +399,8 @@ html.dark .btn-secondary { background-color: #1f2937; border-color: #4b5563; col
 html.dark .btn-secondary:hover { background-color: #374151; }
 html.dark .tabs { border-color: #374151; }
 html.dark .tab { color: #d1d5db; }
-html.dark .tab-active { color: #93c5fd; border-color: #93c5fd; }
+/* Follows the admin-chosen brand colour, lightened for dark surfaces. */
+html.dark .tab-active { color: color-mix(in srgb, var(--color-brand) 45%, white); border-color: color-mix(in srgb, var(--color-brand) 45%, white); }
 html.dark .badge-info, html.dark .badge-blue { background-color: rgba(59,130,246,.18); color: #bfdbfe; }
 html.dark .badge-success, html.dark .badge-green { background-color: rgba(34,197,94,.16); color: #bbf7d0; }
 html.dark .badge-danger, html.dark .badge-red { background-color: rgba(239,68,68,.16); color: #fecaca; }
@@ -409,4 +443,139 @@ html.dark .badge-gray { background-color: rgba(148,163,184,.18); color: #e2e8f0;
 
 @media (prefers-reduced-motion: reduce) {
     .scroll-animate { opacity: 1 !important; animation: none !important; }
+    /* Users who ask the OS for less motion get none: no slides, fades or smooth scroll. */
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
+
+/* ── Touch targets ───────────────────────────────────────────────────────
+   On touch screens every button and field is at least 44px tall (WCAG 2.5.5 /
+   Apple HIG). Mouse users keep the compact 32–40px admin density. */
+@media (pointer: coarse) {
+    .btn, .btn-sm, .btn-lg { height: auto; min-height: 2.75rem; }
+    .btn-icon, .btn-sm.btn-icon { min-width: 2.75rem; }
+    .form-input, .form-select { height: 2.75rem; }
+    .filter-bar .btn { height: auto; }
+    .menu-item { min-height: 2.75rem; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   Interface styles: Settings › Appearance › Interface style (App\Support\UiStyle)
+   Set as <html class="ui-style-…"> by partials/admin-theme (a class, not an attribute
+   value: browsers skip class-keyed rules cheaply, attribute values cost ~15% style recalc). "classic" has no rules here:
+   it is the base design above. Styles change shape, depth, type scale and contrast only;
+   colours always come from the admin's colour theme, and dark-mode colours are untouched.
+   Tailwind draws focus rings and ring-1 borders with box-shadow, so shadows below are
+   composed with the ring variables (or only --tw-shadow is changed) to keep them visible.
+   Menus, dropdowns and modals (shadow-lg / shadow-xl) keep their elevation in every style.
+   ══════════════════════════════════════════════════════════════════════════════ */
+html { --ui-ring: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000); }
+
+/* ── Soft UI Evolution ─────────────────────────────────────────────────────── */
+html.ui-style-soft {
+    --ui-shadow: 0 1px 2px rgb(16 24 40 / .04), 0 8px 24px -8px rgb(16 24 40 / .14);
+    --ui-shadow-hover: 0 2px 4px rgb(16 24 40 / .05), 0 16px 32px -12px rgb(16 24 40 / .22);
+}
+html.dark.ui-style-soft {
+    --ui-shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px -8px rgb(0 0 0 / .55);
+    --ui-shadow-hover: 0 2px 4px rgb(0 0 0 / .45), 0 16px 32px -12px rgb(0 0 0 / .65);
+}
+html.ui-style-soft:not(.dark) body { background-color: color-mix(in srgb, var(--color-brand) 3%, #f5f7fa); }
+/* Card-like surfaces: admin primitives + the white, bordered, rounded blocks used on public
+   and applicant pages (inputs and buttons are excluded by element type). */
+html.ui-style-soft :is(.card, .stat, .table-wrap, .filter-bar),
+html.ui-style-soft :is(div, section, article, li, a, aside, form):is(.rounded-lg, .rounded-xl, .rounded-2xl).border.bg-white {
+    border-radius: 1.125rem;
+    border-color: transparent;
+    box-shadow: var(--ui-ring), var(--ui-shadow);
+}
+html.ui-style-soft :is(article, a):is(.rounded-xl, .rounded-2xl).border.bg-white {
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+html.ui-style-soft :is(article, a):is(.rounded-xl, .rounded-2xl).border.bg-white:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ui-ring), var(--ui-shadow-hover);
+}
+html.ui-style-soft :is(.btn, .btn-sm, .btn-lg),
+html.ui-style-soft :is(a, button):is(.rounded-md, .rounded-lg, .rounded-xl):is([class*="bg-brand"], [class*="bg-accent"], [class*="bg-blue-6"], [class*="bg-blue-7"], .admin-theme-primary, .admin-theme-accent) {
+    border-radius: 9999px;
+}
+html.ui-style-soft :is(.form-input, .form-select, .form-textarea),
+html.ui-style-soft :is(input:not([type="checkbox"], [type="radio"], [type="range"]), select, textarea):is(.rounded-md, .rounded-lg) {
+    border-radius: .75rem;
+}
+html.ui-style-soft:not(.dark) :is(.form-input, .form-select, .form-textarea):not(:focus):not(:disabled) { background-color: #f8fafc; }
+html.ui-style-soft :is(.menu, .alert) { border-radius: .875rem; }
+
+/* ── Minimalism & Swiss ────────────────────────────────────────────────────── */
+html.ui-style-swiss:not(.dark) body { background-color: #fff; }
+html.ui-style-swiss :is(.rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl),
+html.ui-style-swiss :is(.card, .stat, .table-wrap, .filter-bar, .menu, .alert, .btn, .btn-sm, .btn-lg, .form-input, .form-select, .form-textarea) {
+    border-radius: .25rem;
+}
+/* Flat: decorative shadows go; rings stay because only --tw-shadow is cleared. */
+html.ui-style-swiss :is(.card, .stat, .shadow-sm, .shadow, .shadow-md, .shadow-card, [class*="hover:shadow-card"], [class*="hover:shadow-md"], [class*="hover:shadow-sm"]) {
+    --tw-shadow: 0 0 #0000;
+}
+html.ui-style-swiss :is(.card, .stat) { box-shadow: var(--ui-ring); }
+html.ui-style-swiss:not(.dark) :is(.card, .stat, .table-wrap, .filter-bar) { border-color: #d1d5db; }
+html.ui-style-swiss:not(.dark) .table-header { background-color: transparent; border-bottom: 2px solid #111827; }
+html.ui-style-swiss .page-title { font-weight: 800; letter-spacing: -0.03em; }
+html.ui-style-swiss :is(.card-title, h1, h2) { letter-spacing: -0.02em; }
+html.ui-style-swiss :is(.stat-label, .table-th, .table-th-right) { text-transform: uppercase; letter-spacing: .06em; font-size: .6875rem; }
+
+/* ── Bento Box Grid ────────────────────────────────────────────────────────── */
+html.ui-style-bento { --ui-shadow: 0 1px 2px rgb(16 24 40 / .05); }
+html.dark.ui-style-bento { --ui-shadow: 0 1px 2px rgb(0 0 0 / .4); }
+html.ui-style-bento:not(.dark) body { background-color: #eceef2; }
+html.ui-style-bento :is(.card, .stat, .table-wrap, .filter-bar),
+html.ui-style-bento :is(div, section, article, li, a, aside, form):is(.rounded-lg, .rounded-xl, .rounded-2xl).border.bg-white {
+    border-radius: 1.5rem;
+    border-color: transparent;
+    box-shadow: var(--ui-ring), var(--ui-shadow);
+}
+html.ui-style-bento .card-header { border-bottom-color: transparent; padding-bottom: .5rem; }
+html.ui-style-bento .card-footer { border-top-color: transparent; }
+html.ui-style-bento .stat { padding: 1.25rem 1.375rem; }
+html.ui-style-bento .stat-value { font-size: 2.125rem; line-height: 2.5rem; letter-spacing: -0.03em; }
+html.ui-style-bento :is(article, a):is(.rounded-xl, .rounded-2xl).border.bg-white { transition: transform .2s ease; }
+html.ui-style-bento :is(article, a):is(.rounded-xl, .rounded-2xl).border.bg-white:hover { transform: scale(1.015); }
+html.ui-style-bento :is(.btn, .btn-sm, .btn-lg, .form-input, .form-select, .form-textarea, .menu, .alert),
+html.ui-style-bento :is(a, button):is(.rounded-md, .rounded-lg):is([class*="bg-brand"], [class*="bg-accent"], [class*="bg-blue-6"], .admin-theme-primary) {
+    border-radius: .875rem;
+}
+
+/* ── Accessible & Ethical ──────────────────────────────────────────────────── */
+/* 18px base. Everything is rem-based, so the whole UI scales like a 112% zoom. */
+html.ui-style-accessible { font-size: 112.5%; }
+html.ui-style-accessible body { line-height: 1.6; }
+/* Secondary text at 7:1 or better on white (gray-600 → 10:1, gray-500/400 → 7.6:1). */
+html.ui-style-accessible:not(.dark) .text-gray-600,
+html.ui-style-accessible:not(.dark) :is(.form-hint, .card-description, .page-description, .stat-hint, .stat-label, .table-td-muted, .table-th, .table-th-right, .page-breadcrumb, .empty-state-text) { color: #374151; }
+html.ui-style-accessible:not(.dark) :is(.text-gray-500, .text-gray-400) { color: #4b5563; }
+/* Field borders at 3:1 or better against white (WCAG 1.4.11). */
+html.ui-style-accessible:not(.dark) :is(.form-input, .form-select, .form-textarea, input.border-gray-300, select.border-gray-300, textarea.border-gray-300, input.border-gray-200, select.border-gray-200, textarea.border-gray-200) { border-color: #6b7280; }
+/* Thick, offset focus ring on everything, fields included. */
+html.ui-style-accessible :is(a, button, summary, [role="button"], [tabindex]:not([tabindex="-1"]), input, select, textarea, .btn):focus-visible {
+    outline: 3px solid var(--color-brand);
+    outline-offset: 3px;
+}
+html.dark.ui-style-accessible :is(a, button, summary, [role="button"], [tabindex]:not([tabindex="-1"]), input, select, textarea, .btn):focus-visible {
+    outline-color: color-mix(in srgb, var(--color-brand) 45%, white);
+}
+/* Links inside content are underlined, not told apart by colour alone (WCAG 1.4.1). */
+html.ui-style-accessible :is(main, .prose, .announcement-content) :is(p, li, dd, td) a:not(.btn, [class*="bg-"]),
+html.ui-style-accessible :is(.link-action, .link-danger) {
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
+}
+/* 44px targets for everyone, not only touch screens. */
+html.ui-style-accessible :is(.btn, .btn-sm, .btn-lg) { height: auto; min-height: 2.75rem; }
+html.ui-style-accessible :is(.btn-icon, .btn-sm.btn-icon) { min-width: 2.75rem; }
+html.ui-style-accessible :is(.form-input, .form-select) { height: 2.75rem; }
+/* No decorative motion. */
+html.ui-style-accessible .scroll-animate { opacity: 1 !important; animation: none !important; }

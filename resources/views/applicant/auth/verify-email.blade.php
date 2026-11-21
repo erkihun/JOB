@@ -11,7 +11,7 @@
             <div class="mb-8 text-center">
                 @php $orgLogo = \App\Models\Setting::get('org.logo', ''); @endphp
                 @if($orgLogo)
-                <img src="{{ Storage::url($orgLogo) }}" alt="{{ \App\Models\Setting::get('org.name') }}"
+                <img src="{{ Storage::url(\App\Support\OptimizedImage::logo($orgLogo)) }}" alt="{{ \App\Models\Setting::get('org.name') }}"
                      class="mx-auto mb-4 h-14 w-auto object-contain">
                 @endif
 
@@ -54,7 +54,7 @@
                            class="block w-full rounded-lg border px-3 py-3 text-center text-2xl font-bold tracking-[0.5em] shadow-sm transition
                                   focus:outline-none focus:ring-2 focus:ring-blue-500
                                   {{ $errors->has('otp') ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white' }}">
-                    <p class="mt-1.5 text-xs text-gray-400 text-center">{{ __('auth.otp_expires_hint') }}</p>
+                    <p class="mt-1.5 text-xs text-gray-500 text-center">{{ __('auth.otp_expires_hint') }}</p>
                     @error('otp')
                     <p class="mt-1.5 text-xs text-red-600">{{ $message }}</p>
                     @enderror
@@ -79,7 +79,7 @@
             <div class="mt-4 text-center">
                 <form method="POST" action="{{ route('applicant.logout') }}">
                     @csrf
-                    <button type="submit" class="text-sm text-gray-400 hover:text-gray-600 transition">
+                    <button type="submit" class="text-sm text-gray-500 hover:text-gray-600 transition">
                         ← {{ __('auth.back_to_login') }}
                     </button>
                 </form>

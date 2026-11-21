@@ -558,7 +558,9 @@
                     'sidebar' => $safeAppearanceColor($settings['appearance.sidebar_color'] ?? '#1E3A8A', '#1E3A8A'),
                     'accent'  => $safeAppearanceColor($settings['appearance.accent_color'] ?? '#FF6B2B', '#FF6B2B'),
                     'logoSize' => min(max((int) ($settings['appearance.logo_size'] ?: 36), 24), 72),
+                    'uiStyle' => \App\Support\UiStyle::sanitize($settings['appearance.ui_style'] ?? null),
                 ];
+                $appearanceUiStyle = \App\Support\UiStyle::sanitize(old('appearance.ui_style', $savedAppearance['uiStyle']));
                 $appearancePrimary = $safeAppearanceColor(old('appearance.primary_color', $savedAppearance['primary']), '#1A56DB');
                 $appearanceSidebar = $safeAppearanceColor(old('appearance.sidebar_color', $savedAppearance['sidebar']), '#1E3A8A');
                 $appearanceAccent = $safeAppearanceColor(old('appearance.accent_color', $savedAppearance['accent']), '#FF6B2B');
@@ -577,8 +579,9 @@
                           sidebar: @js($appearanceSidebar),
                           accent:  @js($appearanceAccent),
                           logoSize: {{ $appearanceLogoSize }},
+                          uiStyle: @js($appearanceUiStyle),
                           saved: @js($savedAppearance),
-                          defaults: { primary: '#1A56DB', sidebar: '#1E3A8A', accent: '#FF6B2B', logoSize: 36 },
+                          defaults: { primary: '#1A56DB', sidebar: '#1E3A8A', accent: '#FF6B2B', logoSize: 36, uiStyle: @js(\App\Support\UiStyle::DEFAULT) },
                           presets: [
                               { name: 'Blue',    primary: '#1A56DB', sidebar: '#1E3A8A', accent: '#FF6B2B' },
                               { name: 'Emerald', primary: '#047857', sidebar: '#064E3B', accent: '#D97706' },
@@ -593,7 +596,7 @@
                           isPreset(p) { return this.same(p.primary, this.primary) && this.same(p.sidebar, this.sidebar) && this.same(p.accent, this.accent); },
                           isSaved(p) { return this.same(p.primary, this.saved.primary) && this.same(p.sidebar, this.saved.sidebar) && this.same(p.accent, this.saved.accent); },
                           get isCustom() { return !this.presets.some(p => this.isPreset(p)); },
-                          get dirtyTheme() { return !(this.same(this.primary, this.saved.primary) && this.same(this.sidebar, this.saved.sidebar) && this.same(this.accent, this.saved.accent) && this.logoSize == this.saved.logoSize); },
+                          get dirtyTheme() { return !(this.same(this.primary, this.saved.primary) && this.same(this.sidebar, this.saved.sidebar) && this.same(this.accent, this.saved.accent) && this.logoSize == this.saved.logoSize && this.uiStyle === this.saved.uiStyle); },
                           // WCAG contrast of white text on the colour
                           luminance(hex) {
                               const ch = (i) => { const c = parseInt(hex.substr(i, 2), 16) / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
@@ -606,6 +609,10 @@
                           // Bubbles to the form, which marks the section as having unsaved changes.
                           apply(values) { Object.assign(this, values); this.preview(); this.$dispatch('input'); },
                           preview() {
+                              const html = document.documentElement;
+                              html.classList.remove(...[...html.classList].filter(c => c.startsWith('ui-style-')));
+                              html.classList.add('ui-style-' + this.uiStyle);
+                              html.dataset.uiStyle = this.uiStyle;
                               const root = document.documentElement.style;
                               const set = (name, hex) => {
                                   if (!this.isHex(hex)) return;
@@ -625,6 +632,55 @@
                           }
                       }">
                 <legend class="sr-only">{{ __('settings.appearance') }}</legend>
+
+                {{-- Interface style (shapes, depth, type scale) — see App\Support\UiStyle --}}
+                @php
+                    // Miniature of each style: [canvas bg, tile css, button css].
+                    $uiStyleSamples = [
+                        'classic'    => ['#F9FAFB', 'border:1px solid #E5E7EB;border-radius:8px;box-shadow:0 1px 2px rgba(16,24,40,.06);background:#fff', 'border-radius:6px'],
+                        'soft'       => ['#F1F5F9', 'border:0;border-radius:16px;box-shadow:0 6px 16px -4px rgba(16,24,40,.16);background:#fff', 'border-radius:999px'],
+                        'swiss'      => ['#FFFFFF', 'border:1px solid #D1D5DB;border-radius:2px;background:#fff', 'border-radius:2px'],
+                        'bento'      => ['#E9EAEE', 'border:0;border-radius:14px;background:#fff', 'border-radius:10px'],
+                        'accessible' => ['#FFFFFF', 'border:2px solid #374151;border-radius:6px;background:#fff', 'border-radius:6px;outline:3px solid #111827;outline-offset:2px'],
+                    ];
+                @endphp
+                <section class="card" aria-labelledby="ui-style-title">
+                    <div class="card-header">
+                        <div><h2 id="ui-style-title" class="card-title">{{ __('settings.ui_style') }}</h2><p class="card-description">{{ __('settings.ui_style_hint') }}</p></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5" role="radiogroup" aria-labelledby="ui-style-title">
+                            @foreach(\App\Support\UiStyle::STYLES as $style)
+                                @php [$sampleBg, $sampleTile, $sampleBtn] = $uiStyleSamples[$style]; @endphp
+                                <label class="relative flex cursor-pointer flex-col overflow-hidden rounded-xl border bg-white text-left transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand"
+                                       :class="uiStyle === @js($style) ? 'border-brand ring-2 ring-brand/25' : 'border-gray-200 hover:border-gray-300'">
+                                    <input type="radio" name="appearance[ui_style]" value="{{ $style }}" x-model="uiStyle" @change="preview()" class="sr-only"
+                                           @checked($appearanceUiStyle === $style)>
+                                    <span class="flex h-20 items-center justify-center gap-2 px-3" style="background: {{ $sampleBg }}" aria-hidden="true">
+                                        <span class="flex h-12 w-16 flex-col justify-between p-1.5" style="{{ $sampleTile }}">
+                                            <span class="h-1.5 w-9 rounded-sm bg-gray-300"></span>
+                                            <span class="h-3.5 w-10 bg-brand" style="{{ $sampleBtn }}"></span>
+                                        </span>
+                                        @if($style === 'bento')
+                                            <span class="flex flex-col gap-1.5"><span class="h-5 w-8" style="{{ $sampleTile }}"></span><span class="h-5 w-8" style="{{ $sampleTile }}"></span></span>
+                                        @endif
+                                    </span>
+                                    <span class="flex flex-1 flex-col gap-1 px-3 py-2.5">
+                                        <span class="flex items-center justify-between gap-2">
+                                            <span class="text-sm font-semibold text-gray-900">{{ __('settings.ui_style_'.$style) }}</span>
+                                            <span x-show="saved.uiStyle === @js($style)" class="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-700">{{ __('settings.appearance_saved') }}</span>
+                                        </span>
+                                        <span class="text-xs leading-relaxed text-gray-600">{{ __('settings.ui_style_'.$style.'_desc') }}</span>
+                                    </span>
+                                    <span x-show="uiStyle === @js($style)" class="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-white text-brand shadow" aria-hidden="true">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('appearance.ui_style')<p class="form-error">{{ $message }}</p>@enderror
+                    </div>
+                </section>
 
                 {{-- Themes --}}
                 <section class="card">

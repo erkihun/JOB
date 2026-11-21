@@ -7,6 +7,7 @@ use App\Models\ApplicantProfileDocument;
 use App\Models\Application;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\OptimizedImage;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
@@ -312,7 +313,8 @@ test('system favicon can be uploaded from settings and renders in admin layout',
         ->get('/admin')
         ->assertOk()
         ->assertSee('rel="icon"', false)
-        ->assertSee(Storage::url($favicon), false);
+        // Pages link a small WebP copy of the upload (the original stays untouched).
+        ->assertSee(Storage::url(OptimizedImage::favicon($favicon)), false);
 });
 
 test('admin logo size setting is saved and rendered in admin layout', function (): void {

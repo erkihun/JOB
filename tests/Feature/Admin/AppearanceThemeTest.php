@@ -56,7 +56,7 @@ test('the admin sidebar uses the sidebar colour with readable text', function ()
     saveAppearance($admin, ['sidebar_color' => '#0F172A']);
     $this->actingAs($admin)->get(route('admin.dashboard'))
         ->assertSee("classList.toggle('sidebar-light', false)", false)
-        ->assertSee('var(--color-navy) 38%', false);
+        ->assertSee('background: var(--color-navy);', false);
 
     // A light sidebar switches to dark text.
     saveAppearance($admin, ['sidebar_color' => '#F1F5F9']);

@@ -38,7 +38,7 @@
                     <label class="block text-sm font-medium text-gray-700">{{ __('fields.profile_photo') }}</label>
                     <input type="file" name="profile_photo" accept=".jpg,.jpeg,.png"
                            class="mt-1 block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100">
-                    <p class="mt-1 text-xs text-gray-400">JPG/PNG ≤ 2 MB</p>
+                    <p class="mt-1 text-xs text-gray-500">JPG/PNG ≤ 2 MB</p>
                     @error('profile_photo')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
             </div>
@@ -52,7 +52,7 @@
             <div class="grid gap-4 sm:grid-cols-2">
                 {{-- Gender --}}
                 <div>
-                    <label for="gender" class="block text-sm font-medium text-gray-700">{{ __('fields.gender') }} <span class="text-red-500">*</span></label>
+                    <label for="gender" class="block text-sm font-medium text-gray-700">{{ __('fields.gender') }} <span class="text-red-600">*</span></label>
                     <select id="gender" name="gender"
                             class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('gender') border-red-400 @enderror">
                         <option value="male"   {{ old('gender', $applicant->gender?->value) === 'male'   ? 'selected' : '' }}>{{ __('statuses.gender.male') }}</option>
@@ -80,7 +80,7 @@
                 @endif
 
                 <div>
-                    <label for="national_id" class="block text-sm font-medium text-gray-700">{{ __('fields.national_id') }} <span class="text-red-500">*</span></label>
+                    <label for="national_id" class="block text-sm font-medium text-gray-700">{{ __('fields.national_id') }} <span class="text-red-600">*</span></label>
                     <input type="text" id="national_id" name="national_id"
                            value="{{ old('national_id', $applicant->national_id) }}"
                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('national_id') border-red-400 @enderror">
@@ -160,7 +160,7 @@
                     @error('graduation_year')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="gpa" class="block text-sm font-medium text-gray-700">{{ __('fields.gpa') }} <span class="text-gray-400 text-xs">(0–4)</span></label>
+                    <label for="gpa" class="block text-sm font-medium text-gray-700">{{ __('fields.gpa') }} <span class="text-gray-500 text-xs">(0–4)</span></label>
                     <input type="number" id="gpa" name="gpa" step="0.01" min="0" max="4"
                            value="{{ old('gpa', $applicant->gpa) }}"
                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('gpa') border-red-400 @enderror">
@@ -184,7 +184,7 @@
             <div x-show="workYears > 0" x-transition class="space-y-4">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
-                        <label for="work_experience_months" class="block text-sm font-medium text-gray-700">{{ __('fields.work_experience_months') }} <span class="text-gray-400 text-xs">(0–11)</span></label>
+                        <label for="work_experience_months" class="block text-sm font-medium text-gray-700">{{ __('fields.work_experience_months') }} <span class="text-gray-500 text-xs">(0–11)</span></label>
                         <input type="number" id="work_experience_months" name="work_experience_months" min="0" max="11"
                                value="{{ old('work_experience_months', $applicant->work_experience_months ?? 0) }}"
                                class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('work_experience_months') border-red-400 @enderror">
@@ -219,7 +219,7 @@
             <input type="hidden" name="preferred_locale" value="{{ old('preferred_locale', $applicant->preferred_locale) }}">
             <div class="grid gap-4 sm:grid-cols-2">
                 <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-700">{{ __('fields.phone') }} <span class="text-red-500">*</span></label>
+                    <label for="phone" class="block text-sm font-medium text-gray-700">{{ __('fields.phone') }} <span class="text-red-600">*</span></label>
                     <input type="tel" id="phone" name="phone"
                            value="{{ old('phone', $applicant->phone) }}"
                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('phone') border-red-400 @enderror">
@@ -232,7 +232,7 @@
                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20">
                 </div>
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">{{ __('fields.email') }} <span class="text-red-500">*</span></label>
+                    <label for="email" class="block text-sm font-medium text-gray-700">{{ __('fields.email') }} <span class="text-red-600">*</span></label>
                     <input type="email" id="email" name="email"
                            value="{{ old('email', $applicant->email) }}"
                            class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 @error('email') border-red-400 @enderror">
@@ -267,13 +267,13 @@
                             @endif
                         </div>
                         @if($existing)
-                        <p class="mt-0.5 text-xs text-gray-400 truncate">
+                        <p class="mt-0.5 text-xs text-gray-500 truncate">
                             {{ $existing->original_name }} &middot; {{ $existing->file_size_mb }} MB &middot;
                             <a href="{{ route('applicant.profile.documents.download', $existing) }}"
                                class="text-blue-600 hover:text-blue-800">{{ __('menus.download') ?? 'Download' }}</a>
                         </p>
                         @else
-                        <p class="mt-0.5 text-xs text-gray-400">{{ __('applicant.doc_not_uploaded') }}</p>
+                        <p class="mt-0.5 text-xs text-gray-500">{{ __('applicant.doc_not_uploaded') }}</p>
                         @endif
 
                         <label class="mt-2 block text-xs text-gray-500">
@@ -282,7 +282,7 @@
                         <input type="file" name="documents" accept=".pdf"
                                class="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 @error('documents') border border-red-300 rounded-md @enderror">
                         @error('documents')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
-                        <p class="mt-1 text-xs text-gray-400">PDF only &middot; max 2 MB</p>
+                        <p class="mt-1 text-xs text-gray-500">PDF only &middot; max 2 MB</p>
                     </div>
                 </div>
             </div>

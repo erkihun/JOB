@@ -92,7 +92,7 @@
         @endphp
         @foreach($rows as [$label, $value])
         <div class="flex items-start gap-4 border-b border-gray-50 px-5 py-3 last:border-b-0 hover:bg-gray-50/50 transition-colors">
-            <dt class="w-40 shrink-0 text-xs font-medium text-gray-400 pt-0.5 uppercase tracking-wide">{{ $label }}</dt>
+            <dt class="w-40 shrink-0 text-xs font-medium text-gray-500 pt-0.5 uppercase tracking-wide">{{ $label }}</dt>
             <dd class="text-sm font-medium text-gray-800 flex-1">{{ $value }}</dd>
         </div>
         @endforeach
@@ -118,7 +118,7 @@
         @endphp
         @foreach($contactRows as [$label, $value])
         <div class="flex items-start gap-4 border-b border-gray-50 px-5 py-3 last:border-b-0 hover:bg-gray-50/50 transition-colors">
-            <dt class="w-40 shrink-0 text-xs font-medium text-gray-400 pt-0.5 uppercase tracking-wide">{{ $label }}</dt>
+            <dt class="w-40 shrink-0 text-xs font-medium text-gray-500 pt-0.5 uppercase tracking-wide">{{ $label }}</dt>
             <dd class="text-sm font-medium text-gray-800 flex-1 break-all">{{ $value }}</dd>
         </div>
         @endforeach
@@ -143,7 +143,7 @@
         @endphp
         @foreach($eduRows as [$label, $value])
         <div class="flex items-start gap-4 border-b border-gray-50 px-5 py-3 last:border-b-0 hover:bg-gray-50/50 transition-colors">
-            <dt class="w-40 shrink-0 text-xs font-medium text-gray-400 pt-0.5 uppercase tracking-wide">{{ $label }}</dt>
+            <dt class="w-40 shrink-0 text-xs font-medium text-gray-500 pt-0.5 uppercase tracking-wide">{{ $label }}</dt>
             <dd class="text-sm font-medium text-gray-800 flex-1">{{ $value }}</dd>
         </div>
         @endforeach
@@ -166,13 +166,13 @@
         @endphp
         @foreach($workRows as [$label, $value])
         <div class="flex items-start gap-4 border-b border-gray-50 px-5 py-3 last:border-b-0 hover:bg-gray-50/50 transition-colors">
-            <dt class="w-40 shrink-0 text-xs font-medium text-gray-400 pt-0.5 uppercase tracking-wide">{{ $label }}</dt>
+            <dt class="w-40 shrink-0 text-xs font-medium text-gray-500 pt-0.5 uppercase tracking-wide">{{ $label }}</dt>
             <dd class="text-sm font-medium text-gray-800 flex-1">{{ $value }}</dd>
         </div>
         @endforeach
         @if($applicant->work_experience_summary)
         <div class="border-t border-gray-50 px-5 py-4">
-            <p class="mb-2 text-xs font-medium uppercase tracking-wide text-gray-400">{{ __('fields.work_experience_summary') }}</p>
+            <p class="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">{{ __('fields.work_experience_summary') }}</p>
             <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{{ $applicant->work_experience_summary }}</p>
         </div>
         @endif
@@ -197,7 +197,7 @@
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-gray-800 truncate">{{ $doc->original_name }}</p>
-                <p class="text-xs text-gray-400">{{ number_format($doc->file_size / 1024, 1) }} KB</p>
+                <p class="text-xs text-gray-500">{{ number_format($doc->file_size / 1024, 1) }} KB</p>
             </div>
             <a href="{{ route('applicant.profile.documents.download', $doc) }}"
                class="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-blue-300 hover:text-blue-600 transition">

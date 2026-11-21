@@ -87,7 +87,7 @@
             @endphp
             <div class="rounded-2xl border border-gray-200 bg-white p-5">
                 <p class="text-sm font-medium text-gray-900 mb-1">{{ $docName }}</p>
-                <p class="text-xs text-gray-400 mb-3">
+                <p class="text-xs text-gray-500 mb-3">
                     {{ __('applicant.current_file') }}: {{ $document->original_name }}
                     · {{ number_format($document->file_size / 1024, 1) }} KB
                 </p>
@@ -97,7 +97,7 @@
                       class="flex items-start gap-3 flex-wrap">
                     @csrf
                     <div class="flex-1 min-w-0">
-                        <p class="text-xs text-gray-400 mb-1">
+                        <p class="text-xs text-gray-500 mb-1">
                             {{ strtoupper(implode(', ', $types)) }} · {{ __('documents.max_size') }} {{ $maxMb }} MB
                         </p>
                         <input type="file"

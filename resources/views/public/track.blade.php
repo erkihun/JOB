@@ -161,7 +161,7 @@
                     $isCurrent = $loop->iteration === $doneCount;
                     $failHere  = $isCurrent && $isTerminalFail;
                     $circle = $failHere ? 'bg-red-600 text-white ring-red-100'
-                        : ($done ? 'bg-brand text-white ring-brand/15' : 'bg-white text-gray-400 ring-gray-100 border border-gray-200');
+                        : ($done ? 'bg-brand text-white ring-brand/15' : 'bg-white text-gray-500 ring-gray-100 border border-gray-200');
                 @endphp
                 <li class="relative flex items-center gap-3 sm:flex-col sm:gap-2 sm:text-center" @if($isCurrent) aria-current="step" @endif>
                     @if(!$loop->last)
@@ -176,7 +176,7 @@
                             <x-public.icon :name="$step['icon']" class="h-4 w-4" />
                         @endif
                     </span>
-                    <span class="text-xs sm:px-1 {{ $done ? 'font-semibold text-gray-900' : 'text-gray-400' }}">{{ $step['label'] }}</span>
+                    <span class="text-xs sm:px-1 {{ $done ? 'font-semibold text-gray-900' : 'text-gray-500' }}">{{ $step['label'] }}</span>
                 </li>
                 @endforeach
             </ol>

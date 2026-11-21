@@ -61,7 +61,7 @@
                                 <span class="mt-0.5 flex items-center gap-1.5 text-xs text-gray-600">
                                     <span class="h-2 w-2 shrink-0 rounded-full {{ $dot }}" aria-hidden="true"></span>
                                     {{ $stateLabel }}
-                                    @if($template)<span class="text-gray-400">· {{ et_date($template->updated_at) }}</span>@endif
+                                    @if($template)<span class="text-gray-500">· {{ et_date($template->updated_at) }}</span>@endif
                                 </span>
                             </span>
                             <span class="shrink-0 text-sm font-semibold text-brand group-hover:underline">

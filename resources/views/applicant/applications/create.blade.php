@@ -30,7 +30,7 @@
             </span>
         </div>
 
-        <p class="mt-2 text-xs text-gray-400">{{ __('applications.other_institutions_note') }}</p>
+        <p class="mt-2 text-xs text-gray-500">{{ __('applications.other_institutions_note') }}</p>
     </div>
 
     @php
@@ -100,7 +100,7 @@
                 <div>
                     <label for="field_of_study" class="block text-sm font-medium text-gray-700">
                         {{ __('fields.field_of_study') }}
-                        <span class="text-red-500">*</span>
+                        <span class="text-red-600">*</span>
                     </label>
                     <input type="text" id="field_of_study" name="field_of_study"
                            value="{{ old('field_of_study', $defaults['field_of_study']) }}"
@@ -122,7 +122,7 @@
                     <div>
                         <label for="graduation_date" class="block text-sm font-medium text-gray-700">
                             {{ __('fields.graduation_date') }}
-                            <span class="text-red-500">*</span>
+                            <span class="text-red-600">*</span>
                         </label>
                         <input type="date" id="graduation_date" name="graduation_date"
                                value="{{ old('graduation_date', $defaults['graduation_date']) }}"
@@ -166,12 +166,12 @@
                     <label for="doc_{{ $doc->id }}" class="block text-sm font-medium text-gray-700">
                         {{ $docName }}
                         @if($doc->is_required)
-                            <span class="text-red-500">*</span>
+                            <span class="text-red-600">*</span>
                         @else
-                            <span class="text-gray-400 font-normal text-xs">({{ __('applicant.optional') }})</span>
+                            <span class="text-gray-500 font-normal text-xs">({{ __('applicant.optional') }})</span>
                         @endif
                     </label>
-                    <p class="text-xs text-gray-400 mb-1">
+                    <p class="text-xs text-gray-500 mb-1">
                         {{ strtoupper(implode(', ', $types)) }} · {{ __('documents.max_size') }} {{ $maxMb }} MB
                     </p>
                     <input type="file"
@@ -183,7 +183,7 @@
                         <p class="mt-1 text-xs text-red-600">{{ $message }}</p>
                     @enderror
                     @if($doc->description)
-                    <p class="mt-1 text-xs text-gray-400">
+                    <p class="mt-1 text-xs text-gray-500">
                         {{ $doc->description }}
                     </p>
                     @endif

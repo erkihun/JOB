@@ -35,7 +35,7 @@
     {{-- Row 1: Name · Username · Email --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
-            <label class="block text-sm font-medium text-gray-700">{{ __('fields.name') }} <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-gray-700">{{ __('fields.name') }} <span class="text-red-600">*</span></label>
             <input type="text" name="name" value="{{ old('name', $user->name ?? '') }}"
                    class="form-input mt-1 @error('name') form-input-error @enderror">
             @error('name')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
@@ -49,7 +49,7 @@
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700">{{ __('fields.email') }} <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-gray-700">{{ __('fields.email') }} <span class="text-red-600">*</span></label>
             <input type="email" name="email" value="{{ old('email', $user->email ?? '') }}"
                    class="form-input mt-1 @error('email') form-input-error @enderror">
             @error('email')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
@@ -112,7 +112,7 @@
     {{-- Row 3: Role · Status · (spacer) --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div>
-            <label class="block text-sm font-medium text-gray-700">{{ __('menus.roles') }} <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-gray-700">{{ __('menus.roles') }} <span class="text-red-600">*</span></label>
             <select name="role" class="form-select mt-1 @error('role') form-input-error @enderror">
                 <option value="">—</option>
                 @foreach($roles as $role)
@@ -123,7 +123,7 @@
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700">{{ __('vacancies.status') }} <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-medium text-gray-700">{{ __('vacancies.status') }} <span class="text-red-600">*</span></label>
             <select name="status" class="form-select mt-1">
                 <option value="active"   {{ old('status', $user->status->value ?? 'active') === 'active'   ? 'selected' : '' }}>{{ __('messages.active') }}</option>
                 <option value="inactive" {{ old('status', $user->status->value ?? '') === 'inactive'        ? 'selected' : '' }}>{{ __('messages.inactive') }}</option>

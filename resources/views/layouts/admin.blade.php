@@ -40,11 +40,26 @@
     .nav-item:hover .nav-tooltip { opacity: 1; transform: translateX(0); }
 
     /* ── Nav item states ────────────────────────────────────────── */
-    .nav-item:hover        { background: var(--sb-hover) !important; }
-    .nav-active            { background: var(--sb-active-bg); color: var(--sb-active-text); }
+    /* Flat, modern states: soft fill + hairline inner ring for the current page, accent icon. */
+    .nav-item              { transition: background-color .15s ease, color .15s ease, box-shadow .15s ease; }
+    .nav-item:hover        { background: var(--sb-hover) !important; color: var(--sb-text); }
+    .nav-item:hover .nav-icon-inactive { color: var(--sb-hover-icon); }
+    .nav-active            { background: var(--sb-active-bg); color: var(--sb-active-text); box-shadow: inset 0 0 0 1px var(--sb-line), 0 1px 2px rgba(0,0,0,.12); }
     .nav-inactive          { color: var(--sb-muted); }
-    .nav-icon-active       { color: var(--sb-active-icon); }
-    .nav-icon-inactive     { color: var(--sb-inactive-icon); }
+    .nav-icon-active       { color: color-mix(in srgb, var(--color-accent) 70%, var(--sb-active-icon)); }
+    .nav-icon-inactive     { color: var(--sb-inactive-icon); transition: color .15s ease; }
+    /* Keyboard focus that stays visible on any sidebar colour (the brand-coloured ring used
+       elsewhere can vanish against a dark navy sidebar). */
+    #admin-sidebar :is(a, button):focus-visible { outline: 2px solid var(--sb-text); outline-offset: -2px; }
+    .nav-group-label       { font-size: .6875rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--sb-dim); }
+    /* Category dropdowns: header holding the current page reads as "you are here"; its
+       sub-pages hang off a fine guide line under the category icon. */
+    .nav-group-current     { color: var(--sb-text); }
+    .nav-chevron           { color: var(--sb-dim); transition: transform .2s ease; }
+    .nav-submenu           { position: relative; margin: .125rem 0 .375rem 1.4rem; padding-left: .625rem; border-left: 1px solid var(--sb-line); }
+    .nav-submenu .nav-active { box-shadow: inset 0 0 0 1px var(--sb-line); }
+    .nav-count             { min-width: 1.375rem; height: 1.25rem; padding: 0 .4rem; border-radius: 9999px; display: inline-flex; align-items: center; justify-content: center;
+                             font-size: .6875rem; font-weight: 700; line-height: 1; color: #fff; background: var(--color-accent); font-variant-numeric: tabular-nums; }
 
     /* ── Topbar design tokens — light mode ──────────────────────── */
     :root {
@@ -140,31 +155,31 @@
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     {{-- object syntax keeps the static background below --}}
     :style="{ width: (sidebarOpen || !sidebarCollapsed) ? '16.5rem' : '4.5rem' }"
-    style="width: 16.5rem; background: linear-gradient(180deg, color-mix(in srgb, var(--color-navy) 90%, white) 0%, var(--color-navy) 38%, var(--color-navy-dark) 100%); box-shadow: 1px 0 0 var(--sb-border), 4px 0 24px rgba(0,0,0,.10);"
+    style="width: 16.5rem; background: var(--color-navy); box-shadow: 1px 0 0 var(--sb-border);"
     class="fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden transition-all duration-300 ease-out lg:translate-x-0">
 
     {{-- ── Brand + collapse ── --}}
     <div class="flex min-h-16 shrink-0 items-center gap-3 px-3.5 py-2" style="border-bottom: 1px solid var(--sb-border);">
         <a href="{{ route('admin.dashboard') }}" class="flex min-w-0 flex-1 items-center gap-3" :class="sidebarCollapsed && !sidebarOpen ? 'justify-center' : ''">
             @if($orgLogo)
-            <img src="{{ Storage::url($orgLogo) }}" alt="" class="shrink-0 rounded-md object-contain"
-                 style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px;">
+            <img src="{{ Storage::url(\App\Support\OptimizedImage::logo($orgLogo)) }}" alt="" class="shrink-0 rounded-lg bg-white object-contain p-0.5"
+                 style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px; box-shadow: 0 0 0 1px var(--sb-line);">
             @else
             <span class="flex shrink-0 items-center justify-center rounded-lg text-[13px] font-bold"
-                  style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px; color: var(--sb-text); border: 1px solid var(--sb-line); background: var(--sb-footer-bg);">
+                  style="width: {{ $adminLogoSize }}px; height: {{ $adminLogoSize }}px; color: #fff; background: var(--color-brand); box-shadow: inset 0 0 0 1px rgba(255,255,255,.18);">
                 {{ mb_strtoupper(mb_substr($orgName, 0, 2)) }}
             </span>
             @endif
             <span class="min-w-0" x-show="!sidebarCollapsed || sidebarOpen">
-                <span class="block truncate text-sm font-bold leading-tight" style="color: var(--sb-text);">{{ $orgName }}</span>
-                <span class="mt-0.5 block truncate text-xs" style="color: var(--sb-dim);">{{ __('menus.admin_panel') }}</span>
+                <span class="block truncate text-[15px] font-bold leading-tight tracking-tight" style="color: var(--sb-text);">{{ $orgName }}</span>
+                <span class="mt-0.5 block truncate text-xs font-medium" style="color: var(--sb-dim);">{{ __('menus.admin_panel') }}</span>
             </span>
         </a>
 
         {{-- Desktop: collapse / expand --}}
         <button type="button" @click="toggleSidebar()" x-show="!sidebarOpen"
-                class="hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg transition lg:flex"
-                style="color: var(--sb-text); background: var(--sb-hover);"
+                class="nav-item hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg lg:flex"
+                style="color: var(--sb-dim);"
                 :class="sidebarCollapsed ? 'absolute left-1/2 top-[4.5rem] -translate-x-1/2' : ''"
                 :title="sidebarCollapsed ? @js(__('messages.expand_sidebar')) : @js(__('messages.collapse_sidebar'))"
                 :aria-label="sidebarCollapsed ? @js(__('messages.expand_sidebar')) : @js(__('messages.collapse_sidebar'))"
@@ -296,34 +311,72 @@
             'access'        => __('menus.access_control'),
             'system'        => __('menus.system'),
         ];
+        // Category icons (shown on the dropdown headers).
+        $groupIcons = [
+            'recruitment' => 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+            'screening'   => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+            'exams'       => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+            'access'      => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+            'system'      => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z',
+        ];
+
+        // $nav stays a flat list (the page search uses it); group it into categories for the menu.
+        $sections = [['key' => null, 'items' => []]];
+        foreach ($nav as $navEntry) {
+            if (is_string($navEntry)) {
+                $sections[] = ['key' => $navEntry, 'items' => []];
+            } else {
+                $sections[array_key_last($sections)]['items'][] = $navEntry;
+            }
+        }
+        $sections = array_values(array_filter($sections, fn ($s) => $s['items'] !== []));
         @endphp
-        @foreach($nav as $item)
-            @if(is_string($item))
-                <p class="mt-5 mb-1.5 px-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap" style="color: var(--sb-dim)"
-                   x-show="!sidebarCollapsed || sidebarOpen">{{ $groupLabels[$item] ?? $item }}</p>
-                <div class="mx-2 my-2.5 h-px" style="background: var(--sb-line)" x-show="sidebarCollapsed && !sidebarOpen" x-cloak></div>
+        @foreach($sections as $section)
+            @if($section['key'] === null || count($section['items']) === 1)
+                {{-- Dashboard, and categories with a single page: a plain link (a one-item dropdown is just an extra click). --}}
+                @if($section['key'] !== null)
+                    <div class="mx-2 my-2.5 h-px" style="background: var(--sb-line)" x-show="sidebarCollapsed && !sidebarOpen" x-cloak></div>
+                @endif
+                @foreach($section['items'] as $item)
+                    <x-admin.nav-link :item="$item" />
+                @endforeach
             @else
-                @php $active = request()->routeIs($item['match']); @endphp
-                <a href="{{ route($item['route']) }}"
-                   @if($active) aria-current="page" @endif
-                   class="nav-item group relative mb-0.5 flex h-10 items-center rounded-lg text-sm transition-colors duration-150 {{ $active ? 'nav-active font-semibold' : 'nav-inactive font-medium' }}"
-                   :class="sidebarCollapsed && !sidebarOpen ? 'justify-center' : 'gap-3 px-3'">
-                    @if($active)
-                    <span class="absolute inset-y-2 left-0 w-0.75 rounded-full" style="background: var(--color-accent);" aria-hidden="true"></span>
-                    @endif
-                    <svg class="h-[18px] w-[18px] shrink-0 {{ $active ? 'nav-icon-active' : 'nav-icon-inactive' }}" aria-hidden="true"
-                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                        <path d="{{ $item['icon'] }}"/>
-                    </svg>
-                    <span class="flex-1 truncate" x-show="!sidebarCollapsed || sidebarOpen">{{ $item['label'] }}</span>
-                    @if(!empty($item['count']))
-                    <span class="rounded-full px-2 py-px text-xs font-bold text-white" style="background: var(--color-accent);"
-                          x-show="!sidebarCollapsed || sidebarOpen"
-                          title="{{ trans_choice('messages.waiting_count', $item['count'], ['count' => $item['count']]) }}">{{ $item['count'] > 99 ? '99+' : $item['count'] }}</span>
-                    <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full" style="background: var(--color-accent);" x-show="sidebarCollapsed && !sidebarOpen" x-cloak aria-hidden="true"></span>
-                    @endif
-                    <span class="nav-tooltip" x-show="sidebarCollapsed && !sidebarOpen" x-cloak>{{ $item['label'] }}</span>
-                </a>
+                @php
+                    $groupKey = $section['key'];
+                    $groupActive = collect($section['items'])->contains(fn ($i) => request()->routeIs($i['match']));
+                    $groupCount = (int) collect($section['items'])->sum(fn ($i) => (int) ($i['count'] ?? 0));
+                @endphp
+                {{-- Category dropdown. Opens automatically when it holds the current page; otherwise
+                     remembers what the admin last chose (window.adminNavGroup, localStorage). --}}
+                <div class="mt-1" x-data="adminNavGroup(@js($groupKey), {{ $groupActive ? 'true' : 'false' }})">
+                    <div class="mx-2 my-2.5 h-px" style="background: var(--sb-line)" x-show="sidebarCollapsed && !sidebarOpen" x-cloak></div>
+                    <button type="button" @click="toggle()"
+                            x-show="!sidebarCollapsed || sidebarOpen"
+                            :aria-expanded="open.toString()" aria-controls="nav-group-{{ $groupKey }}"
+                            class="nav-item flex h-10 w-full items-center gap-3 rounded-lg px-3 text-left text-sm {{ $groupActive ? 'nav-group-current font-semibold' : 'nav-inactive font-medium' }}">
+                        <svg class="h-[18px] w-[18px] shrink-0 {{ $groupActive ? 'nav-icon-active' : 'nav-icon-inactive' }}" aria-hidden="true"
+                             fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="{{ $groupIcons[$groupKey] ?? $section['items'][0]['icon'] }}"/>
+                        </svg>
+                        <span class="flex-1 truncate">{{ $groupLabels[$groupKey] ?? $groupKey }}</span>
+                        @if($groupCount > 0)
+                            <span class="nav-count" x-show="!open" title="{{ trans_choice('messages.waiting_count', $groupCount, ['count' => $groupCount]) }}">{{ $groupCount > 99 ? '99+' : $groupCount }}</span>
+                        @endif
+                        <svg class="nav-chevron h-4 w-4 shrink-0" :class="open ? 'rotate-90' : ''" aria-hidden="true"
+                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                    <div id="nav-group-{{ $groupKey }}" role="group" aria-label="{{ $groupLabels[$groupKey] ?? $groupKey }}"
+                         x-show="open || (sidebarCollapsed && !sidebarOpen)"
+                         x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+                         @unless($groupActive) style="display:none" @endunless
+                         :class="sidebarCollapsed && !sidebarOpen ? '' : 'nav-submenu'">
+                        @foreach($section['items'] as $item)
+                            <x-admin.nav-link :item="$item" sub />
+                        @endforeach
+                    </div>
+                </div>
             @endif
         @endforeach
     </nav>
@@ -345,7 +398,7 @@
         <a href="{{ route('home') }}" target="_blank" rel="noopener"
            class="nav-item nav-inactive group relative flex h-10 items-center rounded-lg text-sm font-medium"
            :class="sidebarCollapsed && !sidebarOpen ? 'justify-center' : 'gap-3 px-3'">
-            <svg class="h-[18px] w-[18px] shrink-0 nav-icon-inactive" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <svg class="h-[18px] w-[18px] shrink-0 nav-icon-inactive" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                 <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
             </svg>
             <span class="truncate" x-show="!sidebarCollapsed || sidebarOpen">{{ __('messages.view_public_site') }}</span>
@@ -634,6 +687,26 @@
 </div>
 
 <script>
+// One sidebar category dropdown. Always open when it holds the current page; otherwise it
+// remembers the admin's last choice (localStorage), across pages and reloads.
+function adminNavGroup(key, active) {
+    const storageKey = 'adminNavGroups';
+    const read = () => {
+        try { return JSON.parse(localStorage.getItem(storageKey) || '{}') || {}; } catch (e) { return {}; }
+    };
+    return {
+        open: active || read()[key] === true,
+        toggle() {
+            this.open = !this.open;
+            try {
+                const saved = read();
+                saved[key] = this.open;
+                localStorage.setItem(storageKey, JSON.stringify(saved));
+            } catch (e) { /* private mode: just don't remember */ }
+        },
+    };
+}
+
 function adminShell() {
     return {
         sidebarOpen: false,

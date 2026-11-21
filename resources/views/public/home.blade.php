@@ -12,8 +12,28 @@
         $url = trim((string) $url);
         return ($url !== '' && (str_starts_with($url, '/') || preg_match('#^https?://#i', $url))) ? $url : null;
     };
-    $slides = $sliders->map(fn ($s) => [
-        'image'    => $s->image_path ? Storage::disk('public')->url($s->image_path) : null,
+    // Hero images: WebP copies at several widths so a phone downloads ~640px instead of the
+    // full upload. Falls back to the original file when no smaller copy can be made.
+    $heroImage = function (?string $path): array {
+        if (! $path) {
+            return ['image' => null, 'srcset' => null, 'sizes' => null];
+        }
+        $disk = Storage::disk('public');
+        $copies = \App\Support\OptimizedImage::hero($path);
+        if ($copies === []) {
+            return ['image' => $disk->url($path), 'srcset' => null, 'sizes' => null];
+        }
+        $largest = end($copies);
+        // The image is object-cover'd over the whole hero (up to ~640px tall), so on narrow
+        // screens it is scaled by height, not width: it renders max(100vw, 640px × aspect) wide.
+        $coverWidth = (int) ceil(640 * $largest['width'] / max(1, $largest['height']));
+        return [
+            'image'  => $disk->url($largest['path']),
+            'srcset' => collect($copies)->map(fn ($c) => $disk->url($c['path']).' '.$c['width'].'w')->implode(', '),
+            'sizes'  => "max(100vw, {$coverWidth}px)",
+        ];
+    };
+    $slides = $sliders->map(fn ($s) => $heroImage($s->image_path) + [
         'title'    => $tr($s, 'title'),
         'subtitle' => $tr($s, 'subtitle'),
         'btnText'  => $tr($s, 'button_text'),
@@ -36,6 +56,7 @@
     @foreach($slides as $i => $slide)
         @if($slide['image'])
         <img src="{{ $slide['image'] }}" alt="" aria-hidden="true"
+             @if($slide['srcset']) srcset="{{ $slide['srcset'] }}" sizes="{{ $slide['sizes'] }}" @endif
              x-show="active === {{ $i }}" x-transition.opacity.duration.700ms
              @if($i !== 0) style="display:none" loading="lazy" @else fetchpriority="high" @endif
              class="absolute inset-0 -z-10 h-full w-full object-cover">

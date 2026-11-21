@@ -51,7 +51,7 @@
 
     <label class="block text-sm font-medium text-gray-700">
         {!! $label !!}
-        @if($required) <span class="text-red-500">*</span> @endif
+        @if($required) <span class="text-red-600">*</span> @endif
     </label>
 
     <input type="hidden" x-ref="hidden" :name="fieldName" :value="gcValue">
@@ -128,7 +128,7 @@
             {{-- Day-of-week headers --}}
             <div class="grid grid-cols-7 border-b border-gray-50 px-2 py-1">
                 <template x-for="d in dayNames" :key="d">
-                    <div class="py-1 text-center text-xs font-medium text-gray-400" x-text="d"></div>
+                    <div class="py-1 text-center text-xs font-medium text-gray-500" x-text="d"></div>
                 </template>
             </div>
 
@@ -158,7 +158,7 @@
                 </button>
                 <button type="button" @click.stop="clear()"
                         x-show="gcValue"
-                        class="text-xs font-medium text-red-500 hover:text-red-700 transition">
+                        class="text-xs font-medium text-red-600 hover:text-red-700 transition">
                     {{ app()->getLocale() === 'am' ? 'አጽዳ' : 'Clear' }}
                 </button>
             </div>

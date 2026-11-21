@@ -45,15 +45,14 @@
         return $out;
     };
 @endphp
-{{-- One typeface across admin, applicant and public pages (Amharic glyphs use Abyssinica SIL). --}}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{{-- One typeface across admin, applicant and public pages: Atkinson Hyperlegible Next for Latin,
+     Abyssinica SIL for Amharic. Both are self-hosted (bundled by Vite / public/fonts), so there is
+     no third-party font request and no render-blocking stylesheet. --}}
 @if(app()->getLocale() === 'am')
 {{-- Amharic pages: fetch Abyssinica SIL up front so text never flashes in a fallback font. --}}
 <link rel="preload" href="{{ asset('fonts/abyssinica/AbyssinicaSIL-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
 @endif
-<script>document.documentElement.classList.toggle('sidebar-light', {{ $sidebarIsLight ? 'true' : 'false' }});</script>
+<script>document.documentElement.classList.toggle('sidebar-light', {{ $sidebarIsLight ? 'true' : 'false' }});document.documentElement.dataset.uiStyle = @js(\App\Support\UiStyle::current());document.documentElement.classList.add('ui-style-' + document.documentElement.dataset.uiStyle);</script>
 <style>
     :root {
         --color-brand: {{ $themePrimary }};

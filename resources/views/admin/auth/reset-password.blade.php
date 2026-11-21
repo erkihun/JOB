@@ -17,7 +17,7 @@
         <div class="mb-8 text-center">
             @php $orgLogo = \App\Models\Setting::get('org.logo', ''); @endphp
             @if($orgLogo)
-            <img src="{{ Storage::url($orgLogo) }}" alt="" class="mx-auto mb-4 h-12 w-auto object-contain">
+            <img src="{{ Storage::url(\App\Support\OptimizedImage::logo($orgLogo)) }}" alt="" class="mx-auto mb-4 h-12 w-auto object-contain">
             @else
             <div class="admin-theme-primary mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl text-lg font-bold text-white">
                 {{ mb_substr(\App\Models\Setting::get('org.name', config('app.name')), 0, 2) }}

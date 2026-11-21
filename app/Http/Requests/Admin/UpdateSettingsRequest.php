@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Models\Setting;
+use App\Support\UiStyle;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -114,6 +115,7 @@ class UpdateSettingsRequest extends FormRequest
             'appearance.sidebar_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'appearance.accent_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'appearance.logo_size' => ['sometimes', 'required', 'integer', 'min:24', 'max:72'],
+            'appearance.ui_style' => ['sometimes', 'required', 'string', Rule::in(UiStyle::STYLES)],
         ];
     }
 

@@ -238,10 +238,34 @@ server {
         return 405;
     }
 
-    # Deny access to private storage
-    location /storage/app {
+    # Compression: HTML/CSS/JS shrink 70–85% (stylesheet 156 KB → 26 KB). text/html is always included.
+    gzip on;
+    gzip_vary on;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_proxied any;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/json application/xml image/svg+xml font/ttf;
+
+    # Deny access to private storage.
+    # `^~` matters: it stops the regex locations below (e.g. the image-caching one) from
+    # matching first and serving files here.
+    location ^~ /storage/app {
         deny all;
         return 403;
+    }
+
+    # Browser caching for static files. Use `expires` (not `add_header`): an add_header inside a
+    # location drops the server-level security headers above for that location.
+    # Content-hashed files (Vite build output, optimised image copies) never change under the same
+    # name, so they are cached for a year. Missing files fall through to Laravel as before.
+    location ^~ /build/ {
+        expires 1y;
+        access_log off;
+        try_files $uri =404;
+    }
+    location ^~ /storage/optimized/ {
+        expires 1y;
+        try_files $uri /index.php?$query_string;
     }
 
     location / {
@@ -258,8 +282,23 @@ server {
     location ~ /\.(?!well-known).* {
         deny all;
     }
+
+    # Uploaded images, icons and self-hosted fonts: 30 days. Placed after the dot-file rule so
+    # that rule still wins; anything that isn't a real file is handed to Laravel unchanged.
+    location ~* \.(?:png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf)$ {
+        expires 30d;
+        try_files $uri /index.php?$query_string;
+    }
 }
 ```
+
+After deploying, pre-build the web-sized image copies (optional: pages also build them on first view):
+
+```bash
+php artisan images:optimize
+```
+
+Run it again any time; it also deletes copies of images that were replaced or removed.
 
 ---
 

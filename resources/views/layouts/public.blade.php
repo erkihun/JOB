@@ -75,7 +75,7 @@
         {{-- Logo + org name --}}
         <a href="{{ route('home') }}" class="flex min-w-0 shrink items-center gap-3">
             @if($orgLogo)
-                <img src="{{ Storage::url($orgLogo) }}" alt="" class="h-10 w-auto shrink-0 object-contain">
+                <img src="{{ Storage::url(\App\Support\OptimizedImage::logo($orgLogo)) }}" alt="" class="h-10 w-auto shrink-0 object-contain">
             @else
                 <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
                     <x-public.icon name="briefcase" class="h-5 w-5" />
@@ -212,7 +212,7 @@
 </div>
 
 {{-- ═══════════════════════════════════════════════ FLASH TOASTS ══ --}}
-@foreach(['success' => ['check-circle', 'border-green-200 bg-white text-green-800', 'text-green-500', 4000], 'error' => ['alert', 'border-red-200 bg-white text-red-800', 'text-red-500', 6000], 'warning' => ['alert', 'border-amber-200 bg-white text-amber-900', 'text-amber-500', 0]] as $flashKey => [$flashIcon, $flashClasses, $flashIconColor, $flashTimeout])
+@foreach(['success' => ['check-circle', 'border-green-200 bg-white text-green-800', 'text-green-500', 4000], 'error' => ['alert', 'border-red-200 bg-white text-red-800', 'text-red-600', 6000], 'warning' => ['alert', 'border-amber-200 bg-white text-amber-900', 'text-amber-500', 0]] as $flashKey => [$flashIcon, $flashClasses, $flashIconColor, $flashTimeout])
 @if(session($flashKey))
 <div class="fixed right-4 top-20 z-60 w-[calc(100%-2rem)] max-w-sm"
      x-data="{ show: true }" x-show="show" @if($flashTimeout) x-init="setTimeout(() => show = false, {{ $flashTimeout }})" @endif
@@ -222,7 +222,7 @@
     <div class="flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-lg {{ $flashClasses }}">
         <x-public.icon :name="$flashIcon" class="mt-0.5 h-5 w-5 {{ $flashIconColor }}" />
         <span class="flex-1">{{ session($flashKey) }}</span>
-        <button type="button" @click="show = false" class="text-gray-400 hover:text-gray-600">
+        <button type="button" @click="show = false" class="text-gray-500 hover:text-gray-600">
             <x-public.icon name="x" />
             <span class="sr-only">{{ __('public.close') }}</span>
         </button>
@@ -258,7 +258,7 @@
             <div class="sm:col-span-2 lg:col-span-5">
                 <a href="{{ route('home') }}" class="inline-flex items-center gap-3">
                     @if($orgLogo)
-                        <img src="{{ Storage::url($orgLogo) }}" alt="" class="h-10 w-auto rounded-lg bg-white/95 object-contain p-1">
+                        <img src="{{ Storage::url(\App\Support\OptimizedImage::logo($orgLogo)) }}" alt="" loading="lazy" decoding="async" class="h-10 w-auto rounded-lg bg-white/95 object-contain p-1">
                     @endif
                     <span class="text-lg font-extrabold text-white">{{ $orgName }}</span>
                 </a>
