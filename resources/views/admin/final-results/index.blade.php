@@ -54,6 +54,9 @@
                 <select id="announce_channel" name="channel" class="form-select">
                     <option value="email">{{ __('messages.channel_email') }}</option>
                     <option value="in_system">{{ __('messages.channel_in_system') }}</option>
+                    @if(\App\Models\Setting::get('sms.enabled', false))
+                        <option value="sms">{{ __('settings.sms') }}</option>
+                    @endif
                 </select>
             </div>
             <div>

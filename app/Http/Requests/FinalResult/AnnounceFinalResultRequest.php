@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\FinalResult;
 
+use App\Models\Setting;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AnnounceFinalResultRequest extends FormRequest
 {
@@ -19,7 +21,7 @@ class AnnounceFinalResultRequest extends FormRequest
         return [
             'application_ids' => ['required', 'array', 'min:1'],
             'application_ids.*' => ['required', 'uuid', 'exists:applications,id'],
-            'channel' => ['required', 'in:in_system,email'],
+            'channel' => ['required', Rule::in(Setting::get('sms.enabled', false) ? ['in_system', 'email', 'sms'] : ['in_system', 'email'])],
             'message' => ['nullable', 'string', 'max:5000'],
         ];
     }

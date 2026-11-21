@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trimStrings(except: ['smtp_password', 'messaging_secret']);
         $middleware->web(append: [
             SecurityHeaders::class,
             SetLocale::class,
@@ -39,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontFlash(['smtp_password', 'messaging_secret']);
         // Laravel converts TokenMismatchException to a 419 before render callbacks run.
         $exceptions->render(function (HttpException $e, $request) {
             if ($e->getStatusCode() !== 419 || $request->expectsJson()) {
@@ -50,7 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($request->user()) {
                 return back()
-                    ->withInput($request->except(['_token', 'password', 'password_confirmation', 'current_password', 'one_time_password', 'recovery_code', 'otp']))
+                    ->withInput($request->except(['_token', 'password', 'password_confirmation', 'current_password', 'one_time_password', 'recovery_code', 'otp', 'smtp_password', 'messaging_secret']))
                     ->with('warning', __('auth.page_expired'));
             }
 

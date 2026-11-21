@@ -330,6 +330,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/settings', [SettingsController::class, 'update'])
             ->middleware(['permission:settings.manage', 'permission:settings.security'])
             ->name('settings.update');
+        Route::post('/settings/mail/test', [SettingsController::class, 'testMail'])
+            ->middleware(['permission:settings.manage', 'permission:settings.security', 'throttle:3,1'])
+            ->name('settings.mail.test');
+        Route::post('/settings/messaging/{channel}/test', [SettingsController::class, 'testMessaging'])
+            ->whereIn('channel', ['sms', 'telegram'])
+            ->middleware(['permission:settings.manage', 'permission:settings.security', 'throttle:3,1'])
+            ->name('settings.messaging.test');
 
         // System Settings → Backup. Restore/delete are seeded to super_admin only and
         // additionally require password (+ MFA code) re-confirmation in the controller.

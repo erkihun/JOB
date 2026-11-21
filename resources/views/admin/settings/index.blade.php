@@ -2,95 +2,90 @@
 @section('title', __('menus.settings'))
 @section('content')
 @php
-    $tabs = ['org' => __('messages.organization'), 'social' => __('messages.social_media'), 'recruitment' => __('menus.recruitment'), 'codes' => __('settings.codes'), 'results' => __('messages.result_weights'), 'localization' => __('messages.localization'), 'notifications' => __('menus.notifications'), 'security' => __('messages.security'), 'appearance' => __('settings.appearance')];
-    $initialTab = old('_section', session('settings_section', 'org'));
+    $tabs = ['org' => __('messages.organization'), 'social' => __('messages.social_media'), 'recruitment' => __('menus.recruitment'), 'codes' => __('settings.codes'), 'results' => __('messages.result_weights'), 'localization' => __('messages.localization'), 'notifications' => __('fields.email'), 'security' => __('messages.security'), 'appearance' => __('settings.appearance')];
+    $tabs += ['telegram' => __('settings.telegram'), 'sms' => __('settings.sms')];
+    $initialTab = old('_section', session('settings_section', request()->query('section', 'org')));
     $initialTab = is_string($initialTab) && array_key_exists($initialTab, $tabs) ? $initialTab : 'org';
 
-    // Side-menu grouping and icons (presentation only; sections are the keys above).
     $groups = [
-        __('settings.group_general') => ['org', 'social', 'appearance'],
-        __('menus.recruitment')      => ['recruitment', 'codes', 'results'],
-        __('settings.group_system')  => ['localization', 'notifications', 'security'],
+        'general' => ['org', 'social', 'appearance'],
+        'recruitment' => ['recruitment', 'codes', 'results'],
+        'communications' => ['notifications', 'telegram', 'sms'],
+        'system' => ['security', 'localization'],
     ];
-    $icons = [
-        'org' => 'M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z',
-        'social' => 'M13.8 10.2a4 4 0 00-5.6 0l-4 4a4 4 0 105.6 5.6l1.1-1.1m-.8-4.9a4 4 0 005.6 0l4-4a4 4 0 00-5.6-5.6l-1.1 1.1',
-        'appearance' => 'M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.3M11 7.3l1.7-1.6a2 2 0 012.8 0l2.8 2.8a2 2 0 010 2.8L9.8 19.8',
-        'recruitment' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6a1 1 0 01.7.3l5.4 5.4a1 1 0 01.3.7V19a2 2 0 01-2 2z',
-        'codes' => 'M7 20l4-16m2 16l4-16M6 9h14M4 15h14',
-        'results' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
-        'localization' => 'M3 5h12M9 3v2m1 9.5A18 18 0 016.4 9m6.1 9h7M11 21l5-10 5 10M12.8 5C11.8 10.8 8.1 15.6 3 18.1',
-        'notifications' => 'M3 8l7.9 5.3a2 2 0 002.2 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
-        'security' => 'M9 12l2 2 4-4m5.6-4A12 12 0 0112 2.9 12 12 0 013.4 6 12 12 0 003 9c0 5.6 3.8 10.3 9 11.6 5.2-1.3 9-6 9-11.6 0-1-.1-2-.4-3z',
+    $groupLabels = [
+        'general' => __('settings.group_general'), 'recruitment' => __('menus.recruitment'),
+        'communications' => __('settings.communications'), 'system' => __('settings.group_system'),
     ];
-    $hasErrors = $errors->any();
+    $groupIcons = [
+        'general' => 'M4 7h7m4 0h5M4 17h3m4 0h9M11 4v6m-4 4v6',
+        'recruitment' => 'M8 7V5a1 1 0 011-1h6a1 1 0 011 1v2M4 8h16v12H4zM4 12c5 3 11 3 16 0',
+        'communications' => 'M4 5h16v11H9l-5 4V5zm4 4h8m-8 3h5',
+        'system' => 'M12 3l8 3v5c0 5-4 8-8 10-4-2-8-5-8-10V6l8-3zm-3 9 2 2 4-4',
+    ];
     $check = 'flex items-start gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2.5 hover:border-gray-300';
 @endphp
-<div class="space-y-5"
+<div class="settings-workspace space-y-5"
      x-data="{
         tab: @js($initialTab),
         changed: false,
         go(next) {
             if (next === this.tab) return;
-            if (this.changed && !confirm(@js(__('settings.unsaved_switch_confirm')))) { this.$refs.sectionSelect.value = this.tab; return; }
-            this.changed = false;
+            if (this.changed) {
+                if (!confirm(@js(__('settings.unsaved_switch_confirm')))) {
+                    this.$refs.sectionSelect.value = this.tab;
+                    return;
+                }
+                const url = new URL(@js(route('admin.settings.index')));
+                url.searchParams.set('section', next);
+                window.location.assign(url);
+                return;
+            }
             this.tab = next;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            this.$refs.sectionSelect.value = next;
         },
      }">
 
-    <x-admin.page-header :title="__('menus.settings')" :description="__('settings.configuration_intro')" />
+    <x-admin.page-header :title="__('menus.settings')" :description="__('settings.configuration_intro')">
+        @can('backups.view')
+            <a class="btn btn-outline" href="{{ route('admin.backups.index') }}">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 4 16 4 16 0V6M4 12c0 4 16 4 16 0"/></svg>
+                {{ __('menus.backups') }}
+            </a>
+        @endcan
+    </x-admin.page-header>
 
-    <div class="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
-
-        {{-- ── Section navigation ── --}}
-        <nav aria-label="{{ __('menus.settings') }}" class="lg:sticky lg:top-20 lg:self-start">
-            <label for="settings-section" class="sr-only">{{ __('menus.settings') }}</label>
-            <select id="settings-section" x-ref="sectionSelect" :value="tab" @change="go($event.target.value)" class="form-select lg:hidden">
-                @foreach($groups as $group => $keys)
-                <optgroup label="{{ $group }}">
-                    @foreach($keys as $key)
-                    <option value="{{ $key }}" @selected($initialTab === $key)>{{ $tabs[$key] }}</option>
+    <div class="min-w-0 space-y-4">
+        <nav class="settings-navigation" aria-label="{{ __('menus.settings') }}">
+            <div class="settings-mobile-nav">
+                <label for="settings-section" class="form-label">{{ __('settings.section_label') }}</label>
+                <select id="settings-section" x-ref="sectionSelect" :value="tab" @change="go($event.target.value)" class="form-select">
+                    @foreach($groups as $group => $keys)
+                        <optgroup label="{{ $groupLabels[$group] }}">
+                            @foreach($keys as $key)
+                                <option value="{{ $key }}" @selected($initialTab === $key)>{{ $tabs[$key] }}</option>
+                            @endforeach
+                        </optgroup>
                     @endforeach
-                </optgroup>
-                @endforeach
-            </select>
-
-            <div class="hidden space-y-5 lg:block">
+                </select>
+            </div>
+            <div class="settings-groups">
                 @foreach($groups as $group => $keys)
-                <div>
-                    <p class="mb-1.5 px-3 text-xs font-bold uppercase tracking-wider text-gray-600">{{ $group }}</p>
-                    <ul class="space-y-0.5">
-                        @foreach($keys as $key)
-                        <li>
-                            <button type="button" @click="go('{{ $key }}')"
-                                    :aria-current="tab === '{{ $key }}' ? 'page' : null"
-                                    :class="tab === '{{ $key }}' ? 'bg-brand-muted font-semibold text-brand' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'"
-                                    class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition">
-                                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ $icons[$key] }}"/></svg>
-                                <span class="flex-1">{{ $tabs[$key] }}</span>
-                                @if($hasErrors && $initialTab === $key)
-                                <span class="h-2 w-2 rounded-full bg-red-600" aria-hidden="true"></span>
-                                <span class="sr-only">{{ __('settings.correct_errors') }}</span>
-                                @endif
-                            </button>
-                        </li>
-                        @endforeach
-                        @if($group === __('settings.group_system'))
-                        @can('backups.view')
-                        <li>
-                            <a href="{{ route('admin.backups.index') }}"
-                               class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-gray-100 hover:text-gray-900">
-                                <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7v10c0 2.2 3.6 4 8 4s8-1.8 8-4V7M4 7c0 2.2 3.6 4 8 4s8-1.8 8-4M4 7c0-2.2 3.6-4 8-4s8 1.8 8 4m0 5c0 2.2-3.6 4-8 4s-8-1.8-8-4"/></svg>
-                                <span class="flex-1">{{ __('menus.backups') }}</span>
-                            </a>
-                        </li>
-                        @endcan
-                        @endif
-                    </ul>
-                </div>
+                    <button type="button" class="settings-group" @click="go('{{ $keys[0] }}')"
+                        :aria-pressed="@js($keys).includes(tab)" aria-pressed="{{ in_array($initialTab, $keys, true) ? 'true' : 'false' }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ $groupIcons[$group] }}"/></svg>
+                        <span>{{ $groupLabels[$group] }}</span>
+                    </button>
                 @endforeach
             </div>
+            @foreach($groups as $group => $keys)
+                <div class="settings-sections" x-show="@js($keys).includes(tab)" @if(!in_array($initialTab, $keys, true)) style="display:none" @endif>
+                    @foreach($keys as $key)
+                        <button type="button" @click="go('{{ $key }}')" :aria-current="tab === '{{ $key }}' ? 'page' : null"
+                            @if($initialTab === $key) aria-current="page" @endif>{{ $tabs[$key] }}</button>
+                    @endforeach
+                </div>
+            @endforeach
         </nav>
 
         {{-- ── Section content (only the open section is submitted) ── --}}
@@ -116,12 +111,12 @@
                         @php $current = \App\Models\Setting::get("org.$fileKey", ''); @endphp
                         <div>
                             <label for="org_{{ $fileKey }}" class="form-label">{{ $fileLabel }}</label>
-                            <div class="flex items-center gap-4 rounded-lg border border-dashed border-gray-300 p-3">
+                            <div class="settings-upload">
                                 @if($current)
                                 <img src="{{ Storage::url($current) }}" alt="" class="{{ $previewClass }} rounded-md border border-gray-200 bg-white">
                                 @endif
                                 <input type="file" id="org_{{ $fileKey }}" name="org[{{ $fileKey }}]" accept="{{ $accept }}"
-                                       class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-brand-muted file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-brand hover:file:bg-blue-100">
+                                       class="block min-w-0 w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-brand-muted file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-brand hover:file:bg-blue-100">
                             </div>
                             <p class="form-hint">{{ $fileHint }}</p>
                             @error("org.$fileKey")<p class="form-error">{{ $message }}</p>@enderror
@@ -390,10 +385,13 @@
 
             {{-- Notifications --}}
             <fieldset x-show="tab === 'notifications'" :disabled="tab !== 'notifications'" class="card" @if($initialTab !== 'notifications') style="display:none" @endif>
-                <legend class="sr-only">{{ __('menus.notifications') }}</legend>
-                <div class="card-header"><div><h2 class="card-title">{{ __('menus.notifications') }}</h2><p class="card-description">{{ __('settings.mail_transport_hint') }}</p></div></div>
+                <legend class="sr-only">{{ __('fields.email') }}</legend>
+                <div class="card-header"><div><h2 class="card-title">{{ __('fields.email') }}</h2><p class="card-description">{{ __('settings.mail_transport_hint') }}</p></div></div>
                 <div class="card-body space-y-5">
-                    @php $mailLocal = in_array(config('mail.default'), ['log', 'array', null], true); @endphp
+                    @php
+                        $delivery = $settings['mail.mode'] === 'server' ? config('mail.default') : $settings['mail.mode'];
+                        $mailLocal = in_array($delivery, ['log', 'array'], true);
+                    @endphp
                     <div class="alert {{ $mailLocal ? 'alert-warning' : 'alert-success' }}">
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         <p>{{ $mailLocal ? __('settings.mail_delivery_local') : __('settings.mail_delivery_configured') }}</p>
@@ -408,8 +406,78 @@
                             <input type="email" id="mail_from_address" name="mail[from_address]" value="{{ old('mail.from_address', $settings['mail.from_address']) }}" class="form-input">
                         </div>
                     </div>
+                    <div x-data="{ mode: @js(old('mail.mode', $settings['mail.mode'])) }" class="space-y-4">
+                        <label class="form-label" for="mail_mode">{{ __('settings.mail_mode') }}</label>
+                        <select id="mail_mode" name="mail[mode]" x-model="mode" class="form-select">
+                            @foreach(['server', 'smtp', 'log'] as $mode)
+                                <option value="{{ $mode }}" @selected(old('mail.mode', $settings['mail.mode']) === $mode)>{{ __('settings.mail_mode_'.$mode) }}</option>
+                            @endforeach
+                        </select>
+                        <fieldset x-show="mode === 'smtp'" :disabled="mode !== 'smtp'" class="grid gap-4 sm:grid-cols-2" x-cloak>
+                            @foreach(['host', 'port', 'username'] as $field)
+                                <div>
+                                    <label class="form-label" for="smtp_{{ $field }}">{{ __('settings.mail_'.$field) }}</label>
+                                    <input id="smtp_{{ $field }}" name="mail[{{ $field }}]" type="{{ $field === 'port' ? 'number' : 'text' }}"
+                                           value="{{ old('mail.'.$field, $settings['mail.'.$field]) }}" class="form-input"
+                                           @required($field !== 'username') @if($field === 'port') min="1" max="65535" @endif>
+                                </div>
+                            @endforeach
+                            <div>
+                                <label for="smtp_security" class="form-label">{{ __('settings.mail_security') }}</label>
+                                <select id="smtp_security" name="mail[security]" class="form-select">
+                                    @foreach(['starttls' => 'STARTTLS', 'tls' => 'TLS', 'none' => __('settings.mail_no_tls')] as $value => $label)
+                                        <option value="{{ $value }}" @selected(old('mail.security', $settings['mail.security']) === $value)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label for="smtp_password" class="form-label">{{ __('settings.mail_password') }}</label>
+                                <input id="smtp_password" type="password" name="smtp_password" autocomplete="new-password" class="form-input" aria-describedby="smtp_password_hint">
+                                <p id="smtp_password_hint" class="text-sm">{{ __('settings.mail_password_hint') }}</p>
+                            </div>
+                            <label class="form-label"><input type="checkbox" name="clear_smtp_password" value="1"> {{ __('settings.mail_clear_password') }}</label>
+                        </fieldset>
+                    </div>
+                    @can('settings.manage')
+                        @can('settings.security')
+                            <button type="submit" form="test-saved-mail" :disabled="changed" class="btn btn-secondary">{{ __('settings.mail_test') }}</button>
+                        @endcan
+                    @endcan
                 </div>
             </fieldset>
+
+            @foreach(['telegram' => ['chat_id'], 'sms' => ['iam_url', 'smn_url', 'project_id', 'domain', 'username']] as $channel => $fields)
+                <fieldset x-show="tab === '{{ $channel }}'" :disabled="tab !== '{{ $channel }}'" class="card" @if($initialTab !== $channel) style="display:none" @endif>
+                    <legend class="sr-only">{{ $tabs[$channel] }}</legend>
+                    <div class="card-header"><div><h2 class="card-title">{{ $tabs[$channel] }}</h2>
+                        <p class="card-description">{{ __('settings.'.$channel.'_hint') }}</p></div></div>
+                    <div class="card-body space-y-4">
+                        <input type="hidden" name="{{ $channel }}[enabled]" value="0">
+                        <label class="form-label"><input type="checkbox" name="{{ $channel }}[enabled]" value="1"
+                            @checked(old($channel.'.enabled', $settings[$channel.'.enabled']))> {{ __('settings.messaging_enable', ['channel' => $tabs[$channel]]) }}</label>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            @foreach($fields as $field)
+                                <div>
+                                    <label class="form-label" for="{{ $channel }}_{{ $field }}">{{ __('settings.'.$channel.'_'.$field) }}</label>
+                                    <input class="form-input" id="{{ $channel }}_{{ $field }}" name="{{ $channel }}[{{ $field }}]"
+                                        type="{{ str_ends_with($field, '_url') ? 'url' : 'text' }}" value="{{ old($channel.'.'.$field, $settings[$channel.'.'.$field]) }}">
+                                </div>
+                            @endforeach
+                            <div>
+                                <label class="form-label" for="{{ $channel }}_secret">{{ __('settings.'.$channel.'_secret') }}</label>
+                                <input class="form-input" type="password" id="{{ $channel }}_secret" name="messaging_secret" autocomplete="new-password">
+                                <p class="text-sm">{{ __('settings.messaging_keep_secret') }}</p>
+                            </div>
+                        </div>
+                        <label class="form-label"><input type="checkbox" name="clear_messaging_secret" value="1"> {{ __('settings.messaging_clear_secret') }}</label>
+                        @can('settings.manage')
+                            @can('settings.security')
+                                <button type="submit" form="test-{{ $channel }}" :disabled="changed" class="btn btn-secondary">{{ __('settings.'.$channel.'_test') }}</button>
+                            @endcan
+                        @endcan
+                    </div>
+                </fieldset>
+            @endforeach
 
             {{-- Security --}}
             <fieldset x-show="tab === 'security'" :disabled="tab !== 'security'" class="space-y-5" @if($initialTab !== 'security') style="display:none" @endif>
@@ -828,18 +896,22 @@
             </fieldset>
 
             {{-- Pinned save bar: saves the open section only --}}
-            <div class="sticky bottom-0 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur">
+            <div class="settings-save-bar">
                 <p class="flex items-center gap-2 text-sm" role="status">
                     <span class="h-2 w-2 shrink-0 rounded-full" :class="changed ? 'bg-amber-500' : 'bg-gray-300'" aria-hidden="true"></span>
                     <span x-show="changed" x-cloak class="font-semibold text-amber-900">{{ __('settings.unsaved_changes') }}</span>
                     <span x-show="!changed" class="text-gray-600">{{ __('settings.section_save_hint') }}</span>
                 </p>
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('admin.settings.index') }}" data-admin-no-spa x-show="changed" x-cloak class="btn btn-ghost">{{ __('settings.discard_changes') }}</a>
+                    <a :href="@js(route('admin.settings.index')) + '?section=' + tab" data-admin-no-spa x-show="changed" x-cloak class="btn btn-ghost">{{ __('settings.discard_changes') }}</a>
                     <button type="submit" class="btn btn-primary">{{ __('settings.save_section') }}</button>
                 </div>
             </div>
         </form>
+        <form id="test-saved-mail" method="POST" action="{{ route('admin.settings.mail.test') }}">@csrf</form>
+        @foreach(['sms', 'telegram'] as $channel)
+            <form id="test-{{ $channel }}" method="POST" action="{{ route('admin.settings.messaging.test', $channel) }}">@csrf</form>
+        @endforeach
     </div>
 </div>
 @endsection

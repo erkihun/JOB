@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Notifications\SendMessagingNotification;
+use App\Actions\Settings\ApplyMailSettings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Models\AuditLog;
 use App\Models\Setting;
 use App\Support\UiStyle;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 
@@ -25,7 +30,9 @@ class SettingsController extends Controller
         'recruitment.max_file_size_mb', 'recruitment.allowed_file_types', 'recruitment.allow_registration',
         'recruitment.show_archived_vacancies', 'recruitment.reference_format',
         'localization.default_locale', 'localization.show_language_switcher',
-        'mail.from_name', 'mail.from_address',
+        'mail.from_name', 'mail.from_address', 'mail.mode', 'mail.host', 'mail.port', 'mail.security', 'mail.username',
+        'telegram.enabled', 'telegram.chat_id', 'sms.enabled', 'sms.iam_url', 'sms.smn_url',
+        'sms.domain', 'sms.username', 'sms.project_id',
         'security.session_timeout', 'security.login_attempts',
         'security.mfa_enabled',
         'security.mfa_required_for_admins',
@@ -64,6 +71,7 @@ class SettingsController extends Controller
         $settings = collect($this->keys)->mapWithKeys(
             fn ($key) => [$key => Setting::get($key, $this->defaultFor($key))]
         );
+        $settings['mail.from_address'] = app(ApplyMailSettings::class)->configuredSenderAddress();
 
         // Roles selectable for per-role MFA enforcement (newest last for stable order).
         $assignableRoles = Role::orderBy('name')->pluck('name')->all();
@@ -73,7 +81,7 @@ class SettingsController extends Controller
 
     public function update(UpdateSettingsRequest $request): RedirectResponse
     {
-        $data = $request->safe()->except('_section');
+        $data = $request->safe()->except(['_section', 'smtp_password', 'clear_smtp_password', 'messaging_secret', 'clear_messaging_secret']);
 
         // Handle logo upload separately to avoid overwriting its path in the loop.
         if ($request->hasFile('org.logo')) {
@@ -96,7 +104,22 @@ class SettingsController extends Controller
             }
         }
 
-        DB::transaction(function () use ($data): void {
+        DB::transaction(function () use ($data, $request): void {
+            $channel = $request->validated('_section');
+            if (in_array($channel, ['telegram', 'sms'], true)) {
+                if ($request->filled('messaging_secret')) {
+                    $this->persist($channel.'.token', Crypt::encryptString($request->validated('messaging_secret')));
+                } elseif ($request->boolean('clear_messaging_secret')) {
+                    $this->persist($channel.'.token', '');
+                }
+            }
+            if (($data['mail']['mode'] ?? null) === 'smtp') {
+                if ($request->filled('smtp_password')) {
+                    $this->persist('mail.smtp_password', Crypt::encryptString($request->validated('smtp_password')));
+                } elseif ($request->boolean('clear_smtp_password')) {
+                    $this->persist('mail.smtp_password', '');
+                }
+            }
             foreach (['app.available_locales', 'recruitment.allowed_file_types', 'security.mfa_methods_allowed', 'security.mfa_required_roles'] as $key) {
                 if (Arr::has($data, $key)) {
                     $this->persist($key, array_values((array) Arr::get($data, $key)));
@@ -110,7 +133,10 @@ class SettingsController extends Controller
             }
         });
 
-        $this->applyRuntimeConfiguration();
+        if (isset($data['mail'])) {
+            app(ApplyMailSettings::class)->handle(app('mail.manager'));
+        }
+        Config::set('app.fallback_locale', Setting::get('app.fallback_locale', config('app.fallback_locale', 'en')));
 
         if ($request->has('security')) {
             AuditLog::record(
@@ -120,7 +146,13 @@ class SettingsController extends Controller
             );
         }
 
-        $settingsAuditPayload = Arr::except($request->except(['_token', '_method', '_section', '_present']), ['security']);
+        $settingsAuditPayload = $request->safe()->except(['_section', 'security', 'smtp_password', 'messaging_secret']);
+        if ($request->validated('messaging_secret') !== null) {
+            $settingsAuditPayload[$request->validated('_section')]['credential_changed'] = true;
+        }
+        if (isset($data['mail']) && $request->filled('smtp_password')) {
+            $settingsAuditPayload['mail']['password_changed'] = true;
+        }
         if (isset($settingsAuditPayload['org']['logo'])) {
             $settingsAuditPayload['org']['logo'] = '[uploaded]';
         }
@@ -143,6 +175,8 @@ class SettingsController extends Controller
     private function persist(string $key, mixed $value): void
     {
         $types = [
+            'telegram.enabled' => 'boolean',
+            'sms.enabled' => 'boolean',
             'app.available_locales' => 'json',
             'recruitment.allowed_file_types' => 'json',
             'recruitment.max_file_size_mb' => 'integer',
@@ -185,6 +219,8 @@ class SettingsController extends Controller
             'recruitment.' => 'recruitment',
             'localization.' => 'localization',
             'mail.' => 'notifications',
+            'sms.' => 'notifications',
+            'telegram.' => 'notifications',
             'security.' => 'security',
             'codes.' => 'codes',
             'results.' => 'results',
@@ -215,6 +251,9 @@ class SettingsController extends Controller
             'localization.default_locale' => 'en',
             'mail.from_name' => config('mail.from.name'),
             'mail.from_address' => config('mail.from.address'),
+            'mail.mode' => 'server',
+            'mail.port' => 587,
+            'mail.security' => 'starttls',
             'security.session_timeout' => 120,
             'security.login_attempts' => 5,
             'security.mfa_enabled' => filter_var(env('MFA_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
@@ -261,10 +300,38 @@ class SettingsController extends Controller
         };
     }
 
-    private function applyRuntimeConfiguration(): void
+    public function testMail(Request $request): RedirectResponse
     {
-        Config::set('mail.from.name', Setting::get('mail.from_name', config('mail.from.name')));
-        Config::set('mail.from.address', Setting::get('mail.from_address', config('mail.from.address')));
-        Config::set('app.fallback_locale', Setting::get('app.fallback_locale', config('app.fallback_locale', 'en')));
+        $back = back()->with('settings_section', 'notifications');
+        try {
+            $driver = Mail::getDefaultDriver();
+            if (in_array($driver, ['log', 'array', 'failover'], true)) {
+                return $back->with('warning', __('settings.mail_test_local'));
+            }
+
+            Mail::raw(__('settings.mail_test_body'), fn ($message) => $message
+                ->to($request->user()->email)->subject(__('settings.mail_test_subject')));
+        } catch (\Throwable) {
+            return $back->withErrors(['mail' => __('settings.mail_test_failed')]);
+        }
+
+        return $back->with('success', __('settings.mail_test_sent', ['email' => $request->user()->email]));
+    }
+
+    public function testMessaging(Request $request, string $channel, SendMessagingNotification $send): RedirectResponse
+    {
+        $back = back()->with('settings_section', $channel);
+
+        try {
+            $send->handle($channel, __('settings.messaging_test_body'), $request->user()->phone);
+        } catch (\Throwable $exception) {
+            $message = in_array($exception->getMessage(), [__('settings.messaging_disabled'), __('settings.sms_phone_required')], true)
+                ? $exception->getMessage()
+                : __('settings.messaging_failed');
+
+            return $back->withErrors([$channel => $message]);
+        }
+
+        return $back->with('success', __('settings.messaging_accepted'));
     }
 }

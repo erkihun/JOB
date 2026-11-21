@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Actions\Notifications\SendMessagingNotification;
 use App\Models\ApplicantNotification;
 use App\Notifications\TemplatedApplicantNotification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -25,19 +26,41 @@ class SendApplicantNotificationJob implements ShouldQueue
 
     public function handle(): void
     {
+        if ($this->notification->status === 'sent') {
+            return;
+        }
+
         $recipient = $this->notification->applicant?->user;
 
-        if ($recipient === null) {
-            $this->notification->update([
-                'status' => 'sent',
-                'sent_at' => now(),
-            ]);
+        if ($this->notification->channel === 'email' && empty($recipient?->email)) {
+            $this->notification->update(['status' => 'failed']);
+
+            return;
+        }
+
+        $sms = $this->notification->channel === 'sms';
+        $phone = $this->notification->applicant?->phone ?: $recipient?->phone;
+        if ($sms && blank($phone)) {
+            $this->notification->update(['status' => 'failed']);
 
             return;
         }
 
         try {
-            $recipient->notify(new TemplatedApplicantNotification($this->notification));
+            if ($recipient !== null) {
+                $message = new TemplatedApplicantNotification($this->notification);
+                $message->id = $this->notification->getKey();
+                $channels = $message->via($recipient);
+                if ($recipient->notifications()->whereKey($message->id)->exists()) {
+                    $channels = array_values(array_diff($channels, ['database']));
+                }
+                if ($channels !== []) {
+                    $recipient->notifyNow($message, $channels);
+                }
+            }
+            if ($sms) {
+                app(SendMessagingNotification::class)->handle('sms', $this->notification->message, $phone);
+            }
 
             $this->notification->update([
                 'status' => 'sent',

@@ -8,7 +8,7 @@
         'applicant_name'      => __('messages.ntpl_sample.applicant_name'),
         'vacancy_title'       => __('messages.ntpl_sample.vacancy_title'),
         'reference_number'    => 'APP-2026-000123',
-        'contact_information' => \App\Models\Setting::get('org.email', config('mail.from.address', 'hr@example.gov.et')),
+        'contact_information' => \App\Models\Setting::get('org.email') ?: app(\App\Actions\Settings\ApplyMailSettings::class)->configuredSenderAddress(),
         'date'                => now()->addDays(14)->format('Y-m-d'),
         'time'                => '09:00',
         'venue'               => __('messages.ntpl_sample.venue'),

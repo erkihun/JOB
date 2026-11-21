@@ -36,10 +36,15 @@ class MailTestCommand extends Command
             return self::INVALID;
         }
 
-        $this->showMailConfig();
         $this->showAccount($email);
 
         try {
+            $this->showMailConfig();
+            if (in_array(Mail::getDefaultDriver(), ['log', 'array', 'failover'], true)) {
+                $this->warn('Select a delivery service without a local logging fallback in Settings > Notifications.');
+
+                return self::FAILURE;
+            }
             if ($this->option('otp')) {
                 Notification::route('mail', $email)
                     ->notifyNow(new PasswordResetOtpNotification('000000'));
@@ -49,8 +54,8 @@ class MailTestCommand extends Command
                     fn ($message) => $message->to($email)->subject(config('app.name').' - SMTP test'),
                 );
             }
-        } catch (Throwable $e) {
-            $this->error('Sending failed: '.$e->getMessage());
+        } catch (Throwable) {
+            $this->error('Sending failed. Check the mail host, port, encryption, credentials and sender address.');
 
             return self::FAILURE;
         }
@@ -63,7 +68,7 @@ class MailTestCommand extends Command
 
     private function showMailConfig(): void
     {
-        $mailer = (string) config('mail.default');
+        $mailer = Mail::getDefaultDriver();
         $this->line("Mailer:  {$mailer}");
 
         if ($mailer === 'smtp') {

@@ -60,10 +60,6 @@ class SettingsSeeder extends Seeder
             ['key' => 'appearance.accent_color',  'value' => '#FF6B2B', 'type' => 'string', 'group' => 'appearance'],
             ['key' => 'appearance.logo_size', 'value' => '36', 'type' => 'integer', 'group' => 'appearance'],
 
-            // Email
-            ['key' => 'mail.from_name', 'value' => 'Job Vacancy System', 'type' => 'string', 'group' => 'notifications'],
-            ['key' => 'mail.from_address', 'value' => 'noreply@example.com', 'type' => 'string', 'group' => 'notifications'],
-
             // Security
             ['key' => 'security.login_attempts', 'value' => '5', 'type' => 'integer', 'group' => 'security'],
             ['key' => 'security.session_timeout', 'value' => '120', 'type' => 'integer', 'group' => 'security'],

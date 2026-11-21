@@ -63,7 +63,7 @@ MAIL_HOST=smtp.your-provider.com
 MAIL_PORT=587
 MAIL_USERNAME=your@email.com
 MAIL_PASSWORD=your-mail-password
-MAIL_ENCRYPTION=tls
+MAIL_SCHEME=smtp
 MAIL_FROM_ADDRESS=noreply@your-domain.com
 MAIL_FROM_NAME="Job Vacancy System"
 
@@ -75,6 +75,12 @@ ADMIN_PASSWORD=use-a-strong-unique-password
 ```
 
 HTTPS is required in production. Configure TLS at Nginx/Apache or the load balancer before enabling `SESSION_SECURE_COOKIE=true`.
+
+Under **Settings → Notifications**, select **Server configuration** to use the deployment mailer, or **SMTP** to enter a separate host, port, connection security and login. Use the sender address approved by your provider. Save the section and select **Send a test to my email** to check acceptance and inbox delivery. Managed SMTP passwords are encrypted with the application key. Keep that key with your deployment secrets for restores. Queued notifications still require a running queue worker.
+
+Under **Settings → Telegram**, enter the BotFather token and the ID of a chat where the bot can post. Enable the service, save, and send a test to that chat. [Telegram Bot API](https://core.telegram.org/bots/api#sendmessage)
+
+Under **Settings → Ethio telecom SMS**, enter the HTTPS base URLs assigned to your TeleCloud IAM and Simple Message Notification (SMN) services, project ID, account domain, IAM username and password. Use a project with direct SMS enabled. The test uses the signed-in administrator’s profile phone. After enabling SMS, staff can select it when announcing final results. A successful test confirms provider acceptance. Check the recipient’s device for delivery. [Ethio telecom SMN API reference](https://docs.ethiotelecom.et/mohelpcenter/operation/en-us/smn/doc/download/pdf/smn-api.pdf)
 
 ---
 

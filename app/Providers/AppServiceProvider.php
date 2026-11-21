@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Actions\Settings\ApplyMailSettings;
 use App\Enums\UserStatus;
 use App\Models\ApplicantProfileDocument;
 use App\Models\Application;
@@ -21,19 +22,32 @@ use App\Policies\UserPolicy;
 use App\Policies\VacancyPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Mail\MailManager;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Throwable;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        $this->app->singleton(ApplyMailSettings::class);
+        $this->app->afterResolving('mail.manager', function (MailManager $manager): void {
+            app(ApplyMailSettings::class)->handle($manager);
+        });
+    }
 
     public function boot(): void
     {
         $this->applySystemSettings();
         $this->configureRateLimiting();
+        Queue::before(function (): void {
+            if ($this->app->resolved('mail.manager')) {
+                app(ApplyMailSettings::class)->handle(app('mail.manager'));
+            }
+        });
 
         User::deleting(function (User $user): bool {
             if (! $user->isSuperAdmin()) {
@@ -96,8 +110,6 @@ class AppServiceProvider extends ServiceProvider
     {
         try {
             config([
-                'mail.from.name' => Setting::get('mail.from_name', config('mail.from.name')),
-                'mail.from.address' => Setting::get('mail.from_address', config('mail.from.address')),
                 'app.fallback_locale' => Setting::get('app.fallback_locale', config('app.fallback_locale', 'en')),
                 'app.available_locales' => Setting::get('app.available_locales', config('app.available_locales', ['en', 'am'])),
             ]);

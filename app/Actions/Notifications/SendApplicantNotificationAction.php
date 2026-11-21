@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Notifications;
 
 use App\Actions\Audit\LogAuditAction;
+use App\Actions\Settings\ApplyMailSettings;
 use App\Enums\NotificationType;
 use App\Jobs\SendApplicantNotificationJob;
 use App\Models\Applicant;
@@ -31,7 +32,7 @@ class SendApplicantNotificationAction
             'applicant_name' => $applicant->full_name,
             'vacancy_title' => $application?->vacancy?->title ?? $application?->vacancy?->code ?? '',
             'reference_number' => $application?->reference_number ?? '',
-            'contact_information' => config('mail.from.address', ''),
+            'contact_information' => app(ApplyMailSettings::class)->configuredSenderAddress(),
             'instructions' => '',
             'message' => '',
         ], $placeholders);
@@ -53,7 +54,7 @@ class SendApplicantNotificationAction
             'status' => 'pending',
         ]);
 
-        SendApplicantNotificationJob::dispatch($notification);
+        SendApplicantNotificationJob::dispatch($notification)->afterCommit();
 
         $this->auditLogger->handle(
             action: 'notification_sent',
@@ -77,7 +78,7 @@ class SendApplicantNotificationAction
 
         $notification->update(['status' => 'pending']);
 
-        SendApplicantNotificationJob::dispatch($notification);
+        SendApplicantNotificationJob::dispatch($notification)->afterCommit();
 
         $this->auditLogger->handle(
             action: 'notification_resent',

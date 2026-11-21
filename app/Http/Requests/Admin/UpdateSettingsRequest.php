@@ -42,8 +42,21 @@ class UpdateSettingsRequest extends FormRequest
 
     public function rules(): array
     {
+        $smsField = ['exclude_unless:_section,sms', Rule::requiredIf(fn () => $this->boolean('sms.enabled')), 'nullable', 'string'];
+        $origin = 'regex:~^https://(?:[a-z0-9-]+\.)+ethiotelecom\.et(?::443)?/?$~iD';
+
         return [
-            '_section' => ['sometimes', Rule::in(['org', 'social', 'recruitment', 'codes', 'results', 'localization', 'notifications', 'security', 'appearance'])],
+            '_section' => ['sometimes', Rule::in(['org', 'social', 'recruitment', 'codes', 'results', 'localization', 'notifications', 'telegram', 'sms', 'security', 'appearance'])],
+            'telegram.enabled' => ['exclude_unless:_section,telegram', 'required', 'boolean'],
+            'telegram.chat_id' => ['exclude_unless:_section,telegram', Rule::requiredIf(fn () => $this->boolean('telegram.enabled')), 'nullable', 'string', 'regex:/^(?:-?[1-9]\d{0,19}|@[A-Za-z0-9_]{5,32})$/D'],
+            'sms.enabled' => ['exclude_unless:_section,sms', 'required', 'boolean'],
+            'sms.iam_url' => [...$smsField, 'max:255', $origin],
+            'sms.smn_url' => [...$smsField, 'max:255', $origin],
+            'sms.project_id' => [...$smsField, 'regex:/^[a-f0-9]{32}$/iD'],
+            'sms.domain' => [...$smsField, 'max:128'],
+            'sms.username' => [...$smsField, 'max:128'],
+            'messaging_secret' => ['exclude_unless:_section,telegram,sms', 'nullable', 'string', 'max:2048', 'prohibited_if:clear_messaging_secret,1'],
+            'clear_messaging_secret' => ['exclude_unless:_section,telegram,sms', 'sometimes', 'boolean'],
             'org.name' => ['nullable', 'string', 'max:255'],
             'org.address' => ['nullable', 'string', 'max:500'],
             'org.phone' => ['nullable', 'string', 'max:50'],
@@ -68,8 +81,15 @@ class UpdateSettingsRequest extends FormRequest
             'recruitment.reference_format' => ['nullable', 'string', 'max:100'],
             'localization.default_locale' => ['nullable', 'string', 'in:en,am'],
             'localization.show_language_switcher' => ['nullable', 'boolean'],
-            'mail.from_name' => ['nullable', 'string', 'max:255'],
-            'mail.from_address' => ['nullable', 'email'],
+            'mail.mode' => ['sometimes', 'required', 'in:server,smtp,log'],
+            'mail.host' => ['exclude_unless:mail.mode,smtp', 'required', 'string', 'max:253', 'regex:/^[a-z0-9.-]+$/i'],
+            'mail.port' => ['exclude_unless:mail.mode,smtp', 'required', 'integer', 'between:1,65535'],
+            'mail.security' => ['exclude_unless:mail.mode,smtp', 'required', 'in:starttls,tls,none'],
+            'mail.username' => ['exclude_unless:mail.mode,smtp', 'nullable', 'string', 'max:255'],
+            'smtp_password' => ['exclude_unless:mail.mode,smtp', 'nullable', 'string', 'max:2048', 'prohibited_if:clear_smtp_password,1'],
+            'clear_smtp_password' => ['exclude_unless:mail.mode,smtp', 'sometimes', 'boolean'],
+            'mail.from_name' => ['sometimes', 'required', 'string', 'max:255'],
+            'mail.from_address' => ['sometimes', 'required', 'email', 'max:254'],
             'security.session_timeout' => ['sometimes', 'required', 'integer', 'min:5', 'max:1440'],
             'security.login_attempts' => ['sometimes', 'required', 'integer', 'min:3', 'max:20'],
             'security.mfa_enabled' => ['nullable', 'boolean'],
@@ -124,6 +144,16 @@ class UpdateSettingsRequest extends FormRequest
         return [function (Validator $validator): void {
             if ($validator->errors()->isNotEmpty()) {
                 return;
+            }
+            $channel = $this->input('_section');
+            if (in_array($channel, ['sms', 'telegram'], true)) {
+                if ($channel === 'telegram' && $this->filled('messaging_secret') && ! preg_match('/^[0-9]+:[A-Za-z0-9_-]+$/D', $this->input('messaging_secret'))) {
+                    $validator->errors()->add('messaging_secret', __('settings.telegram_token_invalid'));
+                }
+                if ($this->boolean($channel.'.enabled') && ($this->boolean('clear_messaging_secret') ||
+                    (! $this->filled('messaging_secret') && ! Setting::get($channel.'.token')))) {
+                    $validator->errors()->add('messaging_secret', __('settings.messaging_secret_required'));
+                }
             }
             if ($this->has('results.exam_weight') || $this->has('results.interview_weight') || $this->has('results.practical_weight')) {
                 $exam = (float) $this->input('results.exam_weight', Setting::get('results.exam_weight', 60));
