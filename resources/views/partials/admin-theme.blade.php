@@ -52,7 +52,7 @@
 {{-- Amharic pages: fetch Abyssinica SIL up front so text never flashes in a fallback font. --}}
 <link rel="preload" href="{{ asset('fonts/abyssinica/AbyssinicaSIL-Regular.woff2') }}" as="font" type="font/woff2" crossorigin>
 @endif
-<script>document.documentElement.classList.toggle('sidebar-light', {{ $sidebarIsLight ? 'true' : 'false' }});document.documentElement.dataset.uiStyle = @js(\App\Support\UiStyle::current());document.documentElement.classList.add('ui-style-' + document.documentElement.dataset.uiStyle);</script>
+<script>document.documentElement.classList.add('is-booting');addEventListener('load',function(){setTimeout(function(){document.documentElement.classList.remove('is-booting')},600)});document.documentElement.classList.toggle('sidebar-light', {{ $sidebarIsLight ? 'true' : 'false' }});document.documentElement.dataset.uiStyle = @js(\App\Support\UiStyle::current());document.documentElement.classList.add('ui-style-' + document.documentElement.dataset.uiStyle);</script>
 <style>
     :root {
         --color-brand: {{ $themePrimary }};

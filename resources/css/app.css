@@ -511,6 +511,18 @@ html.dark .badge-gray { background-color: rgba(148,163,184,.18); color: #e2e8f0;
 /* After animation ends, JS adds .sa-done so hover transforms are unblocked */
 .sa-done { opacity: 1 !important; animation: none !important; }
 
+/* ── Calm page loads and page changes ────────────────────────────────────
+   1. While a page boots (html.is-booting, set in <head>, removed by app.js two frames
+      after Alpine starts) nothing transitions: colours and sizes Alpine applies right
+      after load appear in their final state instead of fading or sliding on every refresh.
+   2. Moving between pages cross-fades briefly instead of flashing blank (native
+      View Transitions; browsers without support simply navigate as before). */
+html.is-booting *, html.is-booting *::before, html.is-booting *::after { transition: none !important; }
+@media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+}
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; animation-timing-function: ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
     .scroll-animate { opacity: 1 !important; animation: none !important; }
     /* Users who ask the OS for less motion get none: no slides, fades or smooth scroll. */

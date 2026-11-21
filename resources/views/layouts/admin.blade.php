@@ -6,7 +6,8 @@
     <title>@yield('title', __('menus.dashboard')) — {{ \App\Models\Setting::get('org.name', config('app.name')) }}</title>
     @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script>if(localStorage.getItem('theme')==='dark')document.documentElement.classList.add('dark');</script>
+    {{-- Apply saved dark mode and sidebar width before the first paint, so a refresh never slides or flashes. --}}
+    <script>(function(r){try{if(localStorage.getItem('theme')==='dark')r.classList.add('dark');if(localStorage.getItem('sidebarCollapsed')==='true')r.classList.add('sb-collapsed');}catch(e){}})(document.documentElement);</script>
     @include('partials.admin-theme')
     @php
         $adminLogoSize = min(max((int) \App\Models\Setting::get('appearance.logo_size', 36), 24), 72);
@@ -100,14 +101,30 @@
     .locale-inactive { color: var(--tb-muted); }
     .locale-inactive:hover { color: var(--tb-text); }
 
+    /* ── Sidebar geometry from CSS, so the first paint already matches the saved state
+       (html.sb-collapsed is set in <head> before anything renders). Alpine only takes
+       over afterwards, with identical values, so nothing slides on refresh. ── */
+    #admin-sidebar { width: 16.5rem; }
+    @media (min-width: 64rem) {
+        html.sb-collapsed #admin-sidebar { width: 4.5rem; }
+        [data-admin-main] { padding-left: 16.5rem; }
+        html.sb-collapsed [data-admin-main] { padding-left: 4.5rem; }
+    }
+    /* Phones: the drawer starts hidden (it used to render open, then slide away). */
+    @media (max-width: 63.999rem) {
+        #admin-sidebar:not(.translate-x-0) { translate: -100% 0; }
+    }
+    /* Collapsed rail before Alpine has laid it out: show the plain rail, not half-styled labels. */
+    html.sb-collapsed.is-booting #admin-sidebar > * { visibility: hidden; }
+
+    /* Page-to-page: only dim when a page is genuinely slow (class added after 150ms). */
     [data-admin-page-frame] {
-        transition: opacity .16s ease, transform .16s ease;
+        transition: opacity .15s ease;
     }
 
     [data-admin-page-frame].is-loading {
-        opacity: .38;
+        opacity: .6;
         pointer-events: none;
-        transform: translateY(4px);
     }
 
     [data-admin-progress] {
@@ -155,7 +172,7 @@
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     {{-- object syntax keeps the static background below --}}
     :style="{ width: (sidebarOpen || !sidebarCollapsed) ? '16.5rem' : '4.5rem' }"
-    style="width: 16.5rem; background: var(--color-navy); box-shadow: 1px 0 0 var(--sb-border);"
+    style="background: var(--color-navy); box-shadow: 1px 0 0 var(--sb-border);"
     class="fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden transition-all duration-300 ease-out lg:translate-x-0">
 
     {{-- ── Brand + collapse ── --}}
@@ -411,8 +428,8 @@
 {{-- ════════════════════════════════════════════════════════════
      Main content wrapper
 ════════════════════════════════════════════════════════════ --}}
-<div class="flex flex-col min-h-full transition-all duration-300 ease-out"
-     :class="sidebarCollapsed ? 'lg:pl-18' : 'lg:pl-66'">
+{{-- Left padding comes from CSS (html.sb-collapsed), so it is right before Alpine starts. --}}
+<div data-admin-main class="flex flex-col min-h-full transition-[padding] duration-300 ease-out">
     <div data-admin-progress class="fixed left-0 right-0 top-0 z-[80] h-0.5"
          style="background: linear-gradient(90deg, var(--color-brand), var(--color-accent));"></div>
 
@@ -721,7 +738,8 @@ function adminShell() {
         },
         toggleSidebar() {
             this.sidebarCollapsed = !this.sidebarCollapsed;
-            localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed);
+            document.documentElement.classList.toggle('sb-collapsed', this.sidebarCollapsed);
+            try { localStorage.setItem('sidebarCollapsed', this.sidebarCollapsed); } catch (e) { /* private mode */ }
         },
         openSearch() {
             this.searchOpen = true;
@@ -756,9 +774,39 @@ function adminShell() {
         return skippedPathFragments.some((fragment) => url.pathname.includes(fragment));
     };
 
+    // Show the loading state only when a page is actually slow: dimming for a 50ms load
+    // just reads as flicker.
+    let loadingTimer = null;
     const setLoading = (loading) => {
-        document.querySelector(frameSelector)?.classList.toggle('is-loading', loading);
-        document.querySelector(progressSelector)?.classList.toggle('is-loading', loading);
+        clearTimeout(loadingTimer);
+        const apply = (on) => {
+            document.querySelector(frameSelector)?.classList.toggle('is-loading', on);
+            document.querySelector(progressSelector)?.classList.toggle('is-loading', on);
+        };
+        if (loading) {
+            loadingTimer = setTimeout(() => apply(true), 150);
+        } else {
+            apply(false);
+        }
+    };
+
+    const root = document.documentElement;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    // Swap the page in one step. Transitions are paused (html.is-booting) while Alpine
+    // initialises the new markup, and supported browsers cross-fade old → new.
+    const swapPage = async (apply) => {
+        root.classList.add('is-booting');
+        const release = () => requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('is-booting')));
+        try {
+            if (document.startViewTransition && ! reduceMotion.matches) {
+                await document.startViewTransition(apply).updateCallbackDone;
+            } else {
+                apply();
+            }
+        } finally {
+            release();
+        }
     };
 
     const initTree = (element) => {
@@ -842,19 +890,24 @@ function adminShell() {
                 return;
             }
 
-            document.title = nextDocument.title;
-            swapSidebarNav(nextDocument);
-            swapBreadcrumb(nextDocument);
-            closeMobileMenu();
-            currentFrame.replaceWith(nextFrame);
-            runScripts(nextFrame);
-            initTree(nextFrame);
+            // The loading state must not be captured as the "old" page of the cross-fade.
+            setLoading(false);
+            await swapPage(() => {
+                document.title = nextDocument.title;
+                swapSidebarNav(nextDocument);
+                swapBreadcrumb(nextDocument);
+                closeMobileMenu();
+                currentFrame.replaceWith(nextFrame);
+                runScripts(nextFrame);
+                initTree(nextFrame);
+                // Instant: a smooth scroll after the content has already changed looks like a glitch.
+                window.scrollTo(0, 0);
+            });
 
             if (pushState) {
                 window.history.pushState({ adminNavigation: true }, '', url);
             }
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
             document.dispatchEvent(new CustomEvent('admin:navigated', { detail: { url } }));
         } catch (error) {
             if (error.name !== 'AbortError') {

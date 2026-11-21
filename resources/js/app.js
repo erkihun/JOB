@@ -3,6 +3,14 @@ import Alpine from 'alpinejs';
 window.Alpine = Alpine;
 Alpine.start();
 
+// Transitions are switched off while the page boots (html.is-booting, set in <head> by
+// partials/admin-theme): otherwise every colour and size Alpine applies right after load
+// would visibly fade or slide on each refresh. Re-enable them once the first frames of the
+// final layout are on screen.
+requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.documentElement.classList.remove('is-booting');
+}));
+
 // Scroll-reveal — GPU-only (opacity + transform), zero dependencies
 (function () {
     var els = document.querySelectorAll('.scroll-animate');
