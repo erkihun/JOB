@@ -28,7 +28,6 @@ class ApplicantPasswordResetController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // Only send for applicant users; success message shown regardless to prevent enumeration
         // The shared login page links here for everyone, so staff accounts (any role)
         // are served too; accounts with no role at all are ignored.
         if ($user && $user->roles()->exists()) {
@@ -43,7 +42,7 @@ class ApplicantPasswordResetController extends Controller
             ]);
 
             try {
-                $user->notify(new PasswordResetOtpNotification($otp));
+                $user->notifyNow(new PasswordResetOtpNotification($otp));
             } catch (\Throwable $e) {
                 // Logged for the operator; the response stays generic so it cannot reveal which emails exist.
                 report($e);

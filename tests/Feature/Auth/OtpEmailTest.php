@@ -6,7 +6,9 @@ use App\Models\User;
 use App\Notifications\PasswordResetOtpNotification;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 
 beforeEach(function (): void {
     $this->seed(RolesAndPermissionsSeeder::class);
@@ -73,6 +75,18 @@ test('a mail server failure on password reset keeps the generic response', funct
         ->assertRedirect(route('applicant.password.otp'))
         ->assertSessionHas('info', __('auth.otp_sent'));
 });
+
+test('password reset delivers the code without a queue worker', function (string $route): void {
+    Queue::fake();
+    config(['mail.default' => 'array']);
+    $user = $route === 'admin.password.email' ? User::factory()->admin()->create() : unverifiedApplicant();
+
+    $this->post(route($route), ['email' => $user->email])->assertSessionHas('info');
+
+    $messages = Mail::mailer('array')->getSymfonyTransport()->messages();
+    expect($messages)->toHaveCount(1)
+        ->and($messages->first()->getOriginalMessage()->getTo()[0]->getAddress())->toBe($user->email);
+})->with(['applicant.password.email', 'admin.password.email']);
 
 test('staff can request a reset code from the shared forgot-password page', function (): void {
     Notification::fake();
