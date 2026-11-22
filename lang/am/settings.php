@@ -163,6 +163,7 @@ return [
     'code_padding' => 'የቁጥር አሃዞች',
     'code_auto_generate' => 'በስርዓቱ በራስ-ሰር ይመደባል',
     'code_placeholders' => 'የሚተኩ ቦታዎች',
+    'code_sequence_required' => 'ለተከታታይ ቁጥሩ በእያንዳንዱ ቅርጸት ውስጥ {SEQ} ያካትቱ።',
     'code_preview' => 'ምሳሌ',
     'auto' => 'ራስ-ሰር',
     // Admin UI

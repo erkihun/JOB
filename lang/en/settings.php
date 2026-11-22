@@ -161,6 +161,7 @@ return [
     'code_padding' => 'Sequence Digits',
     'code_auto_generate' => 'Auto-generate (system assigns code)',
     'code_placeholders' => 'Available placeholders',
+    'code_sequence_required' => 'Include {SEQ} in each format for the sequence number.',
     'code_preview' => 'Example',
     'auto' => 'Auto',
     // Admin UI

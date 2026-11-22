@@ -8,45 +8,54 @@ use App\Models\Applicant;
 use App\Models\Application;
 use App\Models\Setting;
 use App\Models\Vacancy;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use UnexpectedValueException;
 
+/**
+ * Human-readable numbers for applications, vacancies and applicants.
+ *
+ * Each series ("application", "vacancy", "applicant", per year when the format
+ * contains the year) has its own counter row in `code_sequences`. The row is
+ * locked (SELECT … FOR UPDATE) while it is incremented, so concurrent requests
+ * always get different numbers. The UNIQUE column constraints stay as the last
+ * line of defence.
+ */
 class CodeGeneratorService
 {
-    /**
-     * Generate a unique application reference number.
-     *
-     * Strategy: attempt count-based sequence up to 5 times, appending a random
-     * hex suffix on each retry to break collisions under concurrent load.
-     * The UNIQUE constraint on applications.reference_number is the final guard.
-     */
+    private const SERIES = [
+        'application' => ['model' => Application::class, 'column' => 'reference_number', 'prefix' => 'APP', 'padding' => 6],
+        'vacancy' => ['model' => Vacancy::class, 'column' => 'code', 'prefix' => 'VAC', 'padding' => 4],
+        'applicant' => ['model' => Applicant::class, 'column' => 'applicant_code', 'prefix' => 'APL', 'padding' => 5],
+    ];
+
     public function forApplication(): string
     {
-        return $this->makeUnique(
-            format: Setting::get('codes.application.format', '{PREFIX}-{YEAR}-{SEQ}'),
-            prefix: Setting::get('codes.application.prefix', 'APP'),
-            padding: (int) Setting::get('codes.application.padding', 6),
-            existsFn: fn (string $code): bool => Application::where('reference_number', $code)->exists(),
-        );
+        return $this->next('application');
     }
 
     public function forVacancy(): string
     {
-        return $this->makeUnique(
-            format: Setting::get('codes.vacancy.format', '{PREFIX}-{YEAR}-{SEQ}'),
-            prefix: Setting::get('codes.vacancy.prefix', 'VAC'),
-            padding: (int) Setting::get('codes.vacancy.padding', 4),
-            existsFn: fn (string $code): bool => Vacancy::where('code', $code)->exists(),
-        );
+        return $this->next('vacancy');
     }
 
     public function forApplicant(): string
     {
-        return $this->makeUnique(
-            format: Setting::get('codes.applicant.format', '{PREFIX}-{YEAR}-{SEQ}'),
-            prefix: Setting::get('codes.applicant.prefix', 'APL'),
-            padding: (int) Setting::get('codes.applicant.padding', 5),
-            existsFn: fn (string $code): bool => Applicant::where('applicant_code', $code)->exists(),
-        );
+        return $this->next('applicant');
+    }
+
+    /** The number the next vacancy is likely to get, without using it up. */
+    public function peekVacancy(): string
+    {
+        [$format, $prefix, $padding] = $this->settingsFor('vacancy');
+        $current = DB::table('code_sequences')->where('key', $this->sequenceKey('vacancy', $format))->value('last_value')
+            ?? $this->initialValue('vacancy', $format);
+
+        do {
+            $code = $this->make($format, $prefix, $padding, ++$current);
+        } while ($this->alreadyAssigned($code) || DB::table('generated_codes')->where('code', $code)->exists());
+
+        return $code;
     }
 
     public function vacancyAutoGenerate(): bool
@@ -56,31 +65,86 @@ class CodeGeneratorService
 
     public function preview(string $format, string $prefix, int $padding): string
     {
-        return $this->make($format, $prefix, $padding, 0, '');
+        return $this->make($format, $prefix, $padding, 1);
     }
 
-    /**
-     * Generate a code and retry with a random suffix if a collision is found.
-     * The DB unique constraint provides the definitive race-condition guard;
-     * this avoids unnecessary DB failures in the 99.9 % non-collision case.
-     *
-     * @param  callable(string): bool  $existsFn
-     */
-    private function makeUnique(string $format, string $prefix, int $padding, callable $existsFn): string
+    private function next(string $series): string
     {
-        $base = Application::whereYear('created_at', now()->year)->count();
-        $tries = 0;
+        [$format, $prefix, $padding] = $this->settingsFor($series);
+        $key = $this->sequenceKey($series, $format);
 
-        do {
-            $suffix = $tries === 0 ? '' : '-'.strtoupper(Str::random(3));
-            $code = $this->make($format, $prefix, $padding, $base + $tries, $suffix);
-            $tries++;
-        } while ($tries < 10 && $existsFn($code));
+        return DB::transaction(function () use ($series, $format, $prefix, $padding, $key): string {
+            // Create the counter once, starting after the records that already exist.
+            DB::table('code_sequences')->insertOrIgnore([
+                'key' => $key,
+                'last_value' => $this->initialValue($series, $format),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
 
-        return $code;
+            $value = (int) DB::table('code_sequences')->where('key', $key)->lockForUpdate()->value('last_value');
+
+            // Skip numbers already taken (e.g. entered by hand or imported).
+            do {
+                $code = $this->make($format, $prefix, $padding, ++$value);
+            } while ($this->alreadyAssigned($code) || DB::table('generated_codes')->insertOrIgnore(['code' => $code]) === 0);
+
+            DB::table('code_sequences')->where('key', $key)->update(['last_value' => $value, 'updated_at' => now()]);
+
+            return $code;
+        }, attempts: 3);
     }
 
-    private function make(string $format, string $prefix, int $padding, int $count, string $suffix): string
+    /** @return array{0: string, 1: string, 2: int} */
+    private function settingsFor(string $series): array
+    {
+        $defaults = self::SERIES[$series];
+        $format = (string) Setting::get("codes.{$series}.format", '{PREFIX}-{YEAR}-{SEQ}');
+        if (! str_contains($format, '{SEQ}')) {
+            throw new UnexpectedValueException("The {$series} code format must contain {SEQ}.");
+        }
+
+        return [
+            $format,
+            (string) Setting::get("codes.{$series}.prefix", $defaults['prefix']),
+            (int) Setting::get("codes.{$series}.padding", $defaults['padding']),
+        ];
+    }
+
+    /** Numbering restarts each year only when the format shows the year. */
+    private function sequenceKey(string $series, string $format): string
+    {
+        return str_contains($format, '{YEAR}') || str_contains($format, '{YY}')
+            ? $series.':'.now()->format('Y')
+            : $series;
+    }
+
+    /** Starting point for a brand-new counter: the records already in this series. */
+    private function initialValue(string $series, string $format): int
+    {
+        /** @var class-string<Model> $model */
+        $model = self::SERIES[$series]['model'];
+        $query = $model::query()->withoutGlobalScopes();
+
+        if ($this->sequenceKey($series, $format) !== $series) {
+            $query->whereYear('created_at', now()->year);
+        }
+
+        return $query->count();
+    }
+
+    private function alreadyAssigned(string $code): bool
+    {
+        foreach (self::SERIES as ['model' => $model, 'column' => $column]) {
+            if ($model::query()->withoutGlobalScopes()->where($column, $code)->exists()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function make(string $format, string $prefix, int $padding, int $number): string
     {
         return strtr($format, [
             '{PREFIX}' => strtoupper($prefix),
@@ -88,7 +152,7 @@ class CodeGeneratorService
             '{YY}' => now()->format('y'),
             '{MONTH}' => now()->format('m'),
             '{DAY}' => now()->format('d'),
-            '{SEQ}' => str_pad((string) ($count + 1), max(1, $padding), '0', STR_PAD_LEFT),
-        ]).$suffix;
+            '{SEQ}' => str_pad((string) $number, max(1, $padding), '0', STR_PAD_LEFT),
+        ]);
     }
 }

@@ -216,7 +216,8 @@
                 <legend class="sr-only">{{ __('settings.codes') }}</legend>
                 <div class="alert alert-info">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <p>{{ __('settings.code_placeholders') }}: <code class="rounded bg-white/70 px-1.5 py-0.5 font-mono text-[13px]">{PREFIX} {YEAR} {YY} {MONTH} {DAY} {SEQ}</code></p>
+                    <p>{{ __('settings.code_placeholders') }}: <code class="rounded bg-white/70 px-1.5 py-0.5 font-mono text-[13px]">{PREFIX} {YEAR} {YY} {MONTH} {DAY} {SEQ}</code>
+                        {{ __('settings.code_sequence_required') }}</p>
                 </div>
                 @foreach([
                     'application' => [__('settings.code_application'), 'APP', 6],
@@ -232,13 +233,13 @@
                          x-data="{
                             prefix: @js((string) $cPrefix), format: @js((string) $cFormat), padding: @js((string) $cPadding),
                             get preview() {
-                                const d = new Date(), pad = (n, l) => String(n).padStart(l, '0');
                                 const len = Math.min(Math.max(parseInt(this.padding) || {{ $defPadding }}, 1), 10);
-                                return (this.format || '{PREFIX}-{YEAR}-{SEQ}')
-                                    .replaceAll('{PREFIX}', (this.prefix || @js($defPrefix)).toUpperCase())
-                                    .replaceAll('{YEAR}', d.getFullYear()).replaceAll('{YY}', String(d.getFullYear()).slice(-2))
-                                    .replaceAll('{MONTH}', pad(d.getMonth() + 1, 2)).replaceAll('{DAY}', pad(d.getDate(), 2))
-                                    .replaceAll('{SEQ}', pad(1, len));
+                                const date = @js(now()->format('Y-m-d')).split('-');
+                                return this.format
+                                    .replaceAll('{PREFIX}', this.prefix.trim().replace(/[a-z]/g, c => c.toUpperCase()))
+                                    .replaceAll('{YEAR}', date[0]).replaceAll('{YY}', date[0].slice(-2))
+                                    .replaceAll('{MONTH}', date[1]).replaceAll('{DAY}', date[2])
+                                    .replaceAll('{SEQ}', '1'.padStart(len, '0'));
                             }
                          }">
                     <div class="card-header">
@@ -260,17 +261,20 @@
                             <div>
                                 <label for="code_{{ $type }}_prefix" class="form-label">{{ __('settings.code_prefix') }}</label>
                                 <input type="text" id="code_{{ $type }}_prefix" name="codes[{{ $type }}][prefix]" x-model="prefix"
-                                       value="{{ $cPrefix }}" class="form-input font-mono uppercase" placeholder="{{ $defPrefix }}">
+                                       value="{{ $cPrefix }}" maxlength="20" class="form-input font-mono uppercase" placeholder="{{ $defPrefix }}">
                             </div>
                             <div>
                                 <label for="code_{{ $type }}_format" class="form-label">{{ __('settings.code_format') }}</label>
                                 <input type="text" id="code_{{ $type }}_format" name="codes[{{ $type }}][format]" x-model="format"
-                                       value="{{ $cFormat }}" class="form-input font-mono" placeholder="{PREFIX}-{YEAR}-{SEQ}">
+                                       value="{{ $cFormat }}" required maxlength="50" class="form-input font-mono" placeholder="{PREFIX}-{YEAR}-{SEQ}">
+                                @error("codes.$type.format")
+                                    <p class="form-hint text-red-700">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label for="code_{{ $type }}_padding" class="form-label">{{ __('settings.code_padding') }}</label>
                                 <input type="number" id="code_{{ $type }}_padding" name="codes[{{ $type }}][padding]" min="1" max="10" x-model="padding"
-                                       value="{{ $cPadding }}" class="form-input">
+                                       value="{{ $cPadding }}" required class="form-input">
                                 <p class="form-hint">{{ __('settings.code_padding_hint') }}</p>
                             </div>
                         </div>

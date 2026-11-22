@@ -62,7 +62,7 @@ class VacancyController extends Controller
             'employmentTypes' => EmploymentType::cases(),
             'institutions' => Institution::where('status', 'active')->orderBy('name')->get(['id', 'name', 'short_name']),
             'autoCode' => $autoCode,
-            'codePreview' => $autoCode ? $this->codes->forVacancy() : null,
+            'codePreview' => $autoCode ? $this->codes->peekVacancy() : null,
         ]);
     }
 
