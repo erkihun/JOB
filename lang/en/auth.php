@@ -46,6 +46,7 @@ return [
     'verify_otp_button' => 'Verify Code',
     'otp_code' => '6-Digit Code',
     'otp_sent_to' => 'We sent a code to :email. Check your inbox.',
+    'otp_check_folders' => 'Check the inbox for :email for your verification code. If you don’t see it there, check your Spam or Junk folder.',
     'otp_expires_hint' => 'This code expires in 10 minutes.',
     'resend_otp' => 'Didn\'t receive it? Resend code',
     'back_to_login' => 'Back to login',

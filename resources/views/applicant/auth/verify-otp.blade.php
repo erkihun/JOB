@@ -23,7 +23,7 @@
                 </div>
                 <h1 class="text-2xl font-bold text-gray-900">{{ __('auth.verify_otp') }}</h1>
                 <p class="mt-1 text-sm text-gray-500">
-                    {{ __('auth.otp_sent_to', ['email' => session('applicant_password_reset_email')]) }}
+                    {{ __('auth.otp_check_folders', ['email' => session('applicant_password_reset_email')]) }}
                 </p>
             </div>
 

@@ -46,6 +46,7 @@ return [
     'verify_otp_button' => 'ኮዱን አረጋግጥ',
     'otp_code' => '6-አሃዝ ኮድ',
     'otp_sent_to' => 'ወደ :email ኮድ ተልኳል። የገቢ መልዕክቶችዎን ይፈትሹ።',
+    'otp_check_folders' => 'የማረጋገጫ ኮዱን ለማግኘት የ :email ገቢ መልእክቶችን (Inbox) ይፈትሹ። እዚያ ካላገኙት፣ የስፓም አቃፊውን (Spam/Junk) ይመልከቱ።',
     'otp_expires_hint' => 'ይህ ኮድ በ10 ደቂቃ ውስጥ ያልቃል።',
     'resend_otp' => 'አልደረሰዎትም? ኮድ ዳግም ላክ',
     'back_to_login' => 'ወደ መግቢያ ተመለስ',
