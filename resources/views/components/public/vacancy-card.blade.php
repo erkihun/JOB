@@ -84,10 +84,13 @@
             {{ __('applicant.applied') }}
         </span>
         @else
-        <span class="relative inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl bg-brand px-4 text-[15px] font-bold text-white transition group-hover:bg-brand-dark" aria-hidden="true">
+        {{-- A real link: positioned above the title's stretched overlay, a plain span here
+             swallowed the click. Out of the tab order since the title link is the keyboard target. --}}
+        <a href="{{ $url }}" tabindex="-1" aria-hidden="true"
+           class="relative z-10 inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl bg-brand px-4 text-[15px] font-bold text-white transition hover:bg-brand-dark group-hover:bg-brand-dark">
             {{ __('public.view_and_apply') }}
             <x-public.icon name="arrow-right" class="h-4 w-4" />
-        </span>
+        </a>
         @endif
     </div>
 
