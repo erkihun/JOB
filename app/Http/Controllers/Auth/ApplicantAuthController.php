@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Actions\Auth\RegisterApplicantAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ApplicantRegisterRequest;
-use App\Models\PasswordResetOtp;
 use App\Models\Setting;
-use App\Notifications\PasswordResetOtpNotification;
 use App\Services\Recruitment\RecruitmentTimelineService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -67,26 +64,9 @@ class ApplicantAuthController extends Controller
         Session::forget('reg_temp_docs_name');
 
         Auth::login($user);
+        $request->session()->regenerate();
 
-        // Send email verification OTP
-        PasswordResetOtp::where('email', $user->email)->delete();
-        $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        PasswordResetOtp::create([
-            'email' => $user->email,
-            'otp' => Hash::make($otp),
-            'expires_at' => now()->addMinutes(10),
-        ]);
-        try {
-            $user->notify(new PasswordResetOtpNotification($otp, PasswordResetOtpNotification::PURPOSE_VERIFY));
-        } catch (\Throwable $e) {
-            // The account is already created; let the applicant use "Resend code" instead of a 500.
-            report($e);
-
-            return redirect()->route('applicant.verify-email')
-                ->withErrors(['otp' => __('auth.otp_send_failed')]);
-        }
-
-        return redirect()->route('applicant.verify-email');
+        return redirect()->route('applicant.dashboard');
     }
 
     public function tempPhoto(): StreamedResponse

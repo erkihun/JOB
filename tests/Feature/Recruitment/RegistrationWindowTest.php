@@ -63,7 +63,7 @@ test('registration is allowed while at least one announcement is open', function
     $data = windowRegistrationData();
 
     $this->get(route('applicant.register'))->assertOk()->assertSee('name="password"', false);
-    $this->post(route('applicant.register'), $data)->assertRedirect(route('applicant.verify-email'));
+    $this->post(route('applicant.register'), $data)->assertRedirect(route('applicant.dashboard'));
 
     expect(User::where('email', $data['email'])->exists())->toBeTrue();
 });
@@ -73,7 +73,7 @@ test('a closed announcement does not block registration while another one is ope
     RecruitmentAnnouncement::factory()->create(['opening_date' => '2026-09-28', 'closing_date' => '2026-10-05']);
 
     $data = windowRegistrationData();
-    $this->post(route('applicant.register'), $data)->assertRedirect(route('applicant.verify-email'));
+    $this->post(route('applicant.register'), $data)->assertRedirect(route('applicant.dashboard'));
 
     expect(User::where('email', $data['email'])->exists())->toBeTrue();
 });

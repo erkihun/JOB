@@ -93,7 +93,7 @@ test('date of birth uses the ethiopian calendar picker in amharic', function ():
 test('applicant can register with all required fields', function (): void {
     $response = $this->post(route('applicant.register'), validRegistrationData());
 
-    $response->assertRedirect(route('applicant.verify-email'));
+    $response->assertRedirect(route('applicant.dashboard'));
     expect(User::latest()->first())->not->toBeNull();
 });
 
@@ -161,7 +161,7 @@ test('national id is normalized and must contain sixteen digits', function (): v
     ]);
 
     $this->post(route('applicant.register'), $data)
-        ->assertRedirect(route('applicant.verify-email'));
+        ->assertRedirect(route('applicant.dashboard'));
 
     expect(Applicant::where('email', $data['email'])->value('national_id'))->toBe('1111222233334444');
 
@@ -190,7 +190,7 @@ test('phone is normalized and must be unique', function (): void {
     ]);
 
     $this->post(route('applicant.register'), $data)
-        ->assertRedirect(route('applicant.verify-email'));
+        ->assertRedirect(route('applicant.dashboard'));
 
     expect(Applicant::where('email', $data['email'])->value('phone'))->toBe('+251911222333');
 
@@ -232,7 +232,7 @@ test('disability type is not required when disability status is no', function ()
 
     $response = $this->post(route('applicant.register'), $data);
 
-    $response->assertRedirect(route('applicant.verify-email'));
+    $response->assertRedirect(route('applicant.dashboard'));
     $response->assertSessionHasNoErrors();
 });
 
@@ -303,7 +303,7 @@ test('applicant dashboard shows profile completion percentage', function (): voi
 test('terms agreement is not required on registration review', function (): void {
     $response = $this->post(route('applicant.register'), validRegistrationData());
 
-    $response->assertRedirect(route('applicant.verify-email'));
+    $response->assertRedirect(route('applicant.dashboard'));
 });
 
 test('review step pre-populates fields from old input after a failed submission', function (): void {

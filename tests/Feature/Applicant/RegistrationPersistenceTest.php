@@ -57,7 +57,7 @@ function fullRegistrationForm(array $overrides = []): array
 test('registration saves every submitted field on the user and applicant records', function (): void {
     $this->post(route('applicant.register'), fullRegistrationForm())
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('applicant.verify-email'));
+        ->assertRedirect(route('applicant.dashboard'));
 
     // Account
     $user = User::where('email', 'Selam.Haile@example.com')->sole();
@@ -105,9 +105,10 @@ test('registration saves every submitted field on the user and applicant records
         ->and($document->file_path)->toStartWith('applicant-documents/'.$applicant->id.'/')
         ->and(Storage::disk('local')->exists($document->file_path))->toBeTrue();
 
-    // E-mail verification code issued and sent
-    expect(PasswordResetOtp::where('email', $user->email)->exists())->toBeTrue();
-    Notification::assertSentTo($user, PasswordResetOtpNotification::class);
+    // No e-mail verification step: the account is verified at registration and no code is sent
+    expect($user->email_verified_at)->not->toBeNull()
+        ->and(PasswordResetOtp::where('email', $user->email)->exists())->toBeFalse();
+    Notification::assertNotSentTo($user, PasswordResetOtpNotification::class);
 });
 
 test('optional fields can be left empty', function (): void {
@@ -116,7 +117,7 @@ test('optional fields can be left empty', function (): void {
         'university_name' => '', 'field_of_study' => '', 'graduation_year' => '', 'gpa' => '', 'education_level' => '',
         'work_experience_years' => '', 'work_experience_months' => '', 'current_employer' => '',
         'current_position' => '', 'work_experience_summary' => '', 'alternative_phone' => '',
-    ]))->assertSessionHasNoErrors()->assertRedirect(route('applicant.verify-email'));
+    ]))->assertSessionHasNoErrors()->assertRedirect(route('applicant.dashboard'));
 
     $applicant = Applicant::where('email', 'Selam.Haile@example.com')->sole();
     expect($applicant->nationality)->toBeNull()

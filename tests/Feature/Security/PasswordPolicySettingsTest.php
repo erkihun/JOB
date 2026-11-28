@@ -172,7 +172,7 @@ test('applicant symbol requirement can be disabled and enabled by settings', fun
         'password' => 'Applicant123',
         'password_confirmation' => 'Applicant123',
     ]))
-        ->assertRedirect(route('applicant.verify-email'));
+        ->assertRedirect(route('applicant.dashboard'));
 
     auth()->logout();
     session()->invalidate();

@@ -36,6 +36,8 @@ class RegisterApplicantAction
                 'password' => Hash::make($data['password']),
                 'status' => 'active',
                 'preferred_locale' => $data['preferred_locale'],
+                // Applicants are not asked to verify their email by OTP.
+                'email_verified_at' => now(),
             ]);
 
             $user->assignRole('applicant');

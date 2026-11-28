@@ -51,7 +51,7 @@ test('registration rejects an applicant younger than 18', function (string $date
 test('registration accepts an applicant who turns 18 today or is older', function (string $dateOfBirth): void {
     $data = minAgeRegistration($dateOfBirth);
 
-    $this->post(route('applicant.register'), $data)->assertSessionHasNoErrors()->assertRedirect(route('applicant.verify-email'));
+    $this->post(route('applicant.register'), $data)->assertSessionHasNoErrors()->assertRedirect(route('applicant.dashboard'));
 
     expect(User::where('email', $data['email'])->exists())->toBeTrue();
 })->with([

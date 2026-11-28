@@ -65,7 +65,7 @@ test('registration assigns only the applicant role and never an injected role', 
     ]);
 
     $this->post(route('applicant.register'), $data)
-        ->assertRedirect(route('applicant.verify-email'));
+        ->assertRedirect(route('applicant.dashboard'));
 
     $user = User::where('email', $data['email'])->firstOrFail();
 
@@ -83,7 +83,7 @@ test('registration cannot set the user status from request input', function (): 
     ]);
 
     $this->post(route('applicant.register'), $data)
-        ->assertRedirect(route('applicant.verify-email'));
+        ->assertRedirect(route('applicant.dashboard'));
 
     $user = User::where('email', $data['email'])->firstOrFail();
 
@@ -96,17 +96,18 @@ test('registration ignores injected created_by and email_verified_at', function 
 
     $data = secureRegistrationPayload([
         'created_by' => $other->id,
-        'email_verified_at' => now()->toDateTimeString(),
+        'email_verified_at' => '2000-01-01 00:00:00',
     ]);
 
     $this->post(route('applicant.register'), $data)
-        ->assertRedirect(route('applicant.verify-email'));
+        ->assertRedirect(route('applicant.dashboard'));
 
     $user = User::where('email', $data['email'])->firstOrFail();
 
     expect($user->created_by)->toBeNull()
-        // Email must remain unverified so the OTP gate still applies.
-        ->and($user->email_verified_at)->toBeNull();
+        // Verification time is set by the server, not the injected value.
+        ->and($user->email_verified_at)->not->toBeNull()
+        ->and($user->email_verified_at->toDateTimeString())->not->toBe('2000-01-01 00:00:00');
 });
 
 test('newly registered applicant cannot access the admin area', function (): void {
@@ -199,7 +200,7 @@ test('uploaded document is stored privately with a randomized name', function ()
     ]);
 
     $this->post(route('applicant.register'), $data)
-        ->assertRedirect(route('applicant.verify-email'));
+        ->assertRedirect(route('applicant.dashboard'));
 
     $doc = ApplicantProfileDocument::query()->latest()->firstOrFail();
 
@@ -225,7 +226,7 @@ test('xss payload in name fields is stored verbatim and escaped on output', func
     ]);
 
     $this->post(route('applicant.register'), $data)
-        ->assertRedirect(route('applicant.verify-email'));
+        ->assertRedirect(route('applicant.dashboard'));
 
     $applicant = Applicant::where('email', $data['email'])->firstOrFail();
 
@@ -245,7 +246,7 @@ test('sql injection attempt in fields is treated as literal data', function (): 
     ]);
 
     $this->post(route('applicant.register'), $data)
-        ->assertRedirect(route('applicant.verify-email'));
+        ->assertRedirect(route('applicant.dashboard'));
 
     // The users table is intact and the literal string was stored safely.
     expect(User::query()->count())->toBeGreaterThan(0);

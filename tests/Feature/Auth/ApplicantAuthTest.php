@@ -40,7 +40,7 @@ test('applicant can register with valid data', function () {
         'documents' => UploadedFile::fake()->create('documents.pdf', 500, 'application/pdf'),
     ]);
 
-    $response->assertRedirect(route('applicant.verify-email'));
+    $response->assertRedirect(route('applicant.dashboard'));
 
     $this->assertDatabaseHas('users', ['email' => 'applicant@test.com']);
     $this->assertDatabaseHas('applicants', ['email' => 'applicant@test.com']);
